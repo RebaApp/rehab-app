@@ -20,7 +20,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.rebaapp.snackc8982b01f6234926b2fac6e6b0219394"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -30,6 +31,12 @@
         "projectId": "78b7175c-fee6-442d-a5f6-026e858f7a2e"
       }
     },
-    "owner": "rebaapp"
+    "owner": "rebaapp",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/78b7175c-fee6-442d-a5f6-026e858f7a2e"
+    }
   }
 }

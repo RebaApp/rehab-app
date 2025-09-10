@@ -5,13 +5,14 @@ import {
   TextInput, Linking, Platform, Animated, Dimensions, Modal, SafeAreaView,
   KeyboardAvoidingView, Alert
 } from "react-native";
-
-// Firebase integration (added by assistant)
-import { auth, db, storage } from "./firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
+
+// Firebase integration (expected firebaseConfig.js in project root)
+import { auth, db } from './firebaseConfig';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
 
 const { width: SCREEN_W } = Dimensions.get("window");
 
@@ -133,6 +134,9 @@ export default function App(){
   const [tab,setTab] = useState("home");
   const [query,setQuery] = useState("");
   const [filtersVisible,setFiltersVisible] = useState(false);
+const [refreshing, setRefreshing] = useState(false);
+const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters()); setTimeout(()=> setRefreshing(false), 800); };
+
   const [selectedCenter,setSelectedCenter] = useState(null);
   const [articleOpen,setArticleOpen] = useState(null);
   const [articleComments,setArticleComments] = useState({});
@@ -151,7 +155,6 @@ export default function App(){
   const slide = useRef(new Animated.Value(SCREEN_W)).current;
   const shimmer = useRef(new Animated.Value(0.3)).current;
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(()=>{
     AsyncStorage.getItem("reba:favorites_v1").then(v=> v && setFavorites(JSON.parse(v))).catch(()=>{});
     AsyncStorage.getItem("reba:articleComments_v1").then(v=> v && setArticleComments(JSON.parse(v))).catch(()=>{});
@@ -160,7 +163,6 @@ export default function App(){
     Animated.loop(Animated.sequence([Animated.timing(shimmer,{ toValue:0.9, duration:1200, useNativeDriver:true }), Animated.timing(shimmer,{ toValue:0.3, duration:1200, useNativeDriver:true })])).start();
   },[]);
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(()=>{ if(selectedCenter || articleOpen){ slide.setValue(SCREEN_W); Animated.spring(slide,{ toValue:0, useNativeDriver:true }).start(); } },[selectedCenter, articleOpen]);
 
   const toggleFav = async(id)=>{ const copy = {...favorites}; if(copy[id]) delete copy[id]; else copy[id]=true; setFavorites(copy); await AsyncStorage.setItem("reba:favorites_v1", JSON.stringify(copy)).catch(()=>{}); };
@@ -303,7 +305,7 @@ export default function App(){
             <View style={{ marginTop: 8 }}>
               {(center.programsExtended || []).map((p, idxp) => (
                 <View key={idxp} style={{ marginBottom: 10 }}>
-                  <Text style={{ fontWeight: "700" }}>{p}</Text>
+                  <Text style={{ fontWeight: "300", color: THEME.muted }}>{p}</Text>
                 </View>
               ))}
             </View>
@@ -319,27 +321,12 @@ export default function App(){
 
             {/* Reviews */}
             <Text style={{ fontWeight: "800", marginTop: 16 }}>Отзывы ({center.reviews.length})</Text>
-            <View style={{ marginTop: 8 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                <View style={{ flex: 1 }}>
-                  <View style={{ height: 8, backgroundColor: "#eef7ff", borderRadius: 6, overflow: "hidden", marginBottom: 8 }}>
-                    <View
-                      style={{
-                        width: `${Math.round(
-                          ((center.reviews.reduce((a, b) => a + b.rating, 0) / (center.reviews.length || 1)) / 5) * 100
-                        )}%`,
-                        height: 8,
-                        backgroundColor: "#ffd66b",
-                      }}
-                    />
-                  </View>
-                </View>
-                <TouchableOpacity onPress={toggleReviews}>
-                  <Text style={{ color: THEME.primary, marginLeft: 12 }}>Посмотреть все отзывы</Text>
-                </TouchableOpacity>
-              </View>
+            <TouchableOpacity onPress={toggleReviews} style={{ marginTop:6 }}>
+              <Text style={{ color: THEME.primary }}>Посмотреть все отзывы</Text>
+            </TouchableOpacity>
 
-              <Animated.View style={{ height: reviewsHeight, overflow: "hidden" }}>
+            <View style={{ marginTop:8 }}>
+<Animated.View style={{ height: reviewsHeight, overflow: "hidden" }}>
                 {center.reviews.map((r) => (
                   <View key={r.id} style={styles.review}>
                     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -360,12 +347,6 @@ export default function App(){
         {/* Footer */}
         <View style={styles.detailFooter}>
           <TouchableOpacity
-            onPress={() => toggleFav(center.id)}
-            style={{ padding: 8, marginRight: 8, justifyContent: "center", alignItems: "center" }}
-          >
-            <Text style={{ fontSize: 22 }}>{favorites && favorites[center.id] ? "♥" : "♡"}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             style={styles.footerBtnPrimary}
             onPress={() => {
               setCurrentRequestCenter(center);
@@ -374,16 +355,69 @@ export default function App(){
           >
             <Text style={{ color: "#fff", fontWeight: "900" }}>Оставить заявку</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => toggleFav(center.id)} style={{ padding: 8, marginLeft: 8, justifyContent: "center", alignItems: "center" }}>
+            <Text style={{ fontSize: 22, color: (favorites && favorites[center.id]) ? THEME.primary : THEME.muted }}>{favorites && favorites[center.id] ? "♥" : "♡"}</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </Animated.View>
   );
 };
 
+// === Auth state and helpers (added) ===
+const [user, setUser] = useState(null);
+const [authModalVisible, setAuthModalVisible] = useState(false);
+const [authMode, setAuthMode] = useState("login");
+const [authEmail, setAuthEmail] = useState("");
+const [authPassword, setAuthPassword] = useState("");
+const [authBusy, setAuthBusy] = useState(false);
+
+useEffect(()=>{
+  try{
+    const unsub = onAuthStateChanged(auth, (u)=> setUser(u));
+    return ()=> { if(typeof unsub === "function") unsub(); }
+  }catch(e){
+    console.warn("onAuthStateChanged error", e);
+  }
+},[]);
+
+async function registerWithEmail(email, password){
+  setAuthBusy(true);
+  try{
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    setAuthModalVisible(false);
+    setAuthEmail(""); setAuthPassword("");
+    Alert.alert("Успех","Аккаунт создан");
+    return cred.user;
+  }catch(e){
+    Alert.alert("Ошибка регистрации", e.message || String(e));
+    throw e;
+  }finally{ setAuthBusy(false); }
+}
+
+async function loginWithEmail(email, password){
+  setAuthBusy(true);
+  try{
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    setAuthModalVisible(false);
+    setAuthEmail(""); setAuthPassword("");
+    return cred.user;
+  }catch(e){
+    Alert.alert("Ошибка входа", e.message || String(e));
+    throw e;
+  }finally{ setAuthBusy(false); }
+}
+
+async function logoutUser(){
+  try{ await signOut(auth); }catch(e){ console.warn("logout failed", e); }
+}
+// === end auth hooks ===
+
+
+
   
 const RequestModal = ({ visible, onClose, center })=>{
     const [name, setName] = useState(""); const [phone, setPhone] = useState(""); const [note, setNote] = useState("");
-// eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(()=>{ if(!visible){ setName(""); setPhone(""); setNote(""); } },[visible]);
     const submit = async ()=>{ if(!phone.trim()){ Alert.alert("Ошибка","Пожалуйста введите телефон."); return; } const payload = { center: center ? center.name : "", name, phone, note }; const copy = [...requests, payload]; setRequests(copy); await AsyncStorage.setItem("reba:requests_v1", JSON.stringify(copy)).catch(()=>{}); Alert.alert("Готово","Заявка принята."); onClose(); };
     if(!center) return null;
@@ -420,8 +454,7 @@ const RequestModal = ({ visible, onClose, center })=>{
   );
 
   const ArticleDetail = ({ article })=>{
-  const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-  const likeScale = useRef(new Animated.Value(1)).current;
+  
     const [text, setText] = useState(""); const comments = articleComments[article.id] || []; const liked = !!likedArticles[article.id];
     const submit = ()=>{ if(!text.trim()) return; addArticleComment(article.id, text.trim()); setText(""); };
     return (
@@ -488,7 +521,7 @@ const RequestModal = ({ visible, onClose, center })=>{
         <TextInput value={query} onChangeText={setQuery} placeholder="Поиск по центрам, городу..." style={[styles.searchInput, { flex:1 }]} />
         <TouchableOpacity style={styles.filterPillTop} onPress={()=> setFiltersVisible(true)}><Text style={{ fontWeight:"700", color: THEME.primary }}>Фильтры</Text></TouchableOpacity>
       </View>
-      <FlatList data={filteredCenters(query)} keyExtractor={i=>i.id} renderItem={({item}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} />} ItemSeparatorComponent={()=> <View style={{ height:12 }} />} contentContainerStyle={{ padding:12 }} />
+      <FlatList data={filteredCenters(query)} keyExtractor={i=>i.id} refreshing={refreshing} onRefresh={onRefresh} renderItem={({item}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} />} ItemSeparatorComponent={()=> <View style={{ height:12 }} />} contentContainerStyle={{ padding:12 }} />
     </View>
   );
 
@@ -498,16 +531,46 @@ const RequestModal = ({ visible, onClose, center })=>{
     return (<View style={{ flex:1 }}><FlatList data={favList} keyExtractor={i=>i.id} renderItem={({item}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} />} ItemSeparatorComponent={()=> <View style={{ height:12 }} />} contentContainerStyle={{ padding:12 }} /></View>);
   };
 
-  const ProfileScreen = ()=>(
+  
+// === AuthModal component (added) ===
+const AuthModal = ()=>{
+  return (
+    <Modal visible={authModalVisible} animationType="slide" onRequestClose={()=> setAuthModalVisible(false)}>
+      <SafeAreaView style={{ flex:1, padding:16 }}>
+        <Text style={{ fontSize:20, fontWeight:"900", marginBottom:12 }}>{authMode==="login" ? "Вход" : "Регистрация"}</Text>
+        <TextInput placeholder="Email" value={authEmail} onChangeText={setAuthEmail} style={{ borderWidth:1, borderColor:"#eee", padding:10, marginBottom:10 }} keyboardType="email-address" autoCapitalize="none" />
+        <TextInput placeholder="Пароль" secureTextEntry value={authPassword} onChangeText={setAuthPassword} style={{ borderWidth:1, borderColor:"#eee", padding:10, marginBottom:10 }} />
+        <View style={{ flexDirection:"row", marginTop:8 }}>
+          <TouchableOpacity style={[styles.btnPrimary, { flex:1, marginRight:8 }]} onPress={async ()=>{
+            try{
+              if(authMode==="login") await loginWithEmail(authEmail, authPassword);
+              else await registerWithEmail(authEmail, authPassword);
+            }catch(e){ /* handled in functions */ }
+          }}>
+            <Text style={{ color:"#fff", fontWeight:"800" }}>{authMode==="login" ? "Войти" : "Зарегистрироваться"}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.btnSecondary, { flex:1 }]} onPress={()=> setAuthModalVisible(false)}><Text>Отмена</Text></TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+};
+// === end AuthModal ===
+
+const ProfileScreen = ()=>(
     <ScrollView contentContainerStyle={{ padding:12 }}>
       <Text style={{ fontWeight:"900", fontSize:18, marginBottom:12 }}>Профиль</Text>
-      <TouchableOpacity style={styles.profileBtn} onPress={()=> Alert.alert("Вход","Демо")}><Text style={{ fontWeight:"800" }}>Вход</Text></TouchableOpacity>
-      <TouchableOpacity style={styles.profileBtn} onPress={()=> Alert.alert("Регистрация","Демо")}><Text style={{ fontWeight:"800" }}>Регистрация</Text></TouchableOpacity>
+      <TouchableOpacity style={styles.profileBtn} onPress={()=> { setAuthMode("login"); setAuthModalVisible(true); }}><Text style={{ fontWeight:"800" }}>Вход</Text></TouchableOpacity>
+      <TouchableOpacity style={styles.profileBtn} onPress={()=> { setAuthMode("register"); setAuthModalVisible(true); }}><Text style={{ fontWeight:"800" }}>Регистрация</Text></TouchableOpacity>
       <View style={{ marginTop:16 }}>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("О нас","Демо")}><Text>О нас</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Соглашения","Демо")}><Text>Соглашения</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Тарифы","Демо")}><Text>Тарифы</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Связаться","saotusalogin@yandex.ru")}><Text>Контакты</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("О нас","Демо")}><Text style={{ fontWeight:"500" }}>О нас</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Соглашения","Демо")}><Text style={{ fontWeight:"500" }}>Соглашения</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Тарифы","Демо")}><Text style={{ fontWeight:"500" }}>Тарифы</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Контакты","Демо")}><Text style={{ fontWeight:"500" }}>Контакты</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Для инвесторов","Демо")}><Text style={{ fontWeight:"500" }}>Для инвесторов</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Карьера в РЕБА","Демо")}><Text style={{ fontWeight:"500" }}>Карьера в РЕБА</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Настройки","Демо")}><Text style={{ fontWeight:"500" }}>Настройки</Text></TouchableOpacity>
+
       </View>
     </ScrollView>
   );
@@ -525,7 +588,12 @@ const RequestModal = ({ visible, onClose, center })=>{
       <Modal visible={filtersVisible} animationType="slide" onRequestClose={()=> setFiltersVisible(false)}>
         <SafeAreaView style={{ flex:1 }}>
           <ScrollView contentContainerStyle={{ padding:14 }}>
-            <Text style={{ fontSize:18, fontWeight:"900" }}>Фильтры</Text>
+            <View style={{ flexDirection:"row", alignItems:"center", marginBottom:6 }}>
+  <TouchableOpacity onPress={()=> setFiltersVisible(false)} style={{ width:44, height:44, borderRadius:10, alignItems:"center", justifyContent:"center", marginRight:8 }}>
+    <Text style={{ fontSize:18 }}>←</Text>
+  </TouchableOpacity>
+  <Text style={{ fontSize:18, fontWeight:"900" }}>Фильтры</Text>
+</View>
 
             <View style={{ marginTop:12 }}>
               <Text style={{ fontWeight:"700", marginBottom:8 }}>Города</Text>
@@ -625,7 +693,7 @@ const styles = StyleSheet.create({
   featurePill: { backgroundColor:"#e8f7ff", padding:8, borderRadius:8, marginRight:8, marginTop:6 },
   review: { marginTop:8, padding:10, borderRadius:10, backgroundColor:"#fbfeff", borderWidth:1, borderColor:"#eef7ff" },
   detailFooter: { padding:10, flexDirection:"row", alignItems:"center", borderTopWidth:1, borderColor:"#f0f4fb", backgroundColor:"#fff" },
-  footerBtnPrimary: { flex:1, minWidth:0, padding:14, backgroundColor: THEME.primary, borderRadius:12, marginRight:8, alignItems:"center" },
+  footerBtnPrimary: { flex:1, minWidth:0, padding:14, paddingHorizontal:18, backgroundColor: THEME.primary, borderRadius:12, marginRight:6, alignItems:"center" },
   btnPrimary: { backgroundColor: THEME.primary, padding:12, borderRadius:10, alignItems:"center" },
   btnSecondary: { padding:12, borderRadius:10, alignItems:"center", borderWidth:1, borderColor:"#dfefff", backgroundColor:"#fff" },
   bottomNav: { height:70, margin:12, backgroundColor:"#fff", borderRadius:16, flexDirection:"row", justifyContent:"space-around", alignItems:"center", ...THEME.shadow },
