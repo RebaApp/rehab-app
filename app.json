@@ -1,42 +1,45 @@
 {
   "expo": {
-    "name": "rehab",
-    "slug": "snack-c8982b01-f623-4926-b2fa-c6e6b0219394",
+    "name": "REBA",
+    "slug": "reba",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.reba.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.rebaapp.snackc8982b01f6234926b2fac6e6b0219394"
+      "package": "com.reba.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "updates": {
+      "url": "https://u.expo.dev/cf9a68a6-63c7-40dc-bd3e-2be53f3193b9"
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "plugins": [
+      "expo-updates"
+    ],
     "extra": {
       "eas": {
-        "projectId": "78b7175c-fee6-442d-a5f6-026e858f7a2e"
+        "projectId": "cf9a68a6-63c7-40dc-bd3e-2be53f3193b9"
       }
-    },
-    "owner": "rebaapp",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/78b7175c-fee6-442d-a5f6-026e858f7a2e"
     }
   }
 }
