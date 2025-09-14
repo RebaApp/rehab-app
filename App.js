@@ -11,41 +11,18 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 
-// Firebase integration (expected firebaseConfig.js in project root)
-let auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, collection, addDoc, serverTimestamp, doc, setDoc;
-
-try {
-  const firebaseConfig = require('./firebaseConfig');
-  auth = firebaseConfig.auth;
-  db = firebaseConfig.db;
-  
-  const firebaseAuth = require('firebase/auth');
-  createUserWithEmailAndPassword = firebaseAuth.createUserWithEmailAndPassword;
-  signInWithEmailAndPassword = firebaseAuth.signInWithEmailAndPassword;
-  signOut = firebaseAuth.signOut;
-  onAuthStateChanged = firebaseAuth.onAuthStateChanged;
-  
-  const firebaseFirestore = require('firebase/firestore');
-  collection = firebaseFirestore.collection;
-  addDoc = firebaseFirestore.addDoc;
-  serverTimestamp = firebaseFirestore.serverTimestamp;
-  doc = firebaseFirestore.doc;
-  setDoc = firebaseFirestore.setDoc;
-} catch (error) {
-  console.warn('Firebase not available in Expo Go:', error);
-  // Mock Firebase functions for Expo Go
-  auth = null;
-  db = null;
-  createUserWithEmailAndPassword = () => Promise.reject(new Error('Firebase not available in Expo Go'));
-  signInWithEmailAndPassword = () => Promise.reject(new Error('Firebase not available in Expo Go'));
-  signOut = () => Promise.reject(new Error('Firebase not available in Expo Go'));
-  onAuthStateChanged = () => () => {};
-  collection = () => null;
-  addDoc = () => Promise.reject(new Error('Firebase not available in Expo Go'));
-  serverTimestamp = () => new Date();
-  doc = () => null;
-  setDoc = () => Promise.reject(new Error('Firebase not available in Expo Go'));
-}
+// Firebase integration - disabled for Expo Go compatibility
+let auth = null;
+let db = null;
+let createUserWithEmailAndPassword = () => Promise.reject(new Error('Firebase not available in Expo Go'));
+let signInWithEmailAndPassword = () => Promise.reject(new Error('Firebase not available in Expo Go'));
+let signOut = () => Promise.reject(new Error('Firebase not available in Expo Go'));
+let onAuthStateChanged = () => () => {};
+let collection = () => null;
+let addDoc = () => Promise.reject(new Error('Firebase not available in Expo Go'));
+let serverTimestamp = () => new Date();
+let doc = () => null;
+let setDoc = () => Promise.reject(new Error('Firebase not available in Expo Go'));
 
 
 const { width: SCREEN_W } = Dimensions.get("window");
@@ -685,7 +662,7 @@ const onRefresh = async ()=>{
     
     // Загружаем mock пользователя для Expo Go
     AsyncStorage.getItem("reba:mockUser").then(v=> {
-      if (v && !auth) {
+      if (v) {
         const userData = JSON.parse(v);
         setUser({
           uid: userData.uid,
@@ -1015,17 +992,9 @@ const [authBusy, setAuthBusy] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
 useEffect(()=>{
-  try{
-      const unsub = onAuthStateChanged(auth, (u)=> {
-        console.log("Auth state changed:", u ? "User logged in" : "User logged out");
-        setUser(u);
-      });
-    return ()=> { if(typeof unsub === "function") unsub(); }
-  }catch(e){
-    console.warn("onAuthStateChanged error", e);
-    // Set user to null if auth fails
-    setUser(null);
-  }
+  // Firebase auth disabled for Expo Go compatibility
+  // User state will be managed through mock authentication
+  console.log("Auth system initialized (mock mode)");
 },[]);
 
   const registerWithEmail = async (email, password, name, age, phone, userType) => {
@@ -1043,80 +1012,31 @@ useEffect(()=>{
   try{
       console.log("Attempting to register:", email, "as", userType);
     
-    if (!auth) {
-      // Mock registration for Expo Go
-      const mockUser = {
-        uid: `mock_${Date.now()}`,
-        email: email,
-        displayName: name
-      };
-      
-      // Save user data locally
-      const userData = {
-        uid: mockUser.uid,
-        email: email,
-        name: name,
-        phone: phone,
-        userType: userType,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      if (userType === "user") {
-        userData.age = parseInt(age);
-      }
-      
-      await AsyncStorage.setItem('reba:mockUser', JSON.stringify(userData));
-      setUser(mockUser);
-      
-      setAuthModalVisible(false);
-      setAuthEmail(""); 
-      setAuthPassword("");
-      setAuthName("");
-      setAuthAge("");
-      setAuthPhone("");
-      setAuthUserType("user");
-      setRegistrationSuccess(true);
-      
-      Alert.alert(
-        "🎉 Добро пожаловать в РЕБА!", 
-        `Регистрация ${userType === "user" ? "пользователя" : "центра"} прошла успешно! (Демо режим)`,
-        [
-          {
-            text: "Отлично!",
-            onPress: () => setRegistrationSuccess(false)
-          }
-        ]
-      );
-      return mockUser;
+    // Mock registration for Expo Go
+    const mockUser = {
+      uid: `mock_${Date.now()}`,
+      email: email,
+      displayName: name
+    };
+    
+    // Save user data locally
+    const userData = {
+      uid: mockUser.uid,
+      email: email,
+      name: name,
+      phone: phone,
+      userType: userType,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    if (userType === "user") {
+      userData.age = parseInt(age);
     }
     
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-      console.log("Registration successful:", cred.user.uid);
-      
-      // Сохраняем дополнительные данные пользователя в Firestore
-      try {
-        const userData = {
-          uid: cred.user.uid,
-          email: email,
-          name: name,
-          phone: phone,
-          userType: userType,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        };
-        
-        if (userType === "user") {
-          userData.age = parseInt(age);
-        }
-        
-        await setDoc(doc(db, 'users', cred.user.uid), userData);
-        console.log("User profile created in Firestore");
-      } catch (firestoreError) {
-        console.warn("Failed to save user profile:", firestoreError);
-        // Не блокируем регистрацию, если не удалось сохранить профиль
-      }
-      
+    await AsyncStorage.setItem('reba:mockUser', JSON.stringify(userData));
+    setUser(mockUser);
+    
     setAuthModalVisible(false);
       setAuthEmail(""); 
       setAuthPassword("");
@@ -1125,31 +1045,21 @@ useEffect(()=>{
       setAuthPhone("");
       setAuthUserType("user");
       setRegistrationSuccess(true);
-      
-      Alert.alert(
-        "🎉 Добро пожаловать в РЕБА!", 
-        `Регистрация ${userType === "user" ? "пользователя" : "центра"} прошла успешно!`,
-        [
-          {
-            text: "Отлично!",
-            onPress: () => setRegistrationSuccess(false)
-          }
-        ]
-      );
-    return cred.user;
+    
+    Alert.alert(
+      "🎉 Добро пожаловать в РЕБА!", 
+      `Регистрация ${userType === "user" ? "пользователя" : "центра"} прошла успешно! (Демо режим)`,
+      [
+        {
+          text: "Отлично!",
+          onPress: () => setRegistrationSuccess(false)
+        }
+      ]
+    );
+    return mockUser;
   }catch(e){
       console.error("Registration error:", e);
-      let errorMessage = "Произошла ошибка при регистрации";
-      
-      if (e.code === 'auth/email-already-in-use') {
-        errorMessage = "Этот email уже используется";
-      } else if (e.code === 'auth/weak-password') {
-        errorMessage = "Пароль должен содержать минимум 6 символов";
-      } else if (e.code === 'auth/invalid-email') {
-        errorMessage = "Неверный формат email";
-      }
-      
-      Alert.alert("Ошибка регистрации", errorMessage);
+      Alert.alert("Ошибка регистрации", "Произошла ошибка при регистрации");
     throw e;
     }finally{ 
       setAuthBusy(false); 
@@ -1166,44 +1076,22 @@ useEffect(()=>{
   try{
       console.log("Attempting to login:", email);
     
-    if (!auth) {
-      // Mock login for Expo Go
-      const mockUser = {
-        uid: `mock_${Date.now()}`,
-        email: email,
-        displayName: "Демо пользователь"
-      };
-      
-      setUser(mockUser);
-      setAuthModalVisible(false);
+    // Mock login for Expo Go
+    const mockUser = {
+      uid: `mock_${Date.now()}`,
+      email: email,
+      displayName: "Демо пользователь"
+    };
+    
+    setUser(mockUser);
+    setAuthModalVisible(false);
       setAuthEmail(""); 
       setAuthPassword("");
       Alert.alert("Успех", "Вход выполнен успешно! (Демо режим)");
       return mockUser;
-    }
-    
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-      console.log("Login successful:", cred.user.uid);
-    setAuthModalVisible(false);
-      setAuthEmail(""); 
-      setAuthPassword("");
-      Alert.alert("Успех", "Вход выполнен успешно!");
-    return cred.user;
   }catch(e){
       console.error("Login error:", e);
-      let errorMessage = "Произошла ошибка при входе";
-      
-      if (e.code === 'auth/user-not-found') {
-        errorMessage = "Пользователь с таким email не найден";
-      } else if (e.code === 'auth/wrong-password') {
-        errorMessage = "Неверный пароль";
-      } else if (e.code === 'auth/invalid-email') {
-        errorMessage = "Неверный формат email";
-      } else if (e.code === 'auth/too-many-requests') {
-        errorMessage = "Слишком много попыток входа. Попробуйте позже";
-      }
-      
-      Alert.alert("Ошибка входа", errorMessage);
+      Alert.alert("Ошибка входа", "Произошла ошибка при входе");
     throw e;
     }finally{ 
       setAuthBusy(false); 
@@ -1212,14 +1100,9 @@ useEffect(()=>{
 
   const logoutUser = async () => {
     try{ 
-      if (auth) {
-        await signOut(auth);
-        console.log("User logged out successfully");
-      } else {
-        // Mock logout for Expo Go
-        await AsyncStorage.removeItem('reba:mockUser');
-        console.log("Mock user logged out successfully");
-      }
+      // Mock logout for Expo Go
+      await AsyncStorage.removeItem('reba:mockUser');
+      console.log("Mock user logged out successfully");
       setUser(null);
       Alert.alert("Выход", "Вы вышли из аккаунта");
     }catch(e){ 
