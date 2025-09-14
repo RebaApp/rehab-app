@@ -165,7 +165,13 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
 
   useEffect(()=>{ if(selectedCenter || articleOpen){ slide.setValue(SCREEN_W); Animated.spring(slide,{ toValue:0, useNativeDriver:true }).start(); } },[selectedCenter, articleOpen]);
 
-  const toggleFav = async(id)=>{ const copy = {...favorites}; if(copy[id]) delete copy[id]; else copy[id]=true; setFavorites(copy); await AsyncStorage.setItem("reba:favorites_v1", JSON.stringify(copy)).catch(()=>{}); };
+  const toggleFav = async(id)=>{ 
+    const copy = {...favorites}; 
+    if(copy[id]) delete copy[id]; 
+    else copy[id]=true; 
+    setFavorites(copy); 
+    await AsyncStorage.setItem("reba:favorites_v1", JSON.stringify(copy)).catch(()=>{}); 
+  };
   const saveRequest = async(req)=>{ const copy = [req].concat(requests); setRequests(copy); await AsyncStorage.setItem("reba:requests_v1", JSON.stringify(copy)).catch(()=>{}); };
   const addArticleComment = async(aid, comment)=>{ const copy = {...articleComments}; if(!copy[aid]) copy[aid]=[]; copy[aid].unshift({ id: Date.now().toString(), text: comment, date: new Date().toLocaleString() }); setArticleComments(copy); await AsyncStorage.setItem("reba:articleComments_v1", JSON.stringify(copy)).catch(()=>{}); };
   const toggleLikeArticle = async(id)=>{ const copy = {...likedArticles}; if(copy[id]) delete copy[id]; else copy[id]=true; setLikedArticles(copy); await AsyncStorage.setItem("reba:liked_articles_v1", JSON.stringify(copy)).catch(()=>{}); };
@@ -355,7 +361,11 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
           >
             <Text style={{ color: "#fff", fontWeight: "900" }}>Оставить заявку</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => toggleFav(center.id)} style={{ padding: 8, marginLeft: 8, justifyContent: "center", alignItems: "center" }}>
+          <TouchableOpacity 
+            onPress={() => toggleFav(center.id)} 
+            style={{ padding: 8, marginLeft: 8, justifyContent: "center", alignItems: "center" }}
+            activeOpacity={0.7}
+          >
             <Text style={{ fontSize: 22, color: (favorites && favorites[center.id]) ? THEME.primary : THEME.muted }}>{favorites && favorites[center.id] ? "♥" : "♡"}</Text>
           </TouchableOpacity>
         </View>
@@ -370,6 +380,9 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
   const [authMode, setAuthMode] = useState("login");
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
+  const [authName, setAuthName] = useState("");
+  const [authAge, setAuthAge] = useState("");
+  const [authPhone, setAuthPhone] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
 
   useEffect(()=>{
@@ -384,8 +397,8 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
     }
   },[]);
 
-  const registerWithEmail = async (email, password) => {
-    if (!email || !password) {
+  const registerWithEmail = async (email, password, name, age, phone) => {
+    if (!email || !password || !name || !age || !phone) {
       Alert.alert("Ошибка", "Пожалуйста, заполните все поля");
       return;
     }
@@ -395,9 +408,30 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
       console.log("Attempting to register:", email);
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       console.log("Registration successful:", cred.user.uid);
+      
+      // Сохраняем дополнительные данные пользователя в Firestore
+      try {
+        await addDoc(collection(db, 'users'), {
+          uid: cred.user.uid,
+          email: email,
+          name: name,
+          age: parseInt(age),
+          phone: phone,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        console.log("User profile created in Firestore");
+      } catch (firestoreError) {
+        console.warn("Failed to save user profile:", firestoreError);
+        // Не блокируем регистрацию, если не удалось сохранить профиль
+      }
+      
       setAuthModalVisible(false);
       setAuthEmail(""); 
       setAuthPassword("");
+      setAuthName("");
+      setAuthAge("");
+      setAuthPhone("");
       Alert.alert("Успех", "Аккаунт создан успешно!");
       return cred.user;
     }catch(e){
@@ -528,7 +562,13 @@ const RequestModal = ({ visible, onClose, center })=>{
             <Text style={{ marginTop:12, color: THEME.muted, lineHeight:20 }}>{article.body}</Text>
 
             <View style={{ marginTop:14, marginBottom:6 }}>
-              <TouchableOpacity onPress={()=> toggleLikeArticle(article.id)} style={{ padding:8 }}><Text style={{ color: liked ? THEME.primary : THEME.muted, fontWeight:"800" }}>{ liked ? "♥ Нравится" : "♡ Нравится" }</Text></TouchableOpacity>
+              <TouchableOpacity 
+                onPress={()=> toggleLikeArticle(article.id)} 
+                style={{ padding:8 }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ color: liked ? THEME.primary : THEME.muted, fontWeight:"800" }}>{ liked ? "♥ Нравится" : "♡ Нравится" }</Text>
+              </TouchableOpacity>
             </View>
 
             <Text style={{ fontWeight:"800" }}>Комментарии</Text>
@@ -537,7 +577,13 @@ const RequestModal = ({ visible, onClose, center })=>{
             <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={100}>
               <View style={{ marginTop:14, flexDirection:"row", alignItems:"center" }}>
                 <TextInput value={text} onChangeText={setText} placeholder="Оставить комментарий" style={{ flex:1, backgroundColor:"#fff", padding:10, borderRadius:10, marginRight:8 }} />
-                <TouchableOpacity onPress={submit} style={[styles.btnPrimary, { paddingVertical:10, paddingHorizontal:14 }]}><Text style={{ color:"#fff", fontWeight:"800" }}>Отправить</Text></TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={submit} 
+                  style={[styles.btnPrimary, { paddingVertical:10, paddingHorizontal:14 }]}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ color:"#fff", fontWeight:"800" }}>Отправить</Text>
+                </TouchableOpacity>
               </View>
             </KeyboardAvoidingView>
 
@@ -589,84 +635,155 @@ const RequestModal = ({ visible, onClose, center })=>{
   // === AuthModal component ===
   const AuthModal = ()=>{
     const handleAuth = async () => {
-      if (!authEmail.trim() || !authPassword.trim()) {
-        Alert.alert("Ошибка", "Пожалуйста, заполните все поля");
-        return;
-      }
-      
-      try{
-        if(authMode==="login") {
-          await loginWithEmail(authEmail.trim(), authPassword);
-        } else {
-          await registerWithEmail(authEmail.trim(), authPassword);
+      if (authMode === "login") {
+        if (!authEmail.trim() || !authPassword.trim()) {
+          Alert.alert("Ошибка", "Пожалуйста, заполните email и пароль");
+          return;
         }
-      }catch(e){ 
-        // Ошибки уже обработаны в функциях
-        console.log("Auth error handled in function");
+        try{
+          await loginWithEmail(authEmail.trim(), authPassword);
+        }catch(e){ 
+          console.log("Login error handled in function");
+        }
+      } else {
+        if (!authEmail.trim() || !authPassword.trim() || !authName.trim() || !authAge.trim() || !authPhone.trim()) {
+          Alert.alert("Ошибка", "Пожалуйста, заполните все поля");
+          return;
+        }
+        try{
+          await registerWithEmail(authEmail.trim(), authPassword, authName.trim(), authAge.trim(), authPhone.trim());
+        }catch(e){ 
+          console.log("Registration error handled in function");
+        }
       }
     };
 
+    const resetForm = () => {
+      setAuthEmail("");
+      setAuthPassword("");
+      setAuthName("");
+      setAuthAge("");
+      setAuthPhone("");
+    };
+
     return (
-      <Modal visible={authModalVisible} animationType="slide" onRequestClose={()=> setAuthModalVisible(false)}>
-        <SafeAreaView style={{ flex:1, padding:16, backgroundColor: THEME.bgTop }}>
-          <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20 }}>
-            <TouchableOpacity 
-              onPress={()=> setAuthModalVisible(false)} 
-              style={{ padding:8, marginRight:8 }}
-            >
-              <Text style={{ fontSize:18 }}>←</Text>
-            </TouchableOpacity>
-            <Text style={{ fontSize:20, fontWeight:"900" }}>
-              {authMode==="login" ? "Вход в аккаунт" : "Регистрация"}
-            </Text>
-          </View>
-          
-          <TextInput 
-            placeholder="Email" 
-            value={authEmail} 
-            onChangeText={setAuthEmail} 
-            style={[styles.input, { marginBottom:12 }]} 
-            keyboardType="email-address" 
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          
-          <TextInput 
-            placeholder="Пароль (минимум 6 символов)" 
-            secureTextEntry 
-            value={authPassword} 
-            onChangeText={setAuthPassword} 
-            style={[styles.input, { marginBottom:20 }]} 
-          />
-          
-          <View style={{ flexDirection:"row", marginBottom:16 }}>
-            <TouchableOpacity 
-              style={[styles.btnPrimary, { flex:1, marginRight:8, opacity: authBusy ? 0.6 : 1 }]} 
-              onPress={handleAuth}
-              disabled={authBusy}
-            >
-              <Text style={{ color:"#fff", fontWeight:"800" }}>
-                {authBusy ? "Загрузка..." : (authMode==="login" ? "Войти" : "Зарегистрироваться")}
+      <Modal 
+        visible={authModalVisible} 
+        animationType="slide" 
+        onRequestClose={()=> {
+          setAuthModalVisible(false);
+          resetForm();
+        }}
+      >
+        <KeyboardAvoidingView 
+          style={{ flex: 1 }} 
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <SafeAreaView style={{ flex:1, padding:16, backgroundColor: THEME.bgTop }}>
+            <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20 }}>
+              <TouchableOpacity 
+                onPress={()=> {
+                  setAuthModalVisible(false);
+                  resetForm();
+                }} 
+                style={{ padding:8, marginRight:8 }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize:18 }}>←</Text>
+              </TouchableOpacity>
+              <Text style={{ fontSize:20, fontWeight:"900" }}>
+                {authMode==="login" ? "Вход в аккаунт" : "Регистрация"}
               </Text>
-            </TouchableOpacity>
+            </View>
             
-            <TouchableOpacity 
-              style={[styles.btnSecondary, { flex:1 }]} 
-              onPress={()=> setAuthModalVisible(false)}
-            >
-              <Text style={{ fontWeight:"800" }}>Отмена</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <TouchableOpacity 
-            style={{ alignItems:"center", padding:12 }}
-            onPress={()=> setAuthMode(authMode === "login" ? "register" : "login")}
-          >
-            <Text style={{ color: THEME.primary, fontWeight:"700" }}>
-              {authMode === "login" ? "Нет аккаунта? Зарегистрироваться" : "Уже есть аккаунт? Войти"}
-            </Text>
-          </TouchableOpacity>
-        </SafeAreaView>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {authMode === "register" && (
+                <>
+                  <TextInput 
+                    placeholder="Ваше имя" 
+                    value={authName} 
+                    onChangeText={setAuthName} 
+                    style={[styles.input, { marginBottom:12 }]} 
+                    autoCapitalize="words"
+                    autoCorrect={false}
+                  />
+                  
+                  <TextInput 
+                    placeholder="Возраст" 
+                    value={authAge} 
+                    onChangeText={setAuthAge} 
+                    style={[styles.input, { marginBottom:12 }]} 
+                    keyboardType="numeric"
+                    maxLength={2}
+                  />
+                  
+                  <TextInput 
+                    placeholder="Номер телефона" 
+                    value={authPhone} 
+                    onChangeText={setAuthPhone} 
+                    style={[styles.input, { marginBottom:12 }]} 
+                    keyboardType="phone-pad"
+                  />
+                </>
+              )}
+              
+              <TextInput 
+                placeholder="Email" 
+                value={authEmail} 
+                onChangeText={setAuthEmail} 
+                style={[styles.input, { marginBottom:12 }]} 
+                keyboardType="email-address" 
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              
+              <TextInput 
+                placeholder="Пароль (минимум 6 символов)" 
+                secureTextEntry 
+                value={authPassword} 
+                onChangeText={setAuthPassword} 
+                style={[styles.input, { marginBottom:20 }]} 
+              />
+              
+              <View style={{ flexDirection:"row", marginBottom:16 }}>
+                <TouchableOpacity 
+                  style={[styles.btnPrimary, { flex:1, marginRight:8, opacity: authBusy ? 0.6 : 1 }]} 
+                  onPress={handleAuth}
+                  disabled={authBusy}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ color:"#fff", fontWeight:"800" }}>
+                    {authBusy ? "Загрузка..." : (authMode==="login" ? "Войти" : "Зарегистрироваться")}
+                  </Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.btnSecondary, { flex:1 }]} 
+                  onPress={()=> {
+                    setAuthModalVisible(false);
+                    resetForm();
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ fontWeight:"800" }}>Отмена</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <TouchableOpacity 
+                style={{ alignItems:"center", padding:12 }}
+                onPress={()=> {
+                  setAuthMode(authMode === "login" ? "register" : "login");
+                  resetForm();
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ color: THEME.primary, fontWeight:"700" }}>
+                  {authMode === "login" ? "Нет аккаунта? Зарегистрироваться" : "Уже есть аккаунт? Войти"}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
       </Modal>
     );
   };
@@ -690,6 +807,7 @@ const RequestModal = ({ visible, onClose, center })=>{
           <TouchableOpacity 
             style={[styles.profileBtn, { backgroundColor: "#ff4444" }]} 
             onPress={logoutUser}
+            activeOpacity={0.8}
           >
             <Text style={{ color: "#fff", fontWeight:"800" }}>Выйти из аккаунта</Text>
           </TouchableOpacity>
@@ -700,12 +818,14 @@ const RequestModal = ({ visible, onClose, center })=>{
           <TouchableOpacity 
             style={styles.profileBtn} 
             onPress={()=> { setAuthMode("login"); setAuthModalVisible(true); }}
+            activeOpacity={0.8}
           >
             <Text style={{ fontWeight:"800" }}>Вход</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.profileBtn} 
             onPress={()=> { setAuthMode("register"); setAuthModalVisible(true); }}
+            activeOpacity={0.8}
           >
             <Text style={{ fontWeight:"800" }}>Регистрация</Text>
           </TouchableOpacity>
@@ -713,25 +833,53 @@ const RequestModal = ({ visible, onClose, center })=>{
       )}
       
       <View style={{ marginTop:16 }}>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("О нас","РЕБА - агрегатор реабилитационных центров в России. Мы помогаем найти подходящий центр для лечения зависимостей.")}>
+        <TouchableOpacity 
+          style={styles.profileLink} 
+          onPress={()=> Alert.alert("О нас","РЕБА - агрегатор реабилитационных центров в России. Мы помогаем найти подходящий центр для лечения зависимостей.")}
+          activeOpacity={0.8}
+        >
           <Text style={{ fontWeight:"500" }}>О нас</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Соглашения","Пользовательское соглашение и политика конфиденциальности")}>
+        <TouchableOpacity 
+          style={styles.profileLink} 
+          onPress={()=> Alert.alert("Соглашения","Пользовательское соглашение и политика конфиденциальности")}
+          activeOpacity={0.8}
+        >
           <Text style={{ fontWeight:"500" }}>Соглашения</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Тарифы","Информация о тарифах для центров")}>
+        <TouchableOpacity 
+          style={styles.profileLink} 
+          onPress={()=> Alert.alert("Тарифы","Информация о тарифах для центров")}
+          activeOpacity={0.8}
+        >
           <Text style={{ fontWeight:"500" }}>Тарифы</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Контакты","Свяжитесь с нами: support@reba.ru")}>
+        <TouchableOpacity 
+          style={styles.profileLink} 
+          onPress={()=> Alert.alert("Контакты","Свяжитесь с нами: support@reba.ru")}
+          activeOpacity={0.8}
+        >
           <Text style={{ fontWeight:"500" }}>Контакты</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Для инвесторов","Информация для инвесторов")}>
+        <TouchableOpacity 
+          style={styles.profileLink} 
+          onPress={()=> Alert.alert("Для инвесторов","Информация для инвесторов")}
+          activeOpacity={0.8}
+        >
           <Text style={{ fontWeight:"500" }}>Для инвесторов</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Карьера в РЕБА","Вакансии в нашей команде")}>
+        <TouchableOpacity 
+          style={styles.profileLink} 
+          onPress={()=> Alert.alert("Карьера в РЕБА","Вакансии в нашей команде")}
+          activeOpacity={0.8}
+        >
           <Text style={{ fontWeight:"500" }}>Карьера в РЕБА</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Настройки","Настройки приложения")}>
+        <TouchableOpacity 
+          style={styles.profileLink} 
+          onPress={()=> Alert.alert("Настройки","Настройки приложения")}
+          activeOpacity={0.8}
+        >
           <Text style={{ fontWeight:"500" }}>Настройки</Text>
         </TouchableOpacity>
       </View>
