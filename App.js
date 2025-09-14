@@ -8,6 +8,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from 'expo-location';
+import * as ImagePicker from 'expo-image-picker';
 
 // Firebase integration (expected firebaseConfig.js in project root)
 import { auth, db } from './firebaseConfig';
@@ -260,6 +262,81 @@ const OptimizedImage = ({ source, style, fallback = FALLBACK_IMAGE, priority = f
   return <LazyImage source={source} style={style} fallback={fallback} priority={priority} />;
 };
 
+// Функция генерации центров с координатами
+const generateCenters = ()=>{
+  const cities = ["Москва", "Санкт-Петербург", "Екатеринбург", "Новосибирск", "Казань", "Нижний Новгород", "Челябинск", "Самара", "Омск", "Ростов-на-Дону"];
+  const types = ["алкоголизм", "наркомания", "игровая зависимость", "пищевая зависимость", "интернет-зависимость"];
+  const names = ["Центр Возрождение", "Клиника Надежда", "Реабилитационный центр Вера", "Центр Исцеление", "Клиника Новый Путь", "Центр Возвращение", "Реабилитационный центр Свет", "Клиника Второй Шанс", "Центр Обновление", "Реабилитационный центр Путь к Жизни"];
+  const photos = [
+    "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400",
+    "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400",
+    "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=400",
+    "https://images.unsplash.com/photo-1576091160550-2173dba0ef4f?w=400",
+    "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400"
+  ];
+  
+  // Координаты для каждого города
+  const cityCoordinates = {
+    "Москва": { latitude: 55.7558, longitude: 37.6176 },
+    "Санкт-Петербург": { latitude: 59.9311, longitude: 30.3609 },
+    "Екатеринбург": { latitude: 56.8431, longitude: 60.6454 },
+    "Новосибирск": { latitude: 55.0084, longitude: 82.9357 },
+    "Казань": { latitude: 55.8304, longitude: 49.0661 },
+    "Нижний Новгород": { latitude: 56.2965, longitude: 43.9361 },
+    "Челябинск": { latitude: 55.1644, longitude: 61.4368 },
+    "Самара": { latitude: 53.2001, longitude: 50.1500 },
+    "Омск": { latitude: 54.9885, longitude: 73.3242 },
+    "Ростов-на-Дону": { latitude: 47.2357, longitude: 39.7015 }
+  };
+  
+  return Array.from({ length: 20 }, (_, i) => {
+    const city = cities[i % cities.length];
+    const baseCoords = cityCoordinates[city];
+    
+    return {
+      id: `center_${i}`,
+      name: names[i % names.length],
+      city: city,
+      coordinates: {
+        latitude: baseCoords.latitude + (Math.random() - 0.5) * 0.1, // Небольшое отклонение
+        longitude: baseCoords.longitude + (Math.random() - 0.5) * 0.1
+      },
+      types: types.slice(0, Math.floor(Math.random() * 3) + 1),
+      price: `${Math.floor(Math.random() * 50 + 10)} 000 ₽/месяц`,
+      rating: Number((Math.random() * 2 + 3).toFixed(1)),
+      descriptionShort: "Профессиональная помощь в борьбе с зависимостями. Индивидуальный подход к каждому пациенту.",
+      description: "Наш центр предоставляет комплексную программу реабилитации, включающую медицинское лечение, психологическую поддержку и социальную адаптацию. Мы работаем с различными видами зависимостей и помогаем людям вернуться к полноценной жизни.",
+      photos: Array.from({ length: 3 }, () => photos[Math.floor(Math.random() * photos.length)]),
+      address: `ул. Примерная, д. ${Math.floor(Math.random() * 100) + 1}`,
+      phone: `+7 (${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 90) + 10}-${Math.floor(Math.random() * 90) + 10}`,
+      email: `info@center${i}.ru`,
+      website: `https://center${i}.ru`,
+      workingHours: "Пн-Вс: 9:00-21:00",
+      capacity: Math.floor(Math.random() * 50) + 20,
+      yearFounded: 2000 + Math.floor(Math.random() * 24),
+      license: `ЛО-77-01-${Math.floor(Math.random() * 900000) + 100000}`,
+      services: ["Консультация", "Детокс", "Реабилитация", "Ресоциализация", "Поддержка семьи"],
+      methods: ["12 шагов", "Когнитивно-поведенческая терапия", "Арт-терапия", "Спортивная терапия"],
+      staff: {
+        doctors: Math.floor(Math.random() * 10) + 5,
+        psychologists: Math.floor(Math.random() * 8) + 3,
+        nurses: Math.floor(Math.random() * 15) + 10
+      },
+      successRate: Math.floor(Math.random() * 20) + 70,
+      insurance: Math.random() > 0.5,
+      paymentMethods: ["Наличные", "Карта", "Перевод"],
+      specializations: types.slice(0, Math.floor(Math.random() * 3) + 1),
+      reviews: Array.from({ length: Math.floor(Math.random() * 5) + 1 }, (_, j) => ({
+        id: `review_${i}_${j}`,
+        author: `Пользователь ${j + 1}`,
+        rating: Math.floor(Math.random() * 2) + 4,
+        text: "Отличный центр, профессиональные специалисты, рекомендую!",
+        date: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      }))
+    };
+  });
+};
+
 export default function App(){
   const [centers, setCenters] = useState(generateCenters());
   const [tab,setTab] = useState("home");
@@ -278,6 +355,31 @@ export default function App(){
     articles: null,
     lastUpdated: null
   });
+  
+  // Геолокация
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationPermission, setLocationPermission] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  
+  // Профиль пользователя
+  const [userProfile, setUserProfile] = useState({
+    photo: null,
+    name: '',
+    age: '',
+    phone: '',
+    userType: 'user',
+    preferences: {
+      cities: [],
+      treatmentTypes: [],
+      priceRange: { min: 0, max: 100000 }
+    }
+  });
+  
+  // Система отзывов
+  const [reviews, setReviews] = useState({});
+  const [userReviews, setUserReviews] = useState({});
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [currentReviewCenter, setCurrentReviewCenter] = useState(null);
 const [refreshing, setRefreshing] = useState(false);
 const onRefresh = async ()=>{
   setRefreshing(true);
@@ -409,6 +511,185 @@ const onRefresh = async ()=>{
     }
   };
 
+  // Функции геолокации
+  const requestLocationPermission = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        setLocationPermission(true);
+        return true;
+      } else {
+        Alert.alert('Ошибка', 'Разрешение на геолокацию необходимо для поиска ближайших центров');
+        return false;
+      }
+    } catch (error) {
+      console.log('Ошибка запроса разрешения геолокации:', error);
+      return false;
+    }
+  };
+
+  const getCurrentLocation = async () => {
+    try {
+      const hasPermission = await requestLocationPermission();
+      if (!hasPermission) return;
+
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      
+      setUserLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        accuracy: location.coords.accuracy
+      });
+      
+      console.log('Местоположение получено:', location.coords);
+    } catch (error) {
+      console.log('Ошибка получения местоположения:', error);
+      Alert.alert('Ошибка', 'Не удалось определить ваше местоположение');
+    }
+  };
+
+  // Функция расчета расстояния между двумя точками
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Радиус Земли в км
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  // Сортировка центров по расстоянию
+  const getSortedCentersByDistance = (centersList) => {
+    if (!userLocation) return centersList;
+    
+    return centersList.map(center => ({
+      ...center,
+      distance: calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        center.coordinates.latitude,
+        center.coordinates.longitude
+      )
+    })).sort((a, b) => a.distance - b.distance);
+  };
+
+  // Функции для работы с профилем
+  const pickProfileImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        setUserProfile(prev => ({
+          ...prev,
+          photo: result.assets[0].uri
+        }));
+        
+        // Сохраняем в AsyncStorage
+        await AsyncStorage.setItem('reba:userProfile', JSON.stringify({
+          ...userProfile,
+          photo: result.assets[0].uri
+        }));
+      }
+    } catch (error) {
+      console.log('Ошибка выбора изображения:', error);
+      Alert.alert('Ошибка', 'Не удалось выбрать изображение');
+    }
+  };
+
+  const loadUserProfile = async () => {
+    try {
+      const profile = await AsyncStorage.getItem('reba:userProfile');
+      if (profile) {
+        setUserProfile(JSON.parse(profile));
+      }
+    } catch (error) {
+      console.log('Ошибка загрузки профиля:', error);
+    }
+  };
+
+  const saveUserProfile = async (profileData) => {
+    try {
+      const updatedProfile = { ...userProfile, ...profileData };
+      setUserProfile(updatedProfile);
+      await AsyncStorage.setItem('reba:userProfile', JSON.stringify(updatedProfile));
+    } catch (error) {
+      console.log('Ошибка сохранения профиля:', error);
+    }
+  };
+
+  // Функции для системы отзывов
+  const submitReview = async (centerId, rating, comment) => {
+    try {
+      const review = {
+        id: Date.now().toString(),
+        centerId,
+        userId: user?.uid || 'anonymous',
+        userName: userProfile.name || 'Аноним',
+        userPhoto: userProfile.photo,
+        rating,
+        comment,
+        date: new Date().toISOString(),
+        verified: false
+      };
+
+      const newReviews = { ...reviews, [review.id]: review };
+      setReviews(newReviews);
+      
+      // Сохраняем в AsyncStorage
+      await AsyncStorage.setItem('reba:reviews', JSON.stringify(newReviews));
+      
+      // Обновляем отзывы пользователя
+      const userReviewsList = userReviews[centerId] || [];
+      userReviewsList.push(review.id);
+      setUserReviews(prev => ({
+        ...prev,
+        [centerId]: userReviewsList
+      }));
+      
+      Alert.alert('Спасибо!', 'Ваш отзыв отправлен на модерацию');
+      setReviewModalVisible(false);
+    } catch (error) {
+      console.log('Ошибка отправки отзыва:', error);
+      Alert.alert('Ошибка', 'Не удалось отправить отзыв');
+    }
+  };
+
+  const loadReviews = async () => {
+    try {
+      const reviewsData = await AsyncStorage.getItem('reba:reviews');
+      if (reviewsData) {
+        setReviews(JSON.parse(reviewsData));
+      }
+    } catch (error) {
+      console.log('Ошибка загрузки отзывов:', error);
+    }
+  };
+
+  // Получение отзывов для конкретного центра
+  const getCenterReviews = (centerId) => {
+    return Object.values(reviews).filter(review => 
+      review.centerId === centerId && review.verified
+    );
+  };
+
+  // Расчет среднего рейтинга центра
+  const getCenterRating = (centerId) => {
+    const centerReviews = getCenterReviews(centerId);
+    if (centerReviews.length === 0) return 0;
+    
+    const sum = centerReviews.reduce((acc, review) => acc + review.rating, 0);
+    return (sum / centerReviews.length).toFixed(1);
+  };
+
   useEffect(()=>{
     AsyncStorage.getItem("reba:favorites_v1").then(v=> v && setFavorites(JSON.parse(v))).catch(()=>{});
     AsyncStorage.getItem("reba:articleComments_v1").then(v=> v && setArticleComments(JSON.parse(v))).catch(()=>{});
@@ -426,6 +707,12 @@ const onRefresh = async ()=>{
     
     // Загружаем кэшированные данные
     loadCachedData();
+    
+    // Загружаем профиль пользователя
+    loadUserProfile();
+    
+    // Загружаем отзывы
+    loadReviews();
     
     // Синхронизируем данные при запуске
     syncData();
@@ -1059,41 +1346,89 @@ const RequestModal = ({ visible, onClose, center })=>{
               </TouchableOpacity>
             </View>
           ) : null}
-        </View>
-        <View style={{ height:120 }} />
-      </ScrollView>
       </View>
-    );
+      <View style={{ height:120 }} />
+    </ScrollView>
+      </View>
+  );
   };
 
-  const SearchScreen = ()=>(
+  const SearchScreen = ()=>{
+    const [sortByDistance, setSortByDistance] = useState(false);
+    const filteredCentersList = filteredCenters(query);
+    const sortedCenters = sortByDistance ? getSortedCentersByDistance(filteredCentersList) : filteredCentersList;
+
+    return (
     <View style={{ flex:1 }}>
       <View style={{ padding:12, flexDirection:"row", alignItems:"center", justifyContent:"space-between" }}>
         <TextInput value={query} onChangeText={setQuery} placeholder="Поиск по центрам, городу..." style={[styles.searchInput, { flex:1 }]} />
         <TouchableOpacity style={styles.filterPillTop} onPress={()=> setFiltersVisible(true)}><Text style={{ fontWeight:"700", color: THEME.primary }}>Фильтры</Text></TouchableOpacity>
       </View>
-      <FlatList 
-        data={filteredCenters(query)} 
-        keyExtractor={i=>i.id} 
-        refreshing={refreshing} 
-        onRefresh={onRefresh} 
-        renderItem={({item, index}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} index={index} />} 
-        ItemSeparatorComponent={()=> <View style={{ height:12 }} />} 
-        contentContainerStyle={{ padding:12 }}
-        // Виртуализация и производительность
-        removeClippedSubviews={true}
-        maxToRenderPerBatch={10}
-        updateCellsBatchingPeriod={50}
-        initialNumToRender={8}
-        windowSize={10}
-        getItemLayout={(data, index) => ({
-          length: 200, // Высота карточки + отступы
-          offset: 212 * index, // 200 + 12 (отступ)
-          index,
-        })}
-      />
+        
+        {/* Кнопки сортировки и геолокации */}
+        <View style={styles.sortControls}>
+          <TouchableOpacity 
+            style={[styles.sortButton, sortByDistance && styles.sortButtonActive]} 
+            onPress={() => setSortByDistance(!sortByDistance)}
+            activeOpacity={0.7}
+          >
+            <Ionicons 
+              name={sortByDistance ? "location" : "location-outline"} 
+              size={16} 
+              color={sortByDistance ? "#fff" : THEME.primary} 
+            />
+            <Text style={[styles.sortButtonText, sortByDistance && styles.sortButtonTextActive]}>
+              {sortByDistance ? "По расстоянию" : "Ближайшие"}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.locationButton} 
+            onPress={getCurrentLocation}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="navigate" size={16} color={THEME.primary} />
+            <Text style={styles.locationButtonText}>Мое местоположение</Text>
+          </TouchableOpacity>
+        </View>
+        <FlatList 
+          data={sortedCenters} 
+          keyExtractor={i=>i.id} 
+          refreshing={refreshing} 
+          onRefresh={onRefresh} 
+          renderItem={({item, index}) => (
+            <View>
+              <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} index={index} />
+              {sortByDistance && item.distance && (
+                <View style={styles.distanceInfo}>
+                  <Ionicons name="location-outline" size={12} color={THEME.muted} />
+                  <Text style={styles.distanceText}>
+                    {item.distance < 1 
+                      ? `${Math.round(item.distance * 1000)} м` 
+                      : `${item.distance.toFixed(1)} км`
+                    }
+                  </Text>
+                </View>
+              )}
+            </View>
+          )} 
+          ItemSeparatorComponent={()=> <View style={{ height:12 }} />} 
+          contentContainerStyle={{ padding:12 }}
+          // Виртуализация и производительность
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          initialNumToRender={8}
+          windowSize={10}
+          getItemLayout={(data, index) => ({
+            length: 200, // Высота карточки + отступы
+            offset: 212 * index, // 200 + 12 (отступ)
+            index,
+          })}
+        />
     </View>
   );
+  };
 
   const FavoritesScreen = ()=>{
     const favList = centers.filter(c => favorites[c.id]);
@@ -1937,5 +2272,119 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 6,
     fontSize: 12
+  },
+  // Геолокация стили
+  sortControls: {
+    flexDirection: "row",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8
+  },
+  sortButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: THEME.primary,
+    backgroundColor: "#fff"
+  },
+  sortButtonActive: {
+    backgroundColor: THEME.primary,
+    borderColor: THEME.primary
+  },
+  sortButtonText: {
+    marginLeft: 4,
+    fontSize: 12,
+    fontWeight: "600",
+    color: THEME.primary
+  },
+  sortButtonTextActive: {
+    color: "#fff"
+  },
+  locationButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: THEME.primary,
+    backgroundColor: "#fff"
+  },
+  locationButtonText: {
+    marginLeft: 4,
+    fontSize: 12,
+    fontWeight: "600",
+    color: THEME.primary
+  },
+  distanceInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+    marginLeft: 12
+  },
+  distanceText: {
+    marginLeft: 4,
+    fontSize: 11,
+    color: THEME.muted,
+    fontWeight: "500"
+  },
+  // Профиль стили
+  profilePhotoSection: {
+    alignItems: "center",
+    marginBottom: 20
+  },
+  profilePhoto: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 12
+  },
+  profilePhotoPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#f0f4fb",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: THEME.primary,
+    borderStyle: "dashed"
+  },
+  changePhotoButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: THEME.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20
+  },
+  changePhotoText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+    marginLeft: 4
+  },
+  profileInfo: {
+    marginBottom: 20
+  },
+  profileLabel: {
+    fontSize: 12,
+    color: THEME.muted,
+    marginTop: 12,
+    marginBottom: 4
+  },
+  profileValue: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333"
+  },
+  profileBtnText: {
+    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: "600"
   }
 });
