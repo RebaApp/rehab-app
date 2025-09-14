@@ -40,16 +40,76 @@ const WATER = [
 
 // 10 articles
 const ARTICLES = [
-  { id:"a1", title:"Алкогольная зависимость: почему это болезнь, а не слабость", excerpt:"Природа зависимости и комплексный подход.", image: WATER[0], body:"Алкогольная зависимость — хроническое заболевание. Лечение сочетает детокс, медикаментозную поддержку и психотерапию." },
-  { id:"a2", title:"Наркозависимость: детокс — это начало", excerpt:"Детокс — начало долгого пути.", image: WATER[1], body:"Детокс важен, но без реабилитации риск рецидива высок." },
-  { id:"a3", title:"Игровое расстройство: как вернуть контроль", excerpt:"КПТ, ограничения доступа и работа с семьёй.", image: WATER[2], body:"Игровое расстройство — поведенческая зависимость. КПТ и финансовая реабилитация помогают восстановить контроль." },
-  { id:"a4", title:"Никотиновая зависимость: комбинированный план", excerpt:"НЗТ и поведенческая поддержка.", image: WATER[3], body:"Комбинация фармакотерапии и терапии даёт лучшие результаты." },
-  { id:"a5", title:"Роль семьи в реабилитации", excerpt:"Как вовлечь близких без вреда.", image: WATER[4], body:"Семейная терапия улучшает результаты и снижает риск рецидива." },
-  { id:"a6", title:"Длительная поддержка после выписки", excerpt:"Что нужно для устойчивой ремиссии.", image: WATER[0], body:"План после выписки, группы поддержки и регулярный контроль." },
-  { id:"a7", title:"Подготовка к реабилитации", excerpt:"Практические шаги перед госпитализацией.", image: WATER[1], body:"Подготовка включает документы, психологическую готовность и бытовые решения." },
-  { id:"a8", title:"Коморбидность: депрессия и зависимость", excerpt:"Почему важно лечить оба состояния.", image: WATER[2], body:"Коморбидные расстройства ухудшают прогноз — лечим комплексно." },
-  { id:"a9", title:"Профилактика рецидива", excerpt:"Практические меры и план действий.", image: WATER[3], body:"Работа с триггерами, план быстрых действий и поддержка." },
-  { id:"a10", title:"Современная программа реабилитации", excerpt:"Этапы: диагностика → детокс → терапия → ресоциализация.", image: WATER[4], body:"Этапы программы: диагностика, детокс, терапия, реинтеграция." }
+  { 
+    id:"a1", 
+    title:"Алкогольная зависимость: почему это болезнь, а не слабость", 
+    excerpt:"Природа зависимости и комплексный подход.", 
+    image: WATER[0], 
+    body:"Алкогольная зависимость — это хроническое заболевание, которое влияет на мозг и поведение человека. Многие ошибочно считают это проявлением слабости характера, но на самом деле это сложное медицинское состояние.\n\nСовременные исследования показывают, что алкоголизм имеет генетическую предрасположенность и изменяет структуру мозга. Лечение требует комплексного подхода: медицинский детокс, психотерапия, групповая поддержка и долгосрочная реабилитация.\n\nВажно понимать, что выздоровление — это процесс, а не событие. Поддержка семьи и профессиональная помощь значительно увеличивают шансы на успешное восстановление." 
+  },
+  { 
+    id:"a2", 
+    title:"Наркозависимость: детокс — это начало", 
+    excerpt:"Детокс — начало долгого пути.", 
+    image: WATER[1], 
+    body:"Детоксикация — это первый и критически важный этап лечения наркозависимости. Однако важно понимать, что детокс — это только начало долгого пути к выздоровлению.\n\nВо время детокса организм очищается от токсинов, но психологическая зависимость остается. Без последующей реабилитации риск рецидива составляет более 80%. Поэтому после детокса необходимо пройти полный курс психотерапии и реабилитации.\n\nСовременные программы детокса включают медикаментозную поддержку, круглосуточное наблюдение врачей и психологическую помощь. Это делает процесс более безопасным и комфортным для пациента." 
+  },
+  { 
+    id:"a3", 
+    title:"Игровое расстройство: как вернуть контроль", 
+    excerpt:"КПТ, ограничения доступа и работа с семьёй.", 
+    image: WATER[2], 
+    body:"Игровое расстройство — это серьезная поведенческая зависимость, которая может разрушить жизнь человека и его семьи. В отличие от химических зависимостей, здесь нет физического вещества, но есть сильная психологическая привязанность.\n\nКогнитивно-поведенческая терапия (КПТ) является основным методом лечения. Она помогает изменить паттерны мышления и поведения, связанные с игрой. Важную роль играет финансовая реабилитация — восстановление контроля над деньгами и долгами.\n\nСемейная терапия помогает восстановить доверие и отношения. Ограничение доступа к играм, установка лимитов времени и денег — все это часть комплексного подхода к лечению." 
+  },
+  { 
+    id:"a4", 
+    title:"Никотиновая зависимость: комбинированный план", 
+    excerpt:"НЗТ и поведенческая поддержка.", 
+    image: WATER[3], 
+    body:"Отказ от курения — один из самых сложных, но важных шагов для здоровья. Никотиновая зависимость имеет как физический, так и психологический компонент, поэтому требует комплексного подхода.\n\nНикотинзаместительная терапия (НЗТ) помогает справиться с физической зависимостью. Это могут быть пластыри, жвачки, спреи или таблетки. Однако без изменения поведения и привычек успех будет временным.\n\nПоведенческая поддержка включает работу с триггерами, стресс-менеджмент и формирование новых здоровых привычек. Группы поддержки и индивидуальная терапия значительно увеличивают шансы на успешный отказ от курения." 
+  },
+  { 
+    id:"a5", 
+    title:"Роль семьи в реабилитации", 
+    excerpt:"Как вовлечь близких без вреда.", 
+    image: WATER[4], 
+    body:"Семья играет ключевую роль в процессе реабилитации зависимого человека. Однако важно понимать, как правильно оказывать поддержку, не навредив ни себе, ни близкому человеку.\n\nСемейная терапия помогает всем членам семьи понять природу зависимости и научиться здоровым способам взаимодействия. Это включает установление границ, отказ от созависимого поведения и создание поддерживающей среды.\n\nИсследования показывают, что при участии семьи в лечении результаты реабилитации улучшаются на 40-60%. Семья может стать мощным источником мотивации и поддержки, но только при правильном подходе и профессиональном руководстве." 
+  },
+  { 
+    id:"a6", 
+    title:"Длительная поддержка после выписки", 
+    excerpt:"Что нужно для устойчивой ремиссии.", 
+    image: WATER[0], 
+    body:"Выписка из реабилитационного центра — это не конец лечения, а начало нового этапа. Длительная поддержка критически важна для поддержания трезвости и предотвращения рецидивов.\n\nПлан после выписки должен включать регулярные встречи с психологом, участие в группах поддержки (например, АА или НА), медикаментозную поддержку при необходимости и работу с семьей. Важно также иметь план действий в случае возникновения тяги или стрессовых ситуаций.\n\nИсследования показывают, что люди, которые продолжают получать поддержку в течение первого года после выписки, имеют в 3 раза больше шансов на долгосрочную ремиссию. Поддержка должна быть индивидуальной и адаптированной к потребностям каждого человека." 
+  },
+  { 
+    id:"a7", 
+    title:"Подготовка к реабилитации", 
+    excerpt:"Практические шаги перед госпитализацией.", 
+    image: WATER[1], 
+    body:"Правильная подготовка к реабилитации значительно увеличивает шансы на успешное лечение. Это включает как практические, так и психологические аспекты подготовки.\n\nПрактическая подготовка включает сбор необходимых документов (паспорт, медицинские справки, страховка), решение вопросов с работой или учебой, подготовку личных вещей и информирование близких о планах.\n\nПсихологическая подготовка не менее важна. Нужно настроиться на серьезную работу над собой, быть готовым к изменениям в жизни и отношениях. Важно также обсудить с семьей ожидания и планы на период лечения. Поддержка близких в этот период критически важна." 
+  },
+  { 
+    id:"a8", 
+    title:"Коморбидность: депрессия и зависимость", 
+    excerpt:"Почему важно лечить оба состояния.", 
+    image: WATER[2], 
+    body:"Коморбидность — это одновременное наличие двух или более расстройств у одного человека. Депрессия и зависимость часто идут рука об руку, создавая сложную картину, которая требует комплексного лечения.\n\nИсследования показывают, что у 30-50% людей с зависимостью есть сопутствующие психические расстройства. Депрессия может быть как причиной, так и следствием зависимости. Важно лечить оба состояния одновременно, иначе лечение будет неэффективным.\n\nИнтегрированный подход включает медикаментозное лечение депрессии, психотерапию, работу с зависимостью и семейную терапию. Лечение должно быть индивидуальным и учитывать особенности каждого состояния." 
+  },
+  { 
+    id:"a9", 
+    title:"Профилактика рецидива", 
+    excerpt:"Практические меры и план действий.", 
+    image: WATER[3], 
+    body:"Профилактика рецидива — это активный процесс, который требует постоянной работы и внимания. Рецидив не является неудачей, а частью процесса выздоровления, но его можно предотвратить.\n\nКлючевые элементы профилактики включают: работу с триггерами (ситуации, эмоции, люди, которые могут спровоцировать употребление), развитие навыков совладания со стрессом, поддержание здорового образа жизни и регулярное участие в группах поддержки.\n\nВажно иметь план быстрых действий на случай возникновения тяги. Это может включать звонок спонсору, физические упражнения, медитацию или другие техники релаксации. Поддержка семьи и друзей также играет важную роль в профилактике рецидивов." 
+  },
+  { 
+    id:"a10", 
+    title:"Современная программа реабилитации", 
+    excerpt:"Этапы: диагностика → детокс → терапия → ресоциализация.", 
+    image: WATER[4], 
+    body:"Современная программа реабилитации — это структурированный процесс, который проходит в несколько этапов, каждый из которых важен для успешного выздоровления.\n\nПервый этап — диагностика и оценка. Врачи и психологи проводят комплексное обследование, чтобы понять степень зависимости, сопутствующие заболевания и индивидуальные потребности пациента.\n\nВторой этап — детокс и стабилизация. Медицинская команда помогает безопасно очистить организм от токсинов и стабилизировать физическое состояние.\n\nТретий этап — интенсивная терапия. Включает индивидуальную и групповую психотерапию, работу с семьей, развитие навыков совладания и изменение паттернов поведения.\n\nЧетвертый этап — ресоциализация. Подготовка к возвращению в общество, работа с триггерами, планирование долгосрочной поддержки и профилактики рецидивов." 
+  }
 ];
 
 const CENTER_NAMES = [
@@ -439,10 +499,10 @@ const onRefresh = async ()=>{
           </TouchableOpacity>
           <TouchableOpacity 
             onPress={() => toggleFav(center.id)} 
-            style={{ padding: 8, marginLeft: 8, justifyContent: "center", alignItems: "center" }}
+            style={styles.favoriteButton}
             activeOpacity={0.7}
           >
-            <Text style={{ fontSize: 22, color: (favorites && favorites[center.id]) ? THEME.primary : THEME.muted }}>{favorites && favorites[center.id] ? "♥" : "♡"}</Text>
+            <Text style={{ fontSize: 24, color: (favorites && favorites[center.id]) ? THEME.primary : THEME.muted }}>{favorites && favorites[center.id] ? "♥" : "♡"}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -662,31 +722,49 @@ const RequestModal = ({ visible, onClose, center })=>{
             <Image source={{ uri: article.image || FALLBACK_IMAGE }} style={{ width:"100%", height:220, borderRadius:10 }} resizeMode="cover" />
             <Text style={{ marginTop:12, color: THEME.muted, lineHeight:20 }}>{article.body}</Text>
 
-            <View style={{ marginTop:14, marginBottom:6 }}>
+            <View style={styles.articleActions}>
               <TouchableOpacity 
                 onPress={()=> toggleLikeArticle(article.id)} 
-                style={{ padding:8 }}
+                style={styles.likeButton}
                 activeOpacity={0.7}
               >
-                <Text style={{ color: liked ? THEME.primary : THEME.muted, fontWeight:"800" }}>{ liked ? "♥ Нравится" : "♡ Нравится" }</Text>
+                <Text style={{ fontSize: 20, marginRight: 6 }}>{ liked ? "♥" : "♡" }</Text>
+                <Text style={{ color: liked ? THEME.primary : THEME.muted, fontWeight:"700" }}>Нравится</Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={{ fontWeight:"800" }}>Комментарии</Text>
-            {comments.length===0 ? <Text style={{ color: THEME.muted, marginTop:8 }}>Пока нет комментариев — будь первым.</Text> : comments.map(c=> <View key={c.id} style={{ padding:10, backgroundColor:"#fff", borderRadius:10, marginTop:8, ...THEME.shadow }}><Text style={{ color: THEME.muted, fontSize:12 }}>{c.date}</Text><Text style={{ marginTop:6 }}>{c.text}</Text></View>)}
+            <View style={styles.commentsSection}>
+              <Text style={{ fontWeight:"800", marginBottom: 12 }}>Комментарии ({comments.length})</Text>
+              {comments.length===0 ? (
+                <View style={styles.noComments}>
+                  <Text style={{ color: THEME.muted, textAlign: "center" }}>Пока нет комментариев — будь первым!</Text>
+                </View>
+              ) : (
+                comments.map(c=> (
+                  <View key={c.id} style={styles.commentItem}>
+                    <Text style={{ color: THEME.muted, fontSize:12 }}>{c.date}</Text>
+                    <Text style={{ marginTop:6 }}>{c.text}</Text>
+                  </View>
+                ))
+              )}
 
-            <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={100}>
-              <View style={{ marginTop:14, flexDirection:"row", alignItems:"center" }}>
-                <TextInput value={text} onChangeText={setText} placeholder="Оставить комментарий" style={{ flex:1, backgroundColor:"#fff", padding:10, borderRadius:10, marginRight:8 }} />
+              <View style={styles.commentInputSection}>
+                <TextInput 
+                  value={text} 
+                  onChangeText={setText} 
+                  placeholder="Оставить комментарий..." 
+                  style={styles.commentInput}
+                  multiline
+                />
                 <TouchableOpacity 
                   onPress={submit} 
-                  style={[styles.btnPrimary, { paddingVertical:10, paddingHorizontal:14 }]}
+                  style={styles.commentSubmitButton}
                   activeOpacity={0.8}
                 >
                   <Text style={{ color:"#fff", fontWeight:"800" }}>Отправить</Text>
                 </TouchableOpacity>
               </View>
-            </KeyboardAvoidingView>
+            </View>
 
             <View style={{ height:80 }} />
           </ScrollView>
@@ -695,42 +773,74 @@ const RequestModal = ({ visible, onClose, center })=>{
     );
   };
 
-  const HomeScreen = () => (
-    <ScrollView 
-      contentContainerStyle={{ padding:12 }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={[THEME.primary]}
-          tintColor={THEME.primary}
-        />
-      }
-    >
-      <View style={{ alignItems:"center", marginTop:6 }}>
-        <View style={{ position:"relative", alignItems:"center" }}>
-          <Text style={styles.rebaTitle}>РЕБА</Text>
-          <Animated.View pointerEvents="none" style={[styles.shimmerOverlay, { opacity: shimmer.current ? shimmer.current.__getValue ? shimmer.current.__getValue() : 0.3 : 0.3 }]}>
-            <LinearGradient colors={["rgba(255,255,255,0)","rgba(255,255,255,0.6)","rgba(255,255,255,0)"]} start={[0,0]} end={[1,0]} style={{ width:200, height:44 }} />
-          </Animated.View>
-        </View>
-        <Text style={styles.rebaSubtitle}>ПОМОЩЬ БЛИЖЕ ЧЕМ КАЖЕТСЯ</Text>
-        <TextInput value={query} onChangeText={setQuery} placeholder="Поисковик..." placeholderTextColor="#809bb3" style={styles.heroSearchSmall} />
-      </View>
+  const HomeScreen = () => {
+    const filteredArticles = query ? ARTICLES.filter(article => 
+      article.title.toLowerCase().includes(query.toLowerCase()) ||
+      article.excerpt.toLowerCase().includes(query.toLowerCase()) ||
+      article.body.toLowerCase().includes(query.toLowerCase())
+    ) : ARTICLES;
 
-      <View style={{ marginTop:18 }}>
-        <Text style={{ fontWeight:"800", fontSize:16, marginBottom:10 }}>Мы пишем полезности:</Text>
-        <FlatList 
-          data={ARTICLES} 
-          keyExtractor={i=>i.id} 
-          renderItem={({item}) => <ArticleCard item={item} />} 
-          ItemSeparatorComponent={()=> <View style={{ height:12 }} />}
-          scrollEnabled={false}
-        />
-      </View>
-      <View style={{ height:120 }} />
-    </ScrollView>
-  );
+    return (
+      <ScrollView 
+        contentContainerStyle={{ padding:12 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[THEME.primary]}
+            tintColor={THEME.primary}
+          />
+        }
+      >
+        <View style={{ alignItems:"center", marginTop:6 }}>
+          <View style={{ position:"relative", alignItems:"center" }}>
+            <Text style={styles.rebaTitle}>РЕБА</Text>
+            <Animated.View pointerEvents="none" style={[styles.shimmerOverlay, { opacity: shimmer.current ? shimmer.current.__getValue ? shimmer.current.__getValue() : 0.3 : 0.3 }]}>
+              <LinearGradient colors={["rgba(255,255,255,0)","rgba(255,255,255,0.6)","rgba(255,255,255,0)"]} start={[0,0]} end={[1,0]} style={{ width:200, height:44 }} />
+            </Animated.View>
+          </View>
+          <Text style={styles.rebaSubtitle}>ПОМОЩЬ БЛИЖЕ ЧЕМ КАЖЕТСЯ</Text>
+          <TextInput 
+            value={query} 
+            onChangeText={setQuery} 
+            placeholder="Поиск статей..." 
+            placeholderTextColor="#809bb3" 
+            style={styles.heroSearchSmall}
+            returnKeyType="search"
+          />
+        </View>
+
+        <View style={{ marginTop:18 }}>
+          <Text style={{ fontWeight:"800", fontSize:16, marginBottom:10 }}>
+            {query ? `Найдено статей: ${filteredArticles.length}` : "Мы пишем полезности:"}
+          </Text>
+          {filteredArticles.length > 0 ? (
+            <FlatList 
+              data={filteredArticles} 
+              keyExtractor={i=>i.id} 
+              renderItem={({item}) => <ArticleCard item={item} />} 
+              ItemSeparatorComponent={()=> <View style={{ height:12 }} />}
+              scrollEnabled={false}
+            />
+          ) : query ? (
+            <View style={styles.noResults}>
+              <Text style={{ color: THEME.muted, textAlign: "center", fontSize: 16 }}>
+                По запросу "{query}" ничего не найдено
+              </Text>
+              <TouchableOpacity 
+                style={[styles.btnPrimary, { marginTop: 12 }]}
+                onPress={() => setQuery("")}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: "#fff", fontWeight: "800" }}>Показать все статьи</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+        </View>
+        <View style={{ height:120 }} />
+      </ScrollView>
+    );
+  };
 
   const SearchScreen = ()=>(
     <View style={{ flex:1 }}>
@@ -1196,5 +1306,82 @@ const styles = StyleSheet.create({
     shadowRadius: 10, 
     elevation: 3,
     cursor: "pointer"
+  },
+  // New design styles
+  favoriteButton: {
+    padding: 12,
+    marginLeft: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    minWidth: 48,
+    minHeight: 48
+  },
+  articleActions: {
+    marginTop: 16,
+    marginBottom: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f4fb"
+  },
+  likeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    alignSelf: "flex-start",
+    ...THEME.shadow
+  },
+  commentsSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f4fb"
+  },
+  noComments: {
+    padding: 20,
+    backgroundColor: "#f8fbff",
+    borderRadius: 10,
+    marginBottom: 16
+  },
+  commentItem: {
+    padding: 12,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    marginBottom: 8,
+    ...THEME.shadow
+  },
+  commentInputSection: {
+    marginTop: 16,
+    flexDirection: "row",
+    alignItems: "flex-end"
+  },
+  commentInput: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 10,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: "#eef7ff",
+    minHeight: 44,
+    maxHeight: 100
+  },
+  commentSubmitButton: {
+    backgroundColor: THEME.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    minHeight: 44,
+    justifyContent: "center"
+  },
+  noResults: {
+    padding: 24,
+    alignItems: "center",
+    backgroundColor: "#f8fbff",
+    borderRadius: 12,
+    marginTop: 12
   }
 });
