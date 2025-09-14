@@ -39,14 +39,14 @@ const THEME = {
   shadow: { shadowColor: "#0a2740", shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 }
 };
 
-const FALLBACK_IMAGE = "https://dl.dropboxusercontent.com/scl/fi/p6kykjgdqqh30tjzos8sx/.jpg?rlkey=64a998ru6v232v0d6hu699gei&st=oj6hjqh7&dl=0";
+// Стабильные изображения из Unsplash
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center";
 const WATER = [
-    "https://dl.dropboxusercontent.com/scl/fi/9c70ynhqzordogik637yd/.jpg?rlkey=nwb5m7c7aaxc4avpwyknqe5we&st=cfw20d71&dl=0",
-  "https://dl.dropboxusercontent.com/scl/fi/p6kykjgdqqh30tjzos8sx/.jpg?rlkey=64a998ru6v232v0d6hu699gei&st=oj6hjqh7&dl=0",
-  "https://dl.dropboxusercontent.com/scl/fi/arjafa6f6yg0gj5yavh9e/.jpg?rlkey=p6j12v96x53dn920n05s2figf&st=p5qvovh4&dl=0",
-  "https://dl.dropboxusercontent.com/scl/fi/gane6z64nqzscbn1u5hg6/.jpg?rlkey=jf0fu8h2107k25meeaf05joov&st=oa14bxyt&dl=0",
-  "https://dl.dropboxusercontent.com/scl/fi/n0fvkwjfxt8savnziq6tx/.jpg?rlkey=aeblpu1mml5d9pes7lnqfhbww&st=7whfctvo&dl=0"
-
+  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop&crop=center",
+  "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=300&fit=crop&crop=center"
 ];
 
 // 10 articles
@@ -157,6 +157,7 @@ const openMap = (n,c)=> { const q=encodeURIComponent(n+" "+c); const url = Platf
 const LazyImage = ({ source, style, fallback = FALLBACK_IMAGE, priority = false }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const [shouldLoad, setShouldLoad] = useState(priority);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -177,6 +178,7 @@ const LazyImage = ({ source, style, fallback = FALLBACK_IMAGE, priority = false 
 
   const handleLoad = () => {
     setLoading(false);
+    setError(false);
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
@@ -185,13 +187,24 @@ const LazyImage = ({ source, style, fallback = FALLBACK_IMAGE, priority = false 
   };
 
   const handleError = () => {
+    console.log(`Image load error for: ${source}, retry: ${retryCount}`);
     setError(true);
     setLoading(false);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+    
+    // Попробуем перезагрузить изображение до 3 раз
+    if (retryCount < 3) {
+      setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        setError(false);
+        setLoading(true);
+      }, 1000 * (retryCount + 1)); // Увеличиваем задержку с каждой попыткой
+    } else {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
   };
 
   return (
@@ -199,6 +212,11 @@ const LazyImage = ({ source, style, fallback = FALLBACK_IMAGE, priority = false 
       {loading && (
         <View style={[style, styles.imagePlaceholder]}>
           <Ionicons name="image-outline" size={40} color={THEME.muted} />
+          {retryCount > 0 && (
+            <Text style={{ color: THEME.muted, fontSize: 12, marginTop: 4 }}>
+              Повторная загрузка...
+            </Text>
+          )}
         </View>
       )}
       {shouldLoad && (
@@ -211,6 +229,8 @@ const LazyImage = ({ source, style, fallback = FALLBACK_IMAGE, priority = false 
             resizeMode="cover"
             // Кэширование изображений
             cache="force-cache"
+            // Добавляем timeout для загрузки
+            defaultSource={{ uri: fallback }}
           />
         </Animated.View>
       )}
@@ -336,7 +356,7 @@ export default function App(){
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
   const [currentReviewCenter, setCurrentReviewCenter] = useState(null);
 const [refreshing, setRefreshing] = useState(false);
-const onRefresh = async ()=>{
+  const onRefresh = async ()=>{
   setRefreshing(true);
   try {
     // Синхронизируем данные с сервера
@@ -357,6 +377,9 @@ const onRefresh = async ()=>{
     // Обновляем заявки
     const reqs = await AsyncStorage.getItem("reba:requests_v1");
     if (reqs) setRequests(JSON.parse(reqs));
+    
+    // Принудительно обновляем изображения
+    setCenters(prevCenters => [...prevCenters]);
     
     console.log("Data refreshed successfully");
   } catch (error) {
@@ -1853,6 +1876,19 @@ const ProfileScreen = ()=>(
 
             <View style={styles.settingsSection}>
               <Text style={styles.settingsSectionTitle}>Данные</Text>
+              
+              <TouchableOpacity 
+                style={styles.settingActionItem}
+                onPress={() => {
+                  // Принудительно обновляем изображения
+                  setCenters(prevCenters => [...prevCenters]);
+                  Alert.alert("Готово", "Изображения обновлены");
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.settingActionText}>Обновить изображения</Text>
+                <Text style={{ fontSize: 18 }}>→</Text>
+              </TouchableOpacity>
               
               <TouchableOpacity 
                 style={styles.settingActionItem}
