@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 // Firebase integration (expected firebaseConfig.js in project root)
 import { auth, db } from './firebaseConfig';
@@ -189,6 +190,51 @@ function generateCenters() {
 const parsePrice = (p)=>{ const m = p.match(/(\d+)\s*000/); return m ? Number(m[1])*1000 : 0; };
 const openMap = (n,c)=> { const q=encodeURIComponent(n+" "+c); const url = Platform.OS==="ios"?`http://maps.apple.com/?q=${q}`:`https://www.google.com/maps/search/?api=1&query=${q}`; Linking.openURL(url).catch(()=>{}); };
 
+// Компонент для улучшенной загрузки изображений
+const OptimizedImage = ({ source, style, fallback = FALLBACK_IMAGE }) => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const handleLoad = () => {
+    setLoading(false);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleError = () => {
+    setError(true);
+    setLoading(false);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <View style={style}>
+      {loading && (
+        <View style={[style, styles.imagePlaceholder]}>
+          <Ionicons name="image-outline" size={40} color={THEME.muted} />
+        </View>
+      )}
+      <Animated.View style={{ opacity: fadeAnim, position: loading ? 'absolute' : 'relative' }}>
+        <Image
+          source={{ uri: error ? fallback : source }}
+          style={style}
+          onLoad={handleLoad}
+          onError={handleError}
+          resizeMode="cover"
+        />
+      </Animated.View>
+    </View>
+  );
+};
+
 export default function App(){
   const [centers, setCenters] = useState(generateCenters());
   const [tab,setTab] = useState("home");
@@ -246,6 +292,7 @@ const onRefresh = async ()=>{
 
   const slide = useRef(new Animated.Value(SCREEN_W)).current;
   const shimmer = useRef(new Animated.Value(0.3)).current;
+  const tabTransition = useRef(new Animated.Value(0)).current;
 
   useEffect(()=>{
     AsyncStorage.getItem("reba:favorites_v1").then(v=> v && setFavorites(JSON.parse(v))).catch(()=>{});
@@ -266,6 +313,17 @@ const onRefresh = async ()=>{
   },[]);
 
   useEffect(()=>{ if(selectedCenter || articleOpen){ slide.setValue(SCREEN_W); Animated.spring(slide,{ toValue:0, useNativeDriver:true }).start(); } },[selectedCenter, articleOpen]);
+
+  // Анимация смены табов
+  useEffect(() => {
+    Animated.timing(tabTransition, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      tabTransition.setValue(0);
+    });
+  }, [tab]);
 
   const toggleFav = async(id)=>{ 
     const copy = {...favorites}; 
@@ -345,23 +403,44 @@ const onRefresh = async ()=>{
   };
 
   // Center card (preview) layout fixed height, title less bold, types on separate line
-  const CenterCard = ({ item, onOpen })=>{
+  const CenterCard = ({ item, onOpen, index = 0 })=>{
+    const cardAnim = useRef(new Animated.Value(0)).current;
+    
+    useEffect(() => {
+      Animated.timing(cardAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 100,
+        useNativeDriver: true,
+      }).start();
+    }, []);
+
     return (
-      <TouchableOpacity style={styles.card} activeOpacity={0.95} onPress={()=> onOpen(item)}>
-        <View style={styles.cardImageWrap}><Image source={{ uri: item.photos[0] || FALLBACK_IMAGE }} style={styles.cardImage} resizeMode="cover" /></View>
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
-          <View style={{ flexDirection:"row", alignItems:"center", marginTop:8 }}>
-            <View style={styles.cityPill}><Text style={styles.cityPillText}>{item.city}</Text></View>
+      <Animated.View style={{
+        opacity: cardAnim,
+        transform: [{
+          translateY: cardAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [50, 0]
+          })
+        }]
+      }}>
+        <TouchableOpacity style={styles.card} activeOpacity={0.95} onPress={()=> onOpen(item)}>
+          <View style={styles.cardImageWrap}><OptimizedImage source={item.photos[0] || FALLBACK_IMAGE} style={styles.cardImage} /></View>
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
+            <View style={{ flexDirection:"row", alignItems:"center", marginTop:8 }}>
+              <View style={styles.cityPill}><Text style={styles.cityPillText}>{item.city}</Text></View>
+            </View>
+            <Text style={styles.typesText} numberOfLines={1}>{item.types.map(t=> t.charAt(0).toUpperCase()+t.slice(1)).join(", ")}</Text>
+            <Text style={styles.cardBlurb} numberOfLines={2}>{item.descriptionShort}</Text>
+            <View style={styles.cardBottomRow}>
+              <Text style={styles.price}>{item.price}</Text>
+              <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
+            </View>
           </View>
-          <Text style={styles.typesText} numberOfLines={1}>{item.types.map(t=> t.charAt(0).toUpperCase()+t.slice(1)).join(", ")}</Text>
-          <Text style={styles.cardBlurb} numberOfLines={2}>{item.descriptionShort}</Text>
-          <View style={styles.cardBottomRow}>
-            <Text style={styles.price}>{item.price}</Text>
-            <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </Animated.View>
     );
   };
 
@@ -708,7 +787,7 @@ const RequestModal = ({ visible, onClose, center })=>{
 
   const ArticleCard = ({ item })=>(
     <TouchableOpacity style={styles.articleCard} onPress={()=> setArticleOpen(item)} activeOpacity={0.92}>
-      <Image source={{ uri: item.image || FALLBACK_IMAGE }} style={styles.articleImage} resizeMode="cover" />
+      <OptimizedImage source={item.image || FALLBACK_IMAGE} style={styles.articleImage} />
       <View style={{ padding:12 }}>
         <Text style={{ fontWeight:"700", fontSize:16 }}>{item.title}</Text>
         <Text numberOfLines={3} style={{ color: THEME.muted, marginTop:8 }}>{item.excerpt}</Text>
@@ -733,7 +812,7 @@ const RequestModal = ({ visible, onClose, center })=>{
           </View>
 
           <ScrollView style={{ padding:12 }}>
-            <Image source={{ uri: article.image || FALLBACK_IMAGE }} style={{ width:"100%", height:220, borderRadius:10 }} resizeMode="cover" />
+            <OptimizedImage source={article.image || FALLBACK_IMAGE} style={{ width:"100%", height:220, borderRadius:10 }} />
             <Text style={{ marginTop:12, color: THEME.muted, lineHeight:20 }}>{article.body}</Text>
 
             <View style={styles.articleActions}>
@@ -862,14 +941,14 @@ const RequestModal = ({ visible, onClose, center })=>{
         <TextInput value={query} onChangeText={setQuery} placeholder="Поиск по центрам, городу..." style={[styles.searchInput, { flex:1 }]} />
         <TouchableOpacity style={styles.filterPillTop} onPress={()=> setFiltersVisible(true)}><Text style={{ fontWeight:"700", color: THEME.primary }}>Фильтры</Text></TouchableOpacity>
       </View>
-      <FlatList data={filteredCenters(query)} keyExtractor={i=>i.id} refreshing={refreshing} onRefresh={onRefresh} renderItem={({item}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} />} ItemSeparatorComponent={()=> <View style={{ height:12 }} />} contentContainerStyle={{ padding:12 }} />
+      <FlatList data={filteredCenters(query)} keyExtractor={i=>i.id} refreshing={refreshing} onRefresh={onRefresh} renderItem={({item, index}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} index={index} />} ItemSeparatorComponent={()=> <View style={{ height:12 }} />} contentContainerStyle={{ padding:12 }} />
     </View>
   );
 
   const FavoritesScreen = ()=>{
     const favList = centers.filter(c => favorites[c.id]);
     if(favList.length===0) return (<View style={{ flex:1, alignItems:"center", justifyContent:"center", padding:24 }}><Text style={{ color: THEME.muted, textAlign:"center" }}>Пока нет избранных центров.</Text><TouchableOpacity style={[styles.btnPrimary, { marginTop:16 }]} onPress={()=> setTab("search")}><Text style={{ color:"#fff", fontWeight:"800" }}>Перейти в Поиск</Text></TouchableOpacity></View>);
-    return (<View style={{ flex:1 }}><FlatList data={favList} keyExtractor={i=>i.id} renderItem={({item}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} />} ItemSeparatorComponent={()=> <View style={{ height:12 }} />} contentContainerStyle={{ padding:12 }} /></View>);
+    return (<View style={{ flex:1 }}><FlatList data={favList} keyExtractor={i=>i.id} renderItem={({item, index}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} index={index} />} ItemSeparatorComponent={()=> <View style={{ height:12 }} />} contentContainerStyle={{ padding:12 }} /></View>);
   };
 
   
@@ -1398,12 +1477,24 @@ const ProfileScreen = ()=>(
   return (
     <LinearGradient colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]} style={styles.app}>
       <SafeAreaView style={{ flex:1 }}>
-        <View style={{ flex:1 }}>
+        <Animated.View style={{ 
+          flex:1, 
+          opacity: tabTransition.interpolate({
+            inputRange: [0, 0.5, 1],
+            outputRange: [1, 0.7, 1]
+          }),
+          transform: [{
+            scale: tabTransition.interpolate({
+              inputRange: [0, 0.5, 1],
+              outputRange: [1, 0.98, 1]
+            })
+          }]
+        }}>
           { tab === "home" && <HomeScreen /> }
           { tab === "search" && <SearchScreen /> }
           { tab === "fav" && <FavoritesScreen /> }
           { tab === "profile" && <ProfileScreen /> }
-        </View>
+        </Animated.View>
 
         { articleOpen && <ArticleDetail article={articleOpen} /> }
         { selectedCenter && <CenterDetail center={selectedCenter} /> }
@@ -1413,10 +1504,41 @@ const ProfileScreen = ()=>(
         <SettingsModal />
 
         <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navItem} onPress={()=> setTab("home")}><Text style={{ color: tab==="home" ? THEME.primary : THEME.muted }}>Главная</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={()=> setTab("search")}><Text style={{ color: tab==="search" ? THEME.primary : THEME.muted }}>Поиск</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={()=> setTab("fav")}><Text style={{ color: tab==="fav" ? THEME.primary : THEME.muted }}>Избранное</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={()=> setTab("profile")}><Text style={{ color: tab==="profile" ? THEME.primary : THEME.muted }}>Профиль</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={()=> setTab("home")} activeOpacity={0.7}>
+            <Ionicons 
+              name={tab === "home" ? "home" : "home-outline"} 
+              size={24} 
+              color={tab === "home" ? THEME.primary : THEME.muted} 
+            />
+            <Text style={[styles.navText, { color: tab === "home" ? THEME.primary : THEME.muted }]}>Главная</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.navItem} onPress={()=> setTab("search")} activeOpacity={0.7}>
+            <Ionicons 
+              name={tab === "search" ? "search" : "search-outline"} 
+              size={24} 
+              color={tab === "search" ? THEME.primary : THEME.muted} 
+            />
+            <Text style={[styles.navText, { color: tab === "search" ? THEME.primary : THEME.muted }]}>Поиск</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.navItem} onPress={()=> setTab("fav")} activeOpacity={0.7}>
+            <Ionicons 
+              name={tab === "fav" ? "heart" : "heart-outline"} 
+              size={24} 
+              color={tab === "fav" ? THEME.primary : THEME.muted} 
+            />
+            <Text style={[styles.navText, { color: tab === "fav" ? THEME.primary : THEME.muted }]}>Избранное</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.navItem} onPress={()=> setTab("profile")} activeOpacity={0.7}>
+            <Ionicons 
+              name={tab === "profile" ? "person" : "person-outline"} 
+              size={24} 
+              color={tab === "profile" ? THEME.primary : THEME.muted} 
+            />
+            <Text style={[styles.navText, { color: tab === "profile" ? THEME.primary : THEME.muted }]}>Профиль</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -1460,7 +1582,8 @@ const styles = StyleSheet.create({
   btnPrimary: { backgroundColor: THEME.primary, padding:12, borderRadius:10, alignItems:"center" },
   btnSecondary: { padding:12, borderRadius:10, alignItems:"center", borderWidth:1, borderColor:"#dfefff", backgroundColor:"#fff" },
   bottomNav: { height:70, margin:12, backgroundColor:"#fff", borderRadius:16, flexDirection:"row", justifyContent:"space-around", alignItems:"center", ...THEME.shadow },
-  navItem: { alignItems:"center" },
+  navItem: { alignItems:"center", paddingVertical:6, paddingHorizontal:4 },
+  navText: { fontSize: 11, fontWeight: "600", marginTop: 2 },
   profileBtn: { padding:14, backgroundColor:"#fff", borderRadius:12, ...THEME.shadow, marginBottom:8 },
   profileLink: { padding:12, backgroundColor:"#fff", borderRadius:10, marginTop:8, ...THEME.shadow },
   filterPillTop: { paddingHorizontal:12, paddingVertical:10, borderRadius:12, marginLeft:10, backgroundColor:"#fff", borderWidth:1, borderColor:"#eef7ff" },
@@ -1616,5 +1739,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#ff4444"
+  },
+  // Image loading styles
+  imagePlaceholder: {
+    backgroundColor: "#f8fbff",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e7f3ff",
+    borderStyle: "dashed"
   }
 });
