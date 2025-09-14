@@ -192,8 +192,12 @@ const openMap = (n,c)=> { const q=encodeURIComponent(n+" "+c); const url = Platf
 export default function App(){
   const [centers, setCenters] = useState(generateCenters());
   const [tab,setTab] = useState("home");
-  const [query,setQuery] = useState("");
+  const [query,setQuery] = useState(""); // Поиск центров
+  const [articleQuery, setArticleQuery] = useState(""); // Поиск статей
   const [filtersVisible,setFiltersVisible] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [soundsEnabled, setSoundsEnabled] = useState(true);
 const [refreshing, setRefreshing] = useState(false);
 const onRefresh = async ()=>{
   setRefreshing(true);
@@ -248,6 +252,16 @@ const onRefresh = async ()=>{
     AsyncStorage.getItem("reba:articleComments_v1").then(v=> v && setArticleComments(JSON.parse(v))).catch(()=>{});
     AsyncStorage.getItem("reba:requests_v1").then(v=> v && setRequests(JSON.parse(v))).catch(()=>{});
     AsyncStorage.getItem("reba:liked_articles_v1").then(v=> v && setLikedArticles(JSON.parse(v))).catch(()=>{});
+    
+    // Загружаем настройки
+    AsyncStorage.getItem("reba:settings").then(v=> {
+      if (v) {
+        const settings = JSON.parse(v);
+        setNotificationsEnabled(settings.notificationsEnabled ?? true);
+        setSoundsEnabled(settings.soundsEnabled ?? true);
+      }
+    }).catch(()=>{});
+    
     Animated.loop(Animated.sequence([Animated.timing(shimmer,{ toValue:0.9, duration:1200, useNativeDriver:true }), Animated.timing(shimmer,{ toValue:0.3, duration:1200, useNativeDriver:true })])).start();
   },[]);
 
@@ -774,10 +788,10 @@ const RequestModal = ({ visible, onClose, center })=>{
   };
 
   const HomeScreen = () => {
-    const filteredArticles = query ? ARTICLES.filter(article => 
-      article.title.toLowerCase().includes(query.toLowerCase()) ||
-      article.excerpt.toLowerCase().includes(query.toLowerCase()) ||
-      article.body.toLowerCase().includes(query.toLowerCase())
+    const filteredArticles = articleQuery ? ARTICLES.filter(article => 
+      article.title.toLowerCase().includes(articleQuery.toLowerCase()) ||
+      article.excerpt.toLowerCase().includes(articleQuery.toLowerCase()) ||
+      article.body.toLowerCase().includes(articleQuery.toLowerCase())
     ) : ARTICLES;
 
     return (
@@ -801,8 +815,8 @@ const RequestModal = ({ visible, onClose, center })=>{
           </View>
           <Text style={styles.rebaSubtitle}>ПОМОЩЬ БЛИЖЕ ЧЕМ КАЖЕТСЯ</Text>
           <TextInput 
-            value={query} 
-            onChangeText={setQuery} 
+            value={articleQuery} 
+            onChangeText={setArticleQuery} 
             placeholder="Поиск статей..." 
             placeholderTextColor="#809bb3" 
             style={styles.heroSearchSmall}
@@ -812,7 +826,7 @@ const RequestModal = ({ visible, onClose, center })=>{
 
         <View style={{ marginTop:18 }}>
           <Text style={{ fontWeight:"800", fontSize:16, marginBottom:10 }}>
-            {query ? `Найдено статей: ${filteredArticles.length}` : "Мы пишем полезности:"}
+            {articleQuery ? `Найдено статей: ${filteredArticles.length}` : "Мы пишем полезности:"}
           </Text>
           {filteredArticles.length > 0 ? (
             <FlatList 
@@ -822,14 +836,14 @@ const RequestModal = ({ visible, onClose, center })=>{
               ItemSeparatorComponent={()=> <View style={{ height:12 }} />}
               scrollEnabled={false}
             />
-          ) : query ? (
+          ) : articleQuery ? (
             <View style={styles.noResults}>
               <Text style={{ color: THEME.muted, textAlign: "center", fontSize: 16 }}>
-                По запросу "{query}" ничего не найдено
+                По запросу "{articleQuery}" ничего не найдено
               </Text>
               <TouchableOpacity 
                 style={[styles.btnPrimary, { marginTop: 12 }]}
-                onPress={() => setQuery("")}
+                onPress={() => setArticleQuery("")}
                 activeOpacity={0.8}
               >
                 <Text style={{ color: "#fff", fontWeight: "800" }}>Показать все статьи</Text>
@@ -1156,7 +1170,7 @@ const ProfileScreen = ()=>(
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.profileLink} 
-          onPress={()=> Alert.alert("Настройки","Настройки приложения")}
+          onPress={()=> setSettingsVisible(true)}
           activeOpacity={0.8}
         >
           <Text style={{ fontWeight:"500" }}>Настройки</Text>
@@ -1164,6 +1178,163 @@ const ProfileScreen = ()=>(
       </View>
     </ScrollView>
   );
+
+  // Settings Modal
+  const SettingsModal = () => {
+    const saveSettings = async () => {
+      try {
+        await AsyncStorage.setItem("reba:settings", JSON.stringify({
+          notificationsEnabled,
+          soundsEnabled
+        }));
+        Alert.alert("Настройки сохранены", "Ваши настройки успешно сохранены");
+      } catch (error) {
+        console.error("Error saving settings:", error);
+        Alert.alert("Ошибка", "Не удалось сохранить настройки");
+      }
+    };
+
+    return (
+      <Modal 
+        visible={settingsVisible} 
+        animationType="slide" 
+        onRequestClose={()=> setSettingsVisible(false)}
+      >
+        <SafeAreaView style={{ flex:1, padding:16, backgroundColor: THEME.bgTop }}>
+          <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20 }}>
+            <TouchableOpacity 
+              onPress={()=> setSettingsVisible(false)} 
+              style={{ padding:8, marginRight:8 }}
+              activeOpacity={0.7}
+            >
+              <Text style={{ fontSize:18 }}>←</Text>
+            </TouchableOpacity>
+            <Text style={{ fontSize:20, fontWeight:"900" }}>Настройки</Text>
+          </View>
+          
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={styles.settingsSection}>
+              <Text style={styles.settingsSectionTitle}>Уведомления</Text>
+              
+              <View style={styles.settingItem}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.settingItemTitle}>Push-уведомления</Text>
+                  <Text style={styles.settingItemDescription}>
+                    Получать уведомления о новых статьях и обновлениях
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    { backgroundColor: notificationsEnabled ? THEME.primary : "#e0e0e0" }
+                  ]}
+                  onPress={() => setNotificationsEnabled(!notificationsEnabled)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[
+                    styles.toggleCircle,
+                    { 
+                      transform: [{ translateX: notificationsEnabled ? 20 : 2 }],
+                      backgroundColor: "#fff"
+                    }
+                  ]} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.settingsSection}>
+              <Text style={styles.settingsSectionTitle}>Звуки</Text>
+              
+              <View style={styles.settingItem}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.settingItemTitle}>Звуковые эффекты</Text>
+                  <Text style={styles.settingItemDescription}>
+                    Воспроизводить звуки при нажатии кнопок и действиях
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    { backgroundColor: soundsEnabled ? THEME.primary : "#e0e0e0" }
+                  ]}
+                  onPress={() => setSoundsEnabled(!soundsEnabled)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[
+                    styles.toggleCircle,
+                    { 
+                      transform: [{ translateX: soundsEnabled ? 20 : 2 }],
+                      backgroundColor: "#fff"
+                    }
+                  ]} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.settingsSection}>
+              <Text style={styles.settingsSectionTitle}>Данные</Text>
+              
+              <TouchableOpacity 
+                style={styles.settingActionItem}
+                onPress={() => {
+                  Alert.alert(
+                    "Очистить кэш",
+                    "Это удалит все сохраненные данные приложения (избранное, комментарии, заявки). Продолжить?",
+                    [
+                      { text: "Отмена", style: "cancel" },
+                      { 
+                        text: "Очистить", 
+                        style: "destructive",
+                        onPress: async () => {
+                          try {
+                            await AsyncStorage.multiRemove([
+                              "reba:favorites_v1",
+                              "reba:articleComments_v1", 
+                              "reba:requests_v1",
+                              "reba:liked_articles_v1"
+                            ]);
+                            setFavorites({});
+                            setArticleComments({});
+                            setRequests([]);
+                            setLikedArticles({});
+                            Alert.alert("Готово", "Данные очищены");
+                          } catch (error) {
+                            Alert.alert("Ошибка", "Не удалось очистить данные");
+                          }
+                        }
+                      }
+                    ]
+                  );
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.settingActionText}>Очистить кэш</Text>
+                <Text style={{ fontSize: 18 }}>→</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ marginTop: 30 }}>
+              <TouchableOpacity 
+                style={[styles.btnPrimary, { marginBottom: 12 }]}
+                onPress={saveSettings}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: "#fff", fontWeight: "800" }}>Сохранить настройки</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.btnSecondary]}
+                onPress={() => setSettingsVisible(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={{ fontWeight: "800" }}>Отмена</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+    );
+  };
 
   // Filters modal with dependency-type chips restored
   const FiltersModal = ()=>{
@@ -1239,6 +1410,7 @@ const ProfileScreen = ()=>(
         <FiltersModal />
         <RequestModal visible={requestModalVisible} onClose={()=> { setRequestModalVisible(false); setCurrentRequestCenter(null); }} center={currentRequestCenter} />
         <AuthModal />
+        <SettingsModal />
 
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={()=> setTab("home")}><Text style={{ color: tab==="home" ? THEME.primary : THEME.muted }}>Главная</Text></TouchableOpacity>
@@ -1383,5 +1555,66 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fbff",
     borderRadius: 12,
     marginTop: 12
+  },
+  // Settings styles
+  settingsSection: {
+    marginBottom: 24
+  },
+  settingsSectionTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: THEME.muted,
+    marginBottom: 12
+  },
+  settingItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    ...THEME.shadow
+  },
+  settingItemTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 4
+  },
+  settingItemDescription: {
+    fontSize: 14,
+    color: THEME.muted,
+    lineHeight: 18
+  },
+  toggleButton: {
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    marginLeft: 12
+  },
+  toggleCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2
+  },
+  settingActionItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    ...THEME.shadow
+  },
+  settingActionText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#ff4444"
   }
 });
