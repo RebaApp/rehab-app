@@ -190,11 +190,27 @@ function generateCenters() {
 const parsePrice = (p)=>{ const m = p.match(/(\d+)\s*000/); return m ? Number(m[1])*1000 : 0; };
 const openMap = (n,c)=> { const q=encodeURIComponent(n+" "+c); const url = Platform.OS==="ios"?`http://maps.apple.com/?q=${q}`:`https://www.google.com/maps/search/?api=1&query=${q}`; Linking.openURL(url).catch(()=>{}); };
 
-// Компонент для улучшенной загрузки изображений
-const OptimizedImage = ({ source, style, fallback = FALLBACK_IMAGE }) => {
+// Компонент для ленивой загрузки изображений с кэшированием
+const LazyImage = ({ source, style, fallback = FALLBACK_IMAGE, priority = false }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [shouldLoad, setShouldLoad] = useState(priority);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Простая ленивая загрузка без Intersection Observer
+  useEffect(() => {
+    if (priority) {
+      setShouldLoad(true);
+      return;
+    }
+    
+    // Задержка для ленивой загрузки
+    const timer = setTimeout(() => {
+      setShouldLoad(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [priority]);
 
   const handleLoad = () => {
     setLoading(false);
@@ -222,17 +238,26 @@ const OptimizedImage = ({ source, style, fallback = FALLBACK_IMAGE }) => {
           <Ionicons name="image-outline" size={40} color={THEME.muted} />
         </View>
       )}
-      <Animated.View style={{ opacity: fadeAnim, position: loading ? 'absolute' : 'relative' }}>
-        <Image
-          source={{ uri: error ? fallback : source }}
-          style={style}
-          onLoad={handleLoad}
-          onError={handleError}
-          resizeMode="cover"
-        />
-      </Animated.View>
+      {shouldLoad && (
+        <Animated.View style={{ opacity: fadeAnim, position: loading ? 'absolute' : 'relative' }}>
+          <Image
+            source={{ uri: error ? fallback : source }}
+            style={style}
+            onLoad={handleLoad}
+            onError={handleError}
+            resizeMode="cover"
+            // Кэширование изображений
+            cache="force-cache"
+          />
+        </Animated.View>
+      )}
     </View>
   );
+};
+
+// Компонент для улучшенной загрузки изображений (обратная совместимость)
+const OptimizedImage = ({ source, style, fallback = FALLBACK_IMAGE, priority = false }) => {
+  return <LazyImage source={source} style={style} fallback={fallback} priority={priority} />;
 };
 
 export default function App(){
@@ -244,12 +269,21 @@ export default function App(){
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [soundsEnabled, setSoundsEnabled] = useState(true);
+  
+  // Офлайн режим и кэширование
+  const [isOnline, setIsOnline] = useState(true);
+  const [lastSyncTime, setLastSyncTime] = useState(null);
+  const [cachedData, setCachedData] = useState({
+    centers: null,
+    articles: null,
+    lastUpdated: null
+  });
 const [refreshing, setRefreshing] = useState(false);
 const onRefresh = async ()=>{
   setRefreshing(true);
   try {
-    // Обновляем центры
-    setCenters(generateCenters());
+    // Синхронизируем данные с сервера
+    await syncData();
     
     // Обновляем избранное из AsyncStorage
     const favs = await AsyncStorage.getItem("reba:favorites_v1");
@@ -294,6 +328,87 @@ const onRefresh = async ()=>{
   const shimmer = useRef(new Animated.Value(0.3)).current;
   const tabTransition = useRef(new Animated.Value(0)).current;
 
+  // Функции для офлайн режима и кэширования
+  const saveToCache = async (key, data) => {
+    try {
+      const cacheData = {
+        data,
+        timestamp: Date.now(),
+        version: '1.0'
+      };
+      await AsyncStorage.setItem(`reba:cache_${key}`, JSON.stringify(cacheData));
+    } catch (error) {
+      console.log('Ошибка сохранения в кэш:', error);
+    }
+  };
+
+  const loadFromCache = async (key) => {
+    try {
+      const cached = await AsyncStorage.getItem(`reba:cache_${key}`);
+      if (cached) {
+        const { data, timestamp, version } = JSON.parse(cached);
+        // Кэш действителен 24 часа
+        if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+          return data;
+        }
+      }
+    } catch (error) {
+      console.log('Ошибка загрузки из кэша:', error);
+    }
+    return null;
+  };
+
+  const syncData = async () => {
+    if (!isOnline) return;
+    
+    try {
+      // Симулируем загрузку данных с сервера
+      const freshCenters = generateCenters();
+      const freshArticles = ARTICLES;
+      
+      // Сохраняем в кэш
+      await saveToCache('centers', freshCenters);
+      await saveToCache('articles', freshArticles);
+      
+      // Обновляем состояние
+      setCenters(freshCenters);
+      setCachedData({
+        centers: freshCenters,
+        articles: freshArticles,
+        lastUpdated: Date.now()
+      });
+      setLastSyncTime(Date.now());
+      
+    } catch (error) {
+      console.log('Ошибка синхронизации:', error);
+    }
+  };
+
+  const loadCachedData = async () => {
+    try {
+      const cachedCenters = await loadFromCache('centers');
+      const cachedArticles = await loadFromCache('articles');
+      
+      if (cachedCenters) {
+        setCenters(cachedCenters);
+        setCachedData(prev => ({
+          ...prev,
+          centers: cachedCenters,
+          lastUpdated: Date.now()
+        }));
+      }
+      
+      if (cachedArticles) {
+        setCachedData(prev => ({
+          ...prev,
+          articles: cachedArticles
+        }));
+      }
+    } catch (error) {
+      console.log('Ошибка загрузки кэшированных данных:', error);
+    }
+  };
+
   useEffect(()=>{
     AsyncStorage.getItem("reba:favorites_v1").then(v=> v && setFavorites(JSON.parse(v))).catch(()=>{});
     AsyncStorage.getItem("reba:articleComments_v1").then(v=> v && setArticleComments(JSON.parse(v))).catch(()=>{});
@@ -308,6 +423,12 @@ const onRefresh = async ()=>{
         setSoundsEnabled(settings.soundsEnabled ?? true);
       }
     }).catch(()=>{});
+    
+    // Загружаем кэшированные данные
+    loadCachedData();
+    
+    // Синхронизируем данные при запуске
+    syncData();
     
     Animated.loop(Animated.sequence([Animated.timing(shimmer,{ toValue:0.9, duration:1200, useNativeDriver:true }), Animated.timing(shimmer,{ toValue:0.3, duration:1200, useNativeDriver:true })])).start();
   },[]);
@@ -425,21 +546,21 @@ const onRefresh = async ()=>{
           })
         }]
       }}>
-        <TouchableOpacity style={styles.card} activeOpacity={0.95} onPress={()=> onOpen(item)}>
-          <View style={styles.cardImageWrap}><OptimizedImage source={item.photos[0] || FALLBACK_IMAGE} style={styles.cardImage} /></View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
-            <View style={{ flexDirection:"row", alignItems:"center", marginTop:8 }}>
-              <View style={styles.cityPill}><Text style={styles.cityPillText}>{item.city}</Text></View>
-            </View>
-            <Text style={styles.typesText} numberOfLines={1}>{item.types.map(t=> t.charAt(0).toUpperCase()+t.slice(1)).join(", ")}</Text>
-            <Text style={styles.cardBlurb} numberOfLines={2}>{item.descriptionShort}</Text>
-            <View style={styles.cardBottomRow}>
-              <Text style={styles.price}>{item.price}</Text>
-              <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
-            </View>
+      <TouchableOpacity style={styles.card} activeOpacity={0.95} onPress={()=> onOpen(item)}>
+          <View style={styles.cardImageWrap}><OptimizedImage source={item.photos[0] || FALLBACK_IMAGE} style={styles.cardImage} priority={index < 3} /></View>
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
+          <View style={{ flexDirection:"row", alignItems:"center", marginTop:8 }}>
+            <View style={styles.cityPill}><Text style={styles.cityPillText}>{item.city}</Text></View>
           </View>
-        </TouchableOpacity>
+          <Text style={styles.typesText} numberOfLines={1}>{item.types.map(t=> t.charAt(0).toUpperCase()+t.slice(1)).join(", ")}</Text>
+          <Text style={styles.cardBlurb} numberOfLines={2}>{item.descriptionShort}</Text>
+          <View style={styles.cardBottomRow}>
+            <Text style={styles.price}>{item.price}</Text>
+            <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
       </Animated.View>
     );
   };
@@ -613,7 +734,7 @@ const [authPassword, setAuthPassword] = useState("");
   const [authAge, setAuthAge] = useState("");
   const [authPhone, setAuthPhone] = useState("");
   const [authUserType, setAuthUserType] = useState("user"); // "user" or "center"
-  const [authBusy, setAuthBusy] = useState(false);
+const [authBusy, setAuthBusy] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
 useEffect(()=>{
@@ -639,10 +760,10 @@ useEffect(()=>{
       return;
     }
     
-    setAuthBusy(true);
-    try{
+  setAuthBusy(true);
+  try{
       console.log("Attempting to register:", email, "as", userType);
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
       console.log("Registration successful:", cred.user.uid);
       
       // Сохраняем дополнительные данные пользователя в Firestore
@@ -668,7 +789,7 @@ useEffect(()=>{
         // Не блокируем регистрацию, если не удалось сохранить профиль
       }
       
-      setAuthModalVisible(false);
+    setAuthModalVisible(false);
       setAuthEmail(""); 
       setAuthPassword("");
       setAuthName("");
@@ -687,8 +808,8 @@ useEffect(()=>{
           }
         ]
       );
-      return cred.user;
-    }catch(e){
+    return cred.user;
+  }catch(e){
       console.error("Registration error:", e);
       let errorMessage = "Произошла ошибка при регистрации";
       
@@ -701,7 +822,7 @@ useEffect(()=>{
       }
       
       Alert.alert("Ошибка регистрации", errorMessage);
-      throw e;
+    throw e;
     }finally{ 
       setAuthBusy(false); 
     }
@@ -874,25 +995,34 @@ const RequestModal = ({ visible, onClose, center })=>{
     ) : ARTICLES;
 
     return (
-      <ScrollView 
-        contentContainerStyle={{ padding:12 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[THEME.primary]}
-            tintColor={THEME.primary}
-          />
-        }
-      >
-        <View style={{ alignItems:"center", marginTop:6 }}>
-          <View style={{ position:"relative", alignItems:"center" }}>
-            <Text style={styles.rebaTitle}>РЕБА</Text>
-            <Animated.View pointerEvents="none" style={[styles.shimmerOverlay, { opacity: shimmer.current ? shimmer.current.__getValue ? shimmer.current.__getValue() : 0.3 : 0.3 }]}>
-              <LinearGradient colors={["rgba(255,255,255,0)","rgba(255,255,255,0.6)","rgba(255,255,255,0)"]} start={[0,0]} end={[1,0]} style={{ width:200, height:44 }} />
-            </Animated.View>
+      <View style={{ flex: 1 }}>
+        {/* Индикатор офлайн режима */}
+        {!isOnline && (
+          <View style={styles.offlineIndicator}>
+            <Ionicons name="cloud-offline-outline" size={16} color="#fff" />
+            <Text style={styles.offlineText}>Офлайн режим</Text>
           </View>
-          <Text style={styles.rebaSubtitle}>ПОМОЩЬ БЛИЖЕ ЧЕМ КАЖЕТСЯ</Text>
+        )}
+        
+        <ScrollView 
+          contentContainerStyle={{ padding:12 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[THEME.primary]}
+              tintColor={THEME.primary}
+            />
+          }
+        >
+      <View style={{ alignItems:"center", marginTop:6 }}>
+        <View style={{ position:"relative", alignItems:"center" }}>
+          <Text style={styles.rebaTitle}>РЕБА</Text>
+          <Animated.View pointerEvents="none" style={[styles.shimmerOverlay, { opacity: shimmer.current ? shimmer.current.__getValue ? shimmer.current.__getValue() : 0.3 : 0.3 }]}>
+            <LinearGradient colors={["rgba(255,255,255,0)","rgba(255,255,255,0.6)","rgba(255,255,255,0)"]} start={[0,0]} end={[1,0]} style={{ width:200, height:44 }} />
+          </Animated.View>
+        </View>
+        <Text style={styles.rebaSubtitle}>ПОМОЩЬ БЛИЖЕ ЧЕМ КАЖЕТСЯ</Text>
           <TextInput 
             value={articleQuery} 
             onChangeText={setArticleQuery} 
@@ -901,9 +1031,9 @@ const RequestModal = ({ visible, onClose, center })=>{
             style={styles.heroSearchSmall}
             returnKeyType="search"
           />
-        </View>
+      </View>
 
-        <View style={{ marginTop:18 }}>
+      <View style={{ marginTop:18 }}>
           <Text style={{ fontWeight:"800", fontSize:16, marginBottom:10 }}>
             {articleQuery ? `Найдено статей: ${filteredArticles.length}` : "Мы пишем полезности:"}
           </Text>
@@ -932,6 +1062,7 @@ const RequestModal = ({ visible, onClose, center })=>{
         </View>
         <View style={{ height:120 }} />
       </ScrollView>
+      </View>
     );
   };
 
@@ -941,14 +1072,53 @@ const RequestModal = ({ visible, onClose, center })=>{
         <TextInput value={query} onChangeText={setQuery} placeholder="Поиск по центрам, городу..." style={[styles.searchInput, { flex:1 }]} />
         <TouchableOpacity style={styles.filterPillTop} onPress={()=> setFiltersVisible(true)}><Text style={{ fontWeight:"700", color: THEME.primary }}>Фильтры</Text></TouchableOpacity>
       </View>
-      <FlatList data={filteredCenters(query)} keyExtractor={i=>i.id} refreshing={refreshing} onRefresh={onRefresh} renderItem={({item, index}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} index={index} />} ItemSeparatorComponent={()=> <View style={{ height:12 }} />} contentContainerStyle={{ padding:12 }} />
+      <FlatList 
+        data={filteredCenters(query)} 
+        keyExtractor={i=>i.id} 
+        refreshing={refreshing} 
+        onRefresh={onRefresh} 
+        renderItem={({item, index}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} index={index} />} 
+        ItemSeparatorComponent={()=> <View style={{ height:12 }} />} 
+        contentContainerStyle={{ padding:12 }}
+        // Виртуализация и производительность
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        updateCellsBatchingPeriod={50}
+        initialNumToRender={8}
+        windowSize={10}
+        getItemLayout={(data, index) => ({
+          length: 200, // Высота карточки + отступы
+          offset: 212 * index, // 200 + 12 (отступ)
+          index,
+        })}
+      />
     </View>
   );
 
   const FavoritesScreen = ()=>{
     const favList = centers.filter(c => favorites[c.id]);
     if(favList.length===0) return (<View style={{ flex:1, alignItems:"center", justifyContent:"center", padding:24 }}><Text style={{ color: THEME.muted, textAlign:"center" }}>Пока нет избранных центров.</Text><TouchableOpacity style={[styles.btnPrimary, { marginTop:16 }]} onPress={()=> setTab("search")}><Text style={{ color:"#fff", fontWeight:"800" }}>Перейти в Поиск</Text></TouchableOpacity></View>);
-    return (<View style={{ flex:1 }}><FlatList data={favList} keyExtractor={i=>i.id} renderItem={({item, index}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} index={index} />} ItemSeparatorComponent={()=> <View style={{ height:12 }} />} contentContainerStyle={{ padding:12 }} /></View>);
+    return (
+      <View style={{ flex:1 }}>
+        <FlatList 
+          data={favList} 
+          keyExtractor={i=>i.id} 
+          renderItem={({item, index}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} index={index} />} 
+          ItemSeparatorComponent={()=> <View style={{ height:12 }} />} 
+          contentContainerStyle={{ padding:12 }}
+          // Виртуализация
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          initialNumToRender={8}
+          windowSize={10}
+          getItemLayout={(data, index) => ({
+            length: 200,
+            offset: 212 * index,
+            index,
+          })}
+        />
+      </View>
+    );
   };
 
   
@@ -1045,7 +1215,7 @@ const AuthModal = ()=>{
                       }}>
                         Пользователь
                       </Text>
-                    </TouchableOpacity>
+          </TouchableOpacity>
                     
                     <TouchableOpacity 
                       style={[
@@ -1067,7 +1237,7 @@ const AuthModal = ()=>{
                         Центр
                       </Text>
                     </TouchableOpacity>
-                  </View>
+        </View>
                   
                   <TextInput 
                     placeholder={authUserType === "user" ? "Ваше имя" : "Название центра"} 
@@ -1408,11 +1578,11 @@ const ProfileScreen = ()=>(
               >
                 <Text style={{ fontWeight: "800" }}>Отмена</Text>
               </TouchableOpacity>
-            </View>
-          </ScrollView>
+      </View>
+    </ScrollView>
         </SafeAreaView>
       </Modal>
-    );
+  );
   };
 
   // Filters modal with dependency-type chips restored
@@ -1748,5 +1918,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e7f3ff",
     borderStyle: "dashed"
+  },
+  // Offline indicator styles
+  offlineIndicator: {
+    backgroundColor: "#ff6b6b",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginHorizontal: 12,
+    marginTop: 8,
+    borderRadius: 20,
+    ...THEME.shadow
+  },
+  offlineText: {
+    color: "#fff",
+    fontWeight: "600",
+    marginLeft: 6,
+    fontSize: 12
   }
 });
