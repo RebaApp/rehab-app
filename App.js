@@ -12,9 +12,40 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 
 // Firebase integration (expected firebaseConfig.js in project root)
-import { auth, db } from './firebaseConfig';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+let auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, collection, addDoc, serverTimestamp, doc, setDoc;
+
+try {
+  const firebaseConfig = require('./firebaseConfig');
+  auth = firebaseConfig.auth;
+  db = firebaseConfig.db;
+  
+  const firebaseAuth = require('firebase/auth');
+  createUserWithEmailAndPassword = firebaseAuth.createUserWithEmailAndPassword;
+  signInWithEmailAndPassword = firebaseAuth.signInWithEmailAndPassword;
+  signOut = firebaseAuth.signOut;
+  onAuthStateChanged = firebaseAuth.onAuthStateChanged;
+  
+  const firebaseFirestore = require('firebase/firestore');
+  collection = firebaseFirestore.collection;
+  addDoc = firebaseFirestore.addDoc;
+  serverTimestamp = firebaseFirestore.serverTimestamp;
+  doc = firebaseFirestore.doc;
+  setDoc = firebaseFirestore.setDoc;
+} catch (error) {
+  console.warn('Firebase not available in Expo Go:', error);
+  // Mock Firebase functions for Expo Go
+  auth = null;
+  db = null;
+  createUserWithEmailAndPassword = () => Promise.reject(new Error('Firebase not available in Expo Go'));
+  signInWithEmailAndPassword = () => Promise.reject(new Error('Firebase not available in Expo Go'));
+  signOut = () => Promise.reject(new Error('Firebase not available in Expo Go'));
+  onAuthStateChanged = () => () => {};
+  collection = () => null;
+  addDoc = () => Promise.reject(new Error('Firebase not available in Expo Go'));
+  serverTimestamp = () => new Date();
+  doc = () => null;
+  setDoc = () => Promise.reject(new Error('Firebase not available in Expo Go'));
+}
 
 
 const { width: SCREEN_W } = Dimensions.get("window");
@@ -47,35 +78,35 @@ const ARTICLES = [
     id:"a1", 
     title:"Алкогольная зависимость: почему это болезнь, а не слабость", 
     excerpt:"Природа зависимости и комплексный подход.", 
-    image: WATER[0], 
+       image: { uri: "https://dl.dropboxusercontent.com/scl/fi/p6kykjgdqqh30tjzos8sx/.jpg?rlkey=64a998ru6v232v0d6hu699gei&st=oj6hjqh7&dl=0" },
     body:"Алкогольная зависимость — это хроническое заболевание, которое влияет на мозг и поведение человека. Многие ошибочно считают это проявлением слабости характера, но на самом деле это сложное медицинское состояние.\n\nСовременные исследования показывают, что алкоголизм имеет генетическую предрасположенность и изменяет структуру мозга. Лечение требует комплексного подхода: медицинский детокс, психотерапия, групповая поддержка и долгосрочная реабилитация.\n\nВажно понимать, что выздоровление — это процесс, а не событие. Поддержка семьи и профессиональная помощь значительно увеличивают шансы на успешное восстановление." 
   },
   { 
     id:"a2", 
     title:"Наркозависимость: детокс — это начало", 
     excerpt:"Детокс — начало долгого пути.", 
-    image: WATER[1], 
+    image: { uri: "https://dl.dropboxusercontent.com/scl/fi/p6kykjgdqqh30tjzos8sx/.jpg?rlkey=64a998ru6v232v0d6hu699gei&st=oj6hjqh7&dl=0" },
     body:"Детоксикация — это первый и критически важный этап лечения наркозависимости. Однако важно понимать, что детокс — это только начало долгого пути к выздоровлению.\n\nВо время детокса организм очищается от токсинов, но психологическая зависимость остается. Без последующей реабилитации риск рецидива составляет более 80%. Поэтому после детокса необходимо пройти полный курс психотерапии и реабилитации.\n\nСовременные программы детокса включают медикаментозную поддержку, круглосуточное наблюдение врачей и психологическую помощь. Это делает процесс более безопасным и комфортным для пациента." 
   },
   { 
     id:"a3", 
     title:"Игровое расстройство: как вернуть контроль", 
     excerpt:"КПТ, ограничения доступа и работа с семьёй.", 
-    image: WATER[2], 
+    image: { uri: "https://dl.dropboxusercontent.com/scl/fi/p6kykjgdqqh30tjzos8sx/.jpg?rlkey=64a998ru6v232v0d6hu699gei&st=oj6hjqh7&dl=0" },
     body:"Игровое расстройство — это серьезная поведенческая зависимость, которая может разрушить жизнь человека и его семьи. В отличие от химических зависимостей, здесь нет физического вещества, но есть сильная психологическая привязанность.\n\nКогнитивно-поведенческая терапия (КПТ) является основным методом лечения. Она помогает изменить паттерны мышления и поведения, связанные с игрой. Важную роль играет финансовая реабилитация — восстановление контроля над деньгами и долгами.\n\nСемейная терапия помогает восстановить доверие и отношения. Ограничение доступа к играм, установка лимитов времени и денег — все это часть комплексного подхода к лечению." 
   },
   { 
     id:"a4", 
     title:"Никотиновая зависимость: комбинированный план", 
     excerpt:"НЗТ и поведенческая поддержка.", 
-    image: WATER[3], 
+    image: { uri: "https://dl.dropboxusercontent.com/scl/fi/p6kykjgdqqh30tjzos8sx/.jpg?rlkey=64a998ru6v232v0d6hu699gei&st=oj6hjqh7&dl=0" },
     body:"Отказ от курения — один из самых сложных, но важных шагов для здоровья. Никотиновая зависимость имеет как физический, так и психологический компонент, поэтому требует комплексного подхода.\n\nНикотинзаместительная терапия (НЗТ) помогает справиться с физической зависимостью. Это могут быть пластыри, жвачки, спреи или таблетки. Однако без изменения поведения и привычек успех будет временным.\n\nПоведенческая поддержка включает работу с триггерами, стресс-менеджмент и формирование новых здоровых привычек. Группы поддержки и индивидуальная терапия значительно увеличивают шансы на успешный отказ от курения." 
   },
   { 
     id:"a5", 
     title:"Роль семьи в реабилитации", 
     excerpt:"Как вовлечь близких без вреда.", 
-    image: WATER[4], 
+      image: { uri: "https://dl.dropboxusercontent.com/scl/fi/p6kykjgdqqh30tjzos8sx/.jpg?rlkey=64a998ru6v232v0d6hu699gei&st=oj6hjqh7&dl=0" },
     body:"Семья играет ключевую роль в процессе реабилитации зависимого человека. Однако важно понимать, как правильно оказывать поддержку, не навредив ни себе, ни близкому человеку.\n\nСемейная терапия помогает всем членам семьи понять природу зависимости и научиться здоровым способам взаимодействия. Это включает установление границ, отказ от созависимого поведения и создание поддерживающей среды.\n\nИсследования показывают, что при участии семьи в лечении результаты реабилитации улучшаются на 40-60%. Семья может стать мощным источником мотивации и поддержки, но только при правильном подходе и профессиональном руководстве." 
   },
   { 
@@ -220,13 +251,7 @@ const generateCenters = ()=>{
   const cities = ["Москва", "Санкт-Петербург", "Екатеринбург", "Новосибирск", "Казань", "Нижний Новгород", "Челябинск", "Самара", "Омск", "Ростов-на-Дону"];
   const types = ["алкоголизм", "наркомания", "игровая зависимость", "пищевая зависимость", "интернет-зависимость"];
   const names = ["Центр Возрождение", "Клиника Надежда", "Реабилитационный центр Вера", "Центр Исцеление", "Клиника Новый Путь", "Центр Возвращение", "Реабилитационный центр Свет", "Клиника Второй Шанс", "Центр Обновление", "Реабилитационный центр Путь к Жизни"];
-  const photos = [
-    "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400",
-    "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400",
-    "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=400",
-    "https://images.unsplash.com/photo-1576091160550-2173dba0ef4f?w=400",
-    "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400"
-  ];
+  // Локальные изображения центров
   
   // Координаты для каждого города
   const cityCoordinates = {
@@ -259,7 +284,7 @@ const generateCenters = ()=>{
       rating: Number((Math.random() * 2 + 3).toFixed(1)),
       descriptionShort: "Профессиональная помощь в борьбе с зависимостями. Индивидуальный подход к каждому пациенту.",
       description: "Наш центр предоставляет комплексную программу реабилитации, включающую медицинское лечение, психологическую поддержку и социальную адаптацию. Мы работаем с различными видами зависимостей и помогаем людям вернуться к полноценной жизни.",
-      photos: Array.from({ length: 3 }, () => photos[Math.floor(Math.random() * photos.length)]),
+      photos: Array.from({ length: 3 }, () => WATER[Math.floor(Math.random() * WATER.length)]),
       address: `ул. Примерная, д. ${Math.floor(Math.random() * 100) + 1}`,
       phone: `+7 (${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 90) + 10}-${Math.floor(Math.random() * 90) + 10}`,
       email: `info@center${i}.ru`,
@@ -658,6 +683,18 @@ const onRefresh = async ()=>{
       }
     }).catch(()=>{});
     
+    // Загружаем mock пользователя для Expo Go
+    AsyncStorage.getItem("reba:mockUser").then(v=> {
+      if (v && !auth) {
+        const userData = JSON.parse(v);
+        setUser({
+          uid: userData.uid,
+          email: userData.email,
+          displayName: userData.name
+        });
+      }
+    }).catch(()=>{});
+    
     // Загружаем кэшированные данные
     loadCachedData();
     
@@ -986,6 +1023,8 @@ useEffect(()=>{
     return ()=> { if(typeof unsub === "function") unsub(); }
   }catch(e){
     console.warn("onAuthStateChanged error", e);
+    // Set user to null if auth fails
+    setUser(null);
   }
 },[]);
 
@@ -1003,6 +1042,55 @@ useEffect(()=>{
   setAuthBusy(true);
   try{
       console.log("Attempting to register:", email, "as", userType);
+    
+    if (!auth) {
+      // Mock registration for Expo Go
+      const mockUser = {
+        uid: `mock_${Date.now()}`,
+        email: email,
+        displayName: name
+      };
+      
+      // Save user data locally
+      const userData = {
+        uid: mockUser.uid,
+        email: email,
+        name: name,
+        phone: phone,
+        userType: userType,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      if (userType === "user") {
+        userData.age = parseInt(age);
+      }
+      
+      await AsyncStorage.setItem('reba:mockUser', JSON.stringify(userData));
+      setUser(mockUser);
+      
+      setAuthModalVisible(false);
+      setAuthEmail(""); 
+      setAuthPassword("");
+      setAuthName("");
+      setAuthAge("");
+      setAuthPhone("");
+      setAuthUserType("user");
+      setRegistrationSuccess(true);
+      
+      Alert.alert(
+        "🎉 Добро пожаловать в РЕБА!", 
+        `Регистрация ${userType === "user" ? "пользователя" : "центра"} прошла успешно! (Демо режим)`,
+        [
+          {
+            text: "Отлично!",
+            onPress: () => setRegistrationSuccess(false)
+          }
+        ]
+      );
+      return mockUser;
+    }
+    
     const cred = await createUserWithEmailAndPassword(auth, email, password);
       console.log("Registration successful:", cred.user.uid);
       
@@ -1077,6 +1165,23 @@ useEffect(()=>{
   setAuthBusy(true);
   try{
       console.log("Attempting to login:", email);
+    
+    if (!auth) {
+      // Mock login for Expo Go
+      const mockUser = {
+        uid: `mock_${Date.now()}`,
+        email: email,
+        displayName: "Демо пользователь"
+      };
+      
+      setUser(mockUser);
+      setAuthModalVisible(false);
+      setAuthEmail(""); 
+      setAuthPassword("");
+      Alert.alert("Успех", "Вход выполнен успешно! (Демо режим)");
+      return mockUser;
+    }
+    
     const cred = await signInWithEmailAndPassword(auth, email, password);
       console.log("Login successful:", cred.user.uid);
     setAuthModalVisible(false);
@@ -1107,8 +1212,15 @@ useEffect(()=>{
 
   const logoutUser = async () => {
     try{ 
-      await signOut(auth);
-      console.log("User logged out successfully");
+      if (auth) {
+        await signOut(auth);
+        console.log("User logged out successfully");
+      } else {
+        // Mock logout for Expo Go
+        await AsyncStorage.removeItem('reba:mockUser');
+        console.log("Mock user logged out successfully");
+      }
+      setUser(null);
       Alert.alert("Выход", "Вы вышли из аккаунта");
     }catch(e){ 
       console.warn("logout failed", e);

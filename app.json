@@ -15,14 +15,26 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.reba.app"
+      "bundleIdentifier": "com.reba.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Это приложение использует геолокацию для поиска ближайших реабилитационных центров.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Это приложение использует геолокацию для поиска ближайших реабилитационных центров.",
+        "NSCameraUsageDescription": "Это приложение использует камеру для выбора фотографии профиля.",
+        "NSPhotoLibraryUsageDescription": "Это приложение использует галерею для выбора фотографии профиля."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.reba.app"
+      "package": "com.reba.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,7 +46,20 @@
       "policy": "sdkVersion"
     },
     "plugins": [
-      "expo-updates"
+      "expo-updates",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Это приложение использует геолокацию для поиска ближайших реабилитационных центров."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Это приложение использует галерею для выбора фотографии профиля.",
+          "cameraPermission": "Это приложение использует камеру для выбора фотографии профиля."
+        }
+      ]
     ],
     "extra": {
       "eas": {

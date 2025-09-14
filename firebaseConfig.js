@@ -1,10 +1,9 @@
-
-// firebaseConfig.js
+// firebaseConfig.js — safe init for Expo + Hermes
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// 🔑 Твои данные из Firebase
+// 🔑 Firebase config (kept from original)
 const firebaseConfig = {
   apiKey: "AIzaSyD9x-8FX1lf8CNRU2FxzD6IShVZ1-Vl6Gg",
   authDomain: "rehab-3e9f6.firebaseapp.com",
@@ -15,11 +14,13 @@ const firebaseConfig = {
   measurementId: "G-WM9F7XWBV7",
 };
 
-// 🚀 Инициализация Firebase
+// Initialize Firebase app
 const app = initializeApp(firebaseConfig);
 
-// ✅ Правильное подключение Auth и Firestore
+// Initialize Auth - simplified for Expo compatibility
 const auth = getAuth(app);
+
+// Firestore
 const db = getFirestore(app);
 
 export { auth, db };
