@@ -214,14 +214,26 @@ const onRefresh = async ()=>{
     console.log("Max price:", maxPrice);
     console.log("Min rating:", minRating);
     
-    if(filterCities.length>0) {
-      list = list.filter(c => filterCities.includes(c.city));
-      console.log("After city filter:", list.length);
+    if(filterCities.length > 0) {
+      const beforeCityFilter = list.length;
+      list = list.filter(c => {
+        const matches = filterCities.includes(c.city);
+        console.log(`Center ${c.name} in ${c.city} matches cities filter:`, matches);
+        return matches;
+      });
+      console.log("After city filter:", list.length, "removed:", beforeCityFilter - list.length);
     }
-    if(filterTypes.length>0) {
-      list = list.filter(c => filterTypes.some(t=> c.types.includes(t)));
-      console.log("After type filter:", list.length);
+    
+    if(filterTypes.length > 0) {
+      const beforeTypeFilter = list.length;
+      list = list.filter(c => {
+        const matches = filterTypes.some(t => c.types.includes(t));
+        console.log(`Center ${c.name} types ${c.types} matches filter types ${filterTypes}:`, matches);
+        return matches;
+      });
+      console.log("After type filter:", list.length, "removed:", beforeTypeFilter - list.length);
     }
+    
     if(minPrice) {
       list = list.filter(c => parsePrice(c.price) >= Number(minPrice));
       console.log("After min price filter:", list.length);
@@ -236,6 +248,7 @@ const onRefresh = async ()=>{
     }
     
     console.log("Final filtered centers count:", list.length);
+    console.log("Filtered centers:", list.map(c => `${c.name} (${c.city}, ${c.types.join(', ')})`));
     setCenters(list);
     setFiltersVisible(false);
   };
@@ -446,7 +459,9 @@ const [authPassword, setAuthPassword] = useState("");
   const [authName, setAuthName] = useState("");
   const [authAge, setAuthAge] = useState("");
   const [authPhone, setAuthPhone] = useState("");
-const [authBusy, setAuthBusy] = useState(false);
+  const [authUserType, setAuthUserType] = useState("user"); // "user" or "center"
+  const [authBusy, setAuthBusy] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
 useEffect(()=>{
   try{
@@ -460,44 +475,67 @@ useEffect(()=>{
   }
 },[]);
 
-  const registerWithEmail = async (email, password, name, age, phone) => {
-    if (!email || !password || !name || !age || !phone) {
-      Alert.alert("Ошибка", "Пожалуйста, заполните все поля");
+  const registerWithEmail = async (email, password, name, age, phone, userType) => {
+    if (!email || !password || !name || !phone) {
+      Alert.alert("Ошибка", "Пожалуйста, заполните все обязательные поля");
       return;
     }
     
-  setAuthBusy(true);
-  try{
-      console.log("Attempting to register:", email);
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    if (userType === "user" && !age) {
+      Alert.alert("Ошибка", "Для пользователей возраст обязателен");
+      return;
+    }
+    
+    setAuthBusy(true);
+    try{
+      console.log("Attempting to register:", email, "as", userType);
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
       console.log("Registration successful:", cred.user.uid);
       
       // Сохраняем дополнительные данные пользователя в Firestore
       try {
-        await setDoc(doc(db, 'users', cred.user.uid), {
+        const userData = {
           uid: cred.user.uid,
           email: email,
           name: name,
-          age: parseInt(age),
           phone: phone,
+          userType: userType,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
-        });
+        };
+        
+        if (userType === "user") {
+          userData.age = parseInt(age);
+        }
+        
+        await setDoc(doc(db, 'users', cred.user.uid), userData);
         console.log("User profile created in Firestore");
       } catch (firestoreError) {
         console.warn("Failed to save user profile:", firestoreError);
         // Не блокируем регистрацию, если не удалось сохранить профиль
       }
       
-    setAuthModalVisible(false);
+      setAuthModalVisible(false);
       setAuthEmail(""); 
       setAuthPassword("");
       setAuthName("");
       setAuthAge("");
       setAuthPhone("");
-      Alert.alert("Успех", "Аккаунт создан успешно!");
-    return cred.user;
-  }catch(e){
+      setAuthUserType("user");
+      setRegistrationSuccess(true);
+      
+      Alert.alert(
+        "🎉 Добро пожаловать в РЕБА!", 
+        `Регистрация ${userType === "user" ? "пользователя" : "центра"} прошла успешно!`,
+        [
+          {
+            text: "Отлично!",
+            onPress: () => setRegistrationSuccess(false)
+          }
+        ]
+      );
+      return cred.user;
+    }catch(e){
       console.error("Registration error:", e);
       let errorMessage = "Произошла ошибка при регистрации";
       
@@ -510,7 +548,7 @@ useEffect(()=>{
       }
       
       Alert.alert("Ошибка регистрации", errorMessage);
-    throw e;
+      throw e;
     }finally{ 
       setAuthBusy(false); 
     }
@@ -725,12 +763,16 @@ const AuthModal = ()=>{
           console.log("Login error handled in function");
         }
       } else {
-        if (!authEmail.trim() || !authPassword.trim() || !authName.trim() || !authAge.trim() || !authPhone.trim()) {
-          Alert.alert("Ошибка", "Пожалуйста, заполните все поля");
+        if (!authEmail.trim() || !authPassword.trim() || !authName.trim() || !authPhone.trim()) {
+          Alert.alert("Ошибка", "Пожалуйста, заполните все обязательные поля");
+          return;
+        }
+        if (authUserType === "user" && !authAge.trim()) {
+          Alert.alert("Ошибка", "Для пользователей возраст обязателен");
           return;
         }
         try{
-          await registerWithEmail(authEmail.trim(), authPassword, authName.trim(), authAge.trim(), authPhone.trim());
+          await registerWithEmail(authEmail.trim(), authPassword, authName.trim(), authAge.trim(), authPhone.trim(), authUserType);
         }catch(e){ 
           console.log("Registration error handled in function");
         }
@@ -743,6 +785,7 @@ const AuthModal = ()=>{
       setAuthName("");
       setAuthAge("");
       setAuthPhone("");
+      setAuthUserType("user");
     };
 
     return (
@@ -775,8 +818,56 @@ const AuthModal = ()=>{
             <ScrollView showsVerticalScrollIndicator={false}>
               {authMode === "register" && (
                 <>
+                  <Text style={{ fontWeight: "700", marginBottom: 8, color: THEME.muted }}>
+                    Тип регистрации:
+                  </Text>
+                  <View style={{ flexDirection: "row", marginBottom: 16 }}>
+                    <TouchableOpacity 
+                      style={[
+                        styles.input, 
+                        { 
+                          flex: 1, 
+                          marginRight: 8, 
+                          backgroundColor: authUserType === "user" ? THEME.primary : "#fff",
+                          borderColor: authUserType === "user" ? THEME.primary : "#eef7ff"
+                        }
+                      ]}
+                      onPress={() => setAuthUserType("user")}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={{ 
+                        textAlign: "center", 
+                        fontWeight: "700", 
+                        color: authUserType === "user" ? "#fff" : THEME.muted 
+                      }}>
+                        Пользователь
+                      </Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      style={[
+                        styles.input, 
+                        { 
+                          flex: 1, 
+                          backgroundColor: authUserType === "center" ? THEME.primary : "#fff",
+                          borderColor: authUserType === "center" ? THEME.primary : "#eef7ff"
+                        }
+                      ]}
+                      onPress={() => setAuthUserType("center")}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={{ 
+                        textAlign: "center", 
+                        fontWeight: "700", 
+                        color: authUserType === "center" ? "#fff" : THEME.muted 
+                      }}>
+                        Центр
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  
                   <TextInput 
-                    placeholder="Ваше имя" 
+                    placeholder={authUserType === "user" ? "Ваше имя" : "Название центра"} 
                     value={authName} 
                     onChangeText={setAuthName} 
                     style={[styles.input, { marginBottom:12 }]} 
@@ -784,14 +875,16 @@ const AuthModal = ()=>{
                     autoCorrect={false}
                   />
                   
-                  <TextInput 
-                    placeholder="Возраст" 
-                    value={authAge} 
-                    onChangeText={setAuthAge} 
-                    style={[styles.input, { marginBottom:12 }]} 
-                    keyboardType="numeric"
-                    maxLength={2}
-                  />
+                  {authUserType === "user" && (
+                    <TextInput 
+                      placeholder="Возраст" 
+                      value={authAge} 
+                      onChangeText={setAuthAge} 
+                      style={[styles.input, { marginBottom:12 }]} 
+                      keyboardType="numeric"
+                      maxLength={2}
+                    />
+                  )}
                   
                   <TextInput 
                     placeholder="Номер телефона" 
