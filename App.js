@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   StyleSheet, Text, View, FlatList, TouchableOpacity, Image, ScrollView,
   TextInput, Linking, Platform, Animated, Dimensions, Modal, SafeAreaView,
-  KeyboardAvoidingView, Alert, RefreshControl
+  KeyboardAvoidingView, Alert, RefreshControl, Keyboard
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
@@ -867,7 +867,11 @@ const onRefresh = async ()=>{
         </View>
 
         {/* Main Scroll */}
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
+        <ScrollView 
+          style={{ flex: 1 }} 
+          contentContainerStyle={{ paddingBottom: 20 }}
+          keyboardShouldPersistTaps="handled"
+        >
           {/* Photos Carousel */}
           <View style={{ width: SCREEN_W, height: 300 }}>
             <ScrollView
@@ -1121,12 +1125,25 @@ const RequestModal = ({ visible, onClose, center })=>{
     if(!center) return null;
     return (
       <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-        <SafeAreaView style={{ flex:1 }}>
-          <View style={{ padding:14 }}>
-            <View style={{ flexDirection:"row", alignItems:"center", marginBottom:8 }}>
-              <TouchableOpacity onPress={onClose} style={{ padding:8, marginRight:6 }}><Text style={{ fontSize:18 }}>←</Text></TouchableOpacity>
-              <Text style={{ fontWeight:"900", fontSize:18 }}>{`Заявка в ${center.name}`}</Text>
-            </View>
+        <KeyboardAvoidingView 
+          style={{ flex: 1 }} 
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
+          <SafeAreaView style={{ flex:1 }}>
+            <View style={{ padding:14 }}>
+              <View style={{ flexDirection:"row", alignItems:"center", marginBottom:8 }}>
+                <TouchableOpacity 
+                  onPress={()=> {
+                    Keyboard.dismiss();
+                    onClose();
+                  }} 
+                  style={{ padding:8, marginRight:6 }}
+                >
+                  <Text style={{ fontSize:18 }}>←</Text>
+                </TouchableOpacity>
+                <Text style={{ fontWeight:"900", fontSize:18 }}>{`Заявка в ${center.name}`}</Text>
+              </View>
             <TextInput value={name} onChangeText={setName} placeholder="Ваше имя (необязательно)" style={[styles.input, { marginBottom:12 }]} />
             <TextInput value={phone} onChangeText={setPhone} placeholder="Телефон" keyboardType="phone-pad" style={[styles.input, { marginBottom:12 }]} />
             <TextInput value={note} onChangeText={setNote} placeholder="Дополнительная информация о запросе" style={[styles.input, { height:100, textAlignVertical:"top" }]} multiline />
@@ -1134,8 +1151,9 @@ const RequestModal = ({ visible, onClose, center })=>{
               <TouchableOpacity onPress={onClose} style={[styles.btnSecondary, { flex:1, marginRight:8, borderColor: THEME.primary }]}><Text style={{ color: THEME.primary, fontWeight:"800" }}>Отмена</Text></TouchableOpacity>
               <TouchableOpacity onPress={submit} style={[styles.btnPrimary, { flex:1 }]}><Text style={{ color:"#fff", fontWeight:"800" }}>Отправить</Text></TouchableOpacity>
             </View>
-          </View>
-        </SafeAreaView>
+            </View>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
       </Modal>
     );
   };
@@ -1167,7 +1185,10 @@ const RequestModal = ({ visible, onClose, center })=>{
             
           </View>
 
-          <ScrollView style={{ padding:12 }}>
+          <ScrollView 
+            style={{ padding:12 }}
+            keyboardShouldPersistTaps="handled"
+          >
             <OptimizedImage source={article.image || FALLBACK_IMAGE} style={{ width:"100%", height:220, borderRadius:10 }} />
             <Text style={{ marginTop:12, color: THEME.muted, lineHeight:20 }}>{article.body}</Text>
 
@@ -1241,6 +1262,7 @@ const RequestModal = ({ visible, onClose, center })=>{
         
         <ScrollView 
           contentContainerStyle={{ padding:12 }}
+          keyboardShouldPersistTaps="handled"
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -1343,7 +1365,8 @@ const RequestModal = ({ visible, onClose, center })=>{
           data={sortedCenters} 
           keyExtractor={i=>i.id} 
           refreshing={refreshing} 
-          onRefresh={onRefresh} 
+          onRefresh={onRefresh}
+          keyboardShouldPersistTaps="handled"
           renderItem={({item, index}) => (
             <View>
               <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} index={index} />
@@ -1389,6 +1412,7 @@ const RequestModal = ({ visible, onClose, center })=>{
           renderItem={({item, index}) => <CenterCard item={item} onOpen={c=> setSelectedCenter(c)} index={index} />} 
           ItemSeparatorComponent={()=> <View style={{ height:12 }} />} 
           contentContainerStyle={{ padding:12 }}
+          keyboardShouldPersistTaps="handled"
           // Виртуализация
           removeClippedSubviews={true}
           maxToRenderPerBatch={10}
@@ -1453,11 +1477,16 @@ const AuthModal = ()=>{
           resetForm();
         }}
       >
-        <View style={{ flex: 1 }}>
+        <KeyboardAvoidingView 
+          style={{ flex: 1 }} 
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
           <SafeAreaView style={{ flex:1, padding:16, backgroundColor: THEME.bgTop }}>
             <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20 }}>
               <TouchableOpacity 
                 onPress={()=> {
+                  Keyboard.dismiss();
                   setAuthModalVisible(false);
                   resetForm();
                 }} 
@@ -1471,7 +1500,11 @@ const AuthModal = ()=>{
               </Text>
         </View>
             
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
               {authMode === "register" && (
                 <>
                   <Text style={{ fontWeight: "700", marginBottom: 8, color: THEME.muted }}>
@@ -1607,14 +1640,17 @@ const AuthModal = ()=>{
                 </Text>
               </TouchableOpacity>
             </ScrollView>
-      </SafeAreaView>
-        </View>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
     </Modal>
   );
 };
 
 const ProfileScreen = ()=>(
-    <ScrollView contentContainerStyle={{ padding:12 }}>
+    <ScrollView 
+      contentContainerStyle={{ padding:12 }}
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={{ fontWeight:"900", fontSize:18, marginBottom:12 }}>Профиль</Text>
       
       {user ? (
@@ -1732,19 +1768,30 @@ const ProfileScreen = ()=>(
         animationType="slide" 
         onRequestClose={()=> setSettingsVisible(false)}
       >
-        <SafeAreaView style={{ flex:1, padding:16, backgroundColor: THEME.bgTop }}>
-          <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20 }}>
-            <TouchableOpacity 
-              onPress={()=> setSettingsVisible(false)} 
-              style={{ padding:8, marginRight:8 }}
-              activeOpacity={0.7}
+        <KeyboardAvoidingView 
+          style={{ flex: 1 }} 
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
+          <SafeAreaView style={{ flex:1, padding:16, backgroundColor: THEME.bgTop }}>
+            <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20 }}>
+              <TouchableOpacity 
+                onPress={()=> {
+                  Keyboard.dismiss();
+                  setSettingsVisible(false);
+                }} 
+                style={{ padding:8, marginRight:8 }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize:18 }}>←</Text>
+              </TouchableOpacity>
+              <Text style={{ fontSize:20, fontWeight:"900" }}>Настройки</Text>
+            </View>
+            
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
-              <Text style={{ fontSize:18 }}>←</Text>
-            </TouchableOpacity>
-            <Text style={{ fontSize:20, fontWeight:"900" }}>Настройки</Text>
-          </View>
-          
-          <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.settingsSection}>
               <Text style={styles.settingsSectionTitle}>Уведомления</Text>
               
@@ -1863,7 +1910,8 @@ const ProfileScreen = ()=>(
               </TouchableOpacity>
       </View>
     </ScrollView>
-        </SafeAreaView>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
       </Modal>
   );
   };
@@ -1879,14 +1927,28 @@ const ProfileScreen = ()=>(
     const toggleTypeLocal = (t)=>{ const copy=[...selTypes]; const idx=copy.indexOf(t); if(idx>=0) copy.splice(idx,1); else copy.push(t); setSelTypes(copy); };
     return (
       <Modal visible={filtersVisible} animationType="slide" onRequestClose={()=> setFiltersVisible(false)}>
-        <SafeAreaView style={{ flex:1 }}>
-          <ScrollView contentContainerStyle={{ padding:14 }}>
-            <View style={{ flexDirection:"row", alignItems:"center", marginBottom:6 }}>
-  <TouchableOpacity onPress={()=> setFiltersVisible(false)} style={{ width:44, height:44, borderRadius:10, alignItems:"center", justifyContent:"center", marginRight:8 }}>
-    <Text style={{ fontSize:18 }}>←</Text>
-  </TouchableOpacity>
-  <Text style={{ fontSize:18, fontWeight:"900" }}>Фильтры</Text>
-</View>
+        <KeyboardAvoidingView 
+          style={{ flex: 1 }} 
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
+          <SafeAreaView style={{ flex:1 }}>
+            <ScrollView 
+              contentContainerStyle={{ padding:14 }}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={{ flexDirection:"row", alignItems:"center", marginBottom:6 }}>
+    <TouchableOpacity 
+      onPress={()=> {
+        Keyboard.dismiss();
+        setFiltersVisible(false);
+      }} 
+      style={{ width:44, height:44, borderRadius:10, alignItems:"center", justifyContent:"center", marginRight:8 }}
+    >
+      <Text style={{ fontSize:18 }}>←</Text>
+    </TouchableOpacity>
+    <Text style={{ fontSize:18, fontWeight:"900" }}>Фильтры</Text>
+  </View>
 
             <View style={{ marginTop:12 }}>
               <Text style={{ fontWeight:"700", marginBottom:8 }}>Города</Text>
@@ -1922,7 +1984,8 @@ const ProfileScreen = ()=>(
             </View>
             <View style={{ height:120 }} />
           </ScrollView>
-        </SafeAreaView>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
       </Modal>
     );
   };
