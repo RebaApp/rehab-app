@@ -141,53 +141,6 @@ const CENTER_NAMES = [
 const CITIES = ["Москва","Санкт-Петербург","Казань","Екатеринбург","Новосибирск","Сочи","Ростов-на-Дону","Краснодар","Пермь","Челябинск"];
 const DEP_TYPES = ["алкоголизм","наркозависимость","лудомания","никотиновая зависимость"];
 
-function generateCenters() {
-  const ratingArr = [4.8,3.2,2.9,4.4,5.0,3.7,2.1,4.0,4.5,3.0,2.5,3.8,4.2,2.7,4.9,3.3,4.1,2.2,3.6,4.7];
-  return CENTER_NAMES.map((name,i)=>{
-    const types = [DEP_TYPES[i % DEP_TYPES.length]];
-    const photos = [
-      WATER[i % WATER.length] + "&auto=format&fit=crop&w=900&q=60",
-      WATER[(i+1) % WATER.length] + "&auto=format&fit=crop&w=900&q=60"
-    ];
-    const desc = `${name} — клинически выверенная программа: медицинский детокс, индивидуальная и групповая психотерапия, поствыписной план поддержки.`;
-    const shortBlurbMap = {
-      "алкоголизм":"Помощь в снижении тяги и восстановлении социальной функции",
-      "наркозависимость":"Детокс и длительная реабилитация с медикаментозной поддержкой",
-      "лудомания":"КПТ и финансовая реабилитация",
-      "никотиновая зависимость":"НЗТ и поведенческая поддержка"
-    };
-    const blurb = types.map(t=> shortBlurbMap[t] || t).join("; ");
-    const reviews = [];
-    for(let j=0;j<10;j++){
-      const r = Math.max(1, Math.min(5, Math.round(ratingArr[i%ratingArr.length] + ((j%3)-1)*0.4)));
-      reviews.push({ id: `${i}-r${j}`, user: ["Иван","Ольга","Сергей","Мария","Наталья","Дмитрий","Елена","Павел","Юлия","Алексей"][j%10], rating: r, date: `${3+j} дней назад`, text: ["Профессиональная команда и индивидуальный подход.","Хорошая программа, вижу прогресс.","Поддержка после выписки помогла."][j%3] });
-    }
-    return {
-      id: `c${i+1}`,
-      name,
-      city: CITIES[i % CITIES.length],
-      types,
-      price: ["от 45 000 ₽ / 14 дней","от 60 000 ₽ / 21 день","от 35 000 ₽ / 10 дней"][i%3],
-      days: [14,21,10][i%3],
-      format: i%2===0 ? "Стационар" : "Амбулаторно",
-      family: i%2===0,
-      rating: ratingArr[i%ratingArr.length],
-      photos,
-      description: desc,
-      descriptionShort: blurb + ".",
-      programsExtended: [
-      "Индивидуальная программа детоксикации и медикаментозной поддержки с круглосуточным наблюдением врачей.",
-      "Когнитивно-поведенческая терапия (КПТ), групповая и семейная терапия, мотивационное интервьюирование.",
-      "Реабилитационные мероприятия: трудотерапия, спортивные и творческие активности, план после выписки и поддержка сообщества."
-      ],
-      methods: ["Медикаментозная терапия","КПТ (когнитивно-поведенческая терапия)","Семейная терапия","Психосоциальная реабилитация"],
-      reviews,
-      phone: `+7 (900) 00${i}${i}`,
-      email: `info${i}@example.com`,
-      website: `www.example${i}.com`
-    };
-  });
-}
 
 const parsePrice = (p)=>{ const m = p.match(/(\d+)\s*000/); return m ? Number(m[1])*1000 : 0; };
 const openMap = (n,c)=> { const q=encodeURIComponent(n+" "+c); const url = Platform.OS==="ios"?`http://maps.apple.com/?q=${q}`:`https://www.google.com/maps/search/?api=1&query=${q}`; Linking.openURL(url).catch(()=>{}); };
