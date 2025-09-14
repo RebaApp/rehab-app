@@ -364,54 +364,108 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
   );
 };
 
-// === Auth state and helpers (added) ===
-const [user, setUser] = useState(null);
-const [authModalVisible, setAuthModalVisible] = useState(false);
-const [authMode, setAuthMode] = useState("login");
-const [authEmail, setAuthEmail] = useState("");
-const [authPassword, setAuthPassword] = useState("");
-const [authBusy, setAuthBusy] = useState(false);
+  // === Auth state and helpers ===
+  const [user, setUser] = useState(null);
+  const [authModalVisible, setAuthModalVisible] = useState(false);
+  const [authMode, setAuthMode] = useState("login");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
 
-useEffect(()=>{
-  try{
-    const unsub = onAuthStateChanged(auth, (u)=> setUser(u));
-    return ()=> { if(typeof unsub === "function") unsub(); }
-  }catch(e){
-    console.warn("onAuthStateChanged error", e);
-  }
-},[]);
+  useEffect(()=>{
+    try{
+      const unsub = onAuthStateChanged(auth, (u)=> {
+        console.log("Auth state changed:", u ? "User logged in" : "User logged out");
+        setUser(u);
+      });
+      return ()=> { if(typeof unsub === "function") unsub(); }
+    }catch(e){
+      console.warn("onAuthStateChanged error", e);
+    }
+  },[]);
 
-async function registerWithEmail(email, password){
-  setAuthBusy(true);
-  try{
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    setAuthModalVisible(false);
-    setAuthEmail(""); setAuthPassword("");
-    Alert.alert("Успех","Аккаунт создан");
-    return cred.user;
-  }catch(e){
-    Alert.alert("Ошибка регистрации", e.message || String(e));
-    throw e;
-  }finally{ setAuthBusy(false); }
-}
+  const registerWithEmail = async (email, password) => {
+    if (!email || !password) {
+      Alert.alert("Ошибка", "Пожалуйста, заполните все поля");
+      return;
+    }
+    
+    setAuthBusy(true);
+    try{
+      console.log("Attempting to register:", email);
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("Registration successful:", cred.user.uid);
+      setAuthModalVisible(false);
+      setAuthEmail(""); 
+      setAuthPassword("");
+      Alert.alert("Успех", "Аккаунт создан успешно!");
+      return cred.user;
+    }catch(e){
+      console.error("Registration error:", e);
+      let errorMessage = "Произошла ошибка при регистрации";
+      
+      if (e.code === 'auth/email-already-in-use') {
+        errorMessage = "Этот email уже используется";
+      } else if (e.code === 'auth/weak-password') {
+        errorMessage = "Пароль должен содержать минимум 6 символов";
+      } else if (e.code === 'auth/invalid-email') {
+        errorMessage = "Неверный формат email";
+      }
+      
+      Alert.alert("Ошибка регистрации", errorMessage);
+      throw e;
+    }finally{ 
+      setAuthBusy(false); 
+    }
+  };
 
-async function loginWithEmail(email, password){
-  setAuthBusy(true);
-  try{
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    setAuthModalVisible(false);
-    setAuthEmail(""); setAuthPassword("");
-    return cred.user;
-  }catch(e){
-    Alert.alert("Ошибка входа", e.message || String(e));
-    throw e;
-  }finally{ setAuthBusy(false); }
-}
+  const loginWithEmail = async (email, password) => {
+    if (!email || !password) {
+      Alert.alert("Ошибка", "Пожалуйста, заполните все поля");
+      return;
+    }
+    
+    setAuthBusy(true);
+    try{
+      console.log("Attempting to login:", email);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      console.log("Login successful:", cred.user.uid);
+      setAuthModalVisible(false);
+      setAuthEmail(""); 
+      setAuthPassword("");
+      Alert.alert("Успех", "Вход выполнен успешно!");
+      return cred.user;
+    }catch(e){
+      console.error("Login error:", e);
+      let errorMessage = "Произошла ошибка при входе";
+      
+      if (e.code === 'auth/user-not-found') {
+        errorMessage = "Пользователь с таким email не найден";
+      } else if (e.code === 'auth/wrong-password') {
+        errorMessage = "Неверный пароль";
+      } else if (e.code === 'auth/invalid-email') {
+        errorMessage = "Неверный формат email";
+      } else if (e.code === 'auth/too-many-requests') {
+        errorMessage = "Слишком много попыток входа. Попробуйте позже";
+      }
+      
+      Alert.alert("Ошибка входа", errorMessage);
+      throw e;
+    }finally{ 
+      setAuthBusy(false); 
+    }
+  };
 
-async function logoutUser(){
-  try{ await signOut(auth); }catch(e){ console.warn("logout failed", e); }
-}
-// === end auth hooks ===
+  const logoutUser = async () => {
+    try{ 
+      await signOut(auth);
+      console.log("User logged out successfully");
+      Alert.alert("Выход", "Вы вышли из аккаунта");
+    }catch(e){ 
+      console.warn("logout failed", e);
+      Alert.alert("Ошибка", "Не удалось выйти из аккаунта");
+    }
+  };
 
 
 
@@ -532,45 +586,154 @@ const RequestModal = ({ visible, onClose, center })=>{
   };
 
   
-// === AuthModal component (added) ===
-const AuthModal = ()=>{
-  return (
-    <Modal visible={authModalVisible} animationType="slide" onRequestClose={()=> setAuthModalVisible(false)}>
-      <SafeAreaView style={{ flex:1, padding:16 }}>
-        <Text style={{ fontSize:20, fontWeight:"900", marginBottom:12 }}>{authMode==="login" ? "Вход" : "Регистрация"}</Text>
-        <TextInput placeholder="Email" value={authEmail} onChangeText={setAuthEmail} style={{ borderWidth:1, borderColor:"#eee", padding:10, marginBottom:10 }} keyboardType="email-address" autoCapitalize="none" />
-        <TextInput placeholder="Пароль" secureTextEntry value={authPassword} onChangeText={setAuthPassword} style={{ borderWidth:1, borderColor:"#eee", padding:10, marginBottom:10 }} />
-        <View style={{ flexDirection:"row", marginTop:8 }}>
-          <TouchableOpacity style={[styles.btnPrimary, { flex:1, marginRight:8 }]} onPress={async ()=>{
-            try{
-              if(authMode==="login") await loginWithEmail(authEmail, authPassword);
-              else await registerWithEmail(authEmail, authPassword);
-            }catch(e){ /* handled in functions */ }
-          }}>
-            <Text style={{ color:"#fff", fontWeight:"800" }}>{authMode==="login" ? "Войти" : "Зарегистрироваться"}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.btnSecondary, { flex:1 }]} onPress={()=> setAuthModalVisible(false)}><Text>Отмена</Text></TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </Modal>
-  );
-};
-// === end AuthModal ===
+  // === AuthModal component ===
+  const AuthModal = ()=>{
+    const handleAuth = async () => {
+      if (!authEmail.trim() || !authPassword.trim()) {
+        Alert.alert("Ошибка", "Пожалуйста, заполните все поля");
+        return;
+      }
+      
+      try{
+        if(authMode==="login") {
+          await loginWithEmail(authEmail.trim(), authPassword);
+        } else {
+          await registerWithEmail(authEmail.trim(), authPassword);
+        }
+      }catch(e){ 
+        // Ошибки уже обработаны в функциях
+        console.log("Auth error handled in function");
+      }
+    };
 
-const ProfileScreen = ()=>(
+    return (
+      <Modal visible={authModalVisible} animationType="slide" onRequestClose={()=> setAuthModalVisible(false)}>
+        <SafeAreaView style={{ flex:1, padding:16, backgroundColor: THEME.bgTop }}>
+          <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20 }}>
+            <TouchableOpacity 
+              onPress={()=> setAuthModalVisible(false)} 
+              style={{ padding:8, marginRight:8 }}
+            >
+              <Text style={{ fontSize:18 }}>←</Text>
+            </TouchableOpacity>
+            <Text style={{ fontSize:20, fontWeight:"900" }}>
+              {authMode==="login" ? "Вход в аккаунт" : "Регистрация"}
+            </Text>
+          </View>
+          
+          <TextInput 
+            placeholder="Email" 
+            value={authEmail} 
+            onChangeText={setAuthEmail} 
+            style={[styles.input, { marginBottom:12 }]} 
+            keyboardType="email-address" 
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          
+          <TextInput 
+            placeholder="Пароль (минимум 6 символов)" 
+            secureTextEntry 
+            value={authPassword} 
+            onChangeText={setAuthPassword} 
+            style={[styles.input, { marginBottom:20 }]} 
+          />
+          
+          <View style={{ flexDirection:"row", marginBottom:16 }}>
+            <TouchableOpacity 
+              style={[styles.btnPrimary, { flex:1, marginRight:8, opacity: authBusy ? 0.6 : 1 }]} 
+              onPress={handleAuth}
+              disabled={authBusy}
+            >
+              <Text style={{ color:"#fff", fontWeight:"800" }}>
+                {authBusy ? "Загрузка..." : (authMode==="login" ? "Войти" : "Зарегистрироваться")}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.btnSecondary, { flex:1 }]} 
+              onPress={()=> setAuthModalVisible(false)}
+            >
+              <Text style={{ fontWeight:"800" }}>Отмена</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <TouchableOpacity 
+            style={{ alignItems:"center", padding:12 }}
+            onPress={()=> setAuthMode(authMode === "login" ? "register" : "login")}
+          >
+            <Text style={{ color: THEME.primary, fontWeight:"700" }}>
+              {authMode === "login" ? "Нет аккаунта? Зарегистрироваться" : "Уже есть аккаунт? Войти"}
+            </Text>
+          </TouchableOpacity>
+        </SafeAreaView>
+      </Modal>
+    );
+  };
+
+  const ProfileScreen = ()=>(
     <ScrollView contentContainerStyle={{ padding:12 }}>
       <Text style={{ fontWeight:"900", fontSize:18, marginBottom:12 }}>Профиль</Text>
-      <TouchableOpacity style={styles.profileBtn} onPress={()=> { setAuthMode("login"); setAuthModalVisible(true); }}><Text style={{ fontWeight:"800" }}>Вход</Text></TouchableOpacity>
-      <TouchableOpacity style={styles.profileBtn} onPress={()=> { setAuthMode("register"); setAuthModalVisible(true); }}><Text style={{ fontWeight:"800" }}>Регистрация</Text></TouchableOpacity>
+      
+      {user ? (
+        // Пользователь авторизован
+        <View>
+          <View style={[styles.profileBtn, { backgroundColor: THEME.primary }]}>
+            <Text style={{ color: "#fff", fontWeight:"800", textAlign: "center" }}>
+              Добро пожаловать!
+            </Text>
+            <Text style={{ color: "#fff", fontSize: 12, textAlign: "center", marginTop: 4 }}>
+              {user.email}
+            </Text>
+          </View>
+          
+          <TouchableOpacity 
+            style={[styles.profileBtn, { backgroundColor: "#ff4444" }]} 
+            onPress={logoutUser}
+          >
+            <Text style={{ color: "#fff", fontWeight:"800" }}>Выйти из аккаунта</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        // Пользователь не авторизован
+        <View>
+          <TouchableOpacity 
+            style={styles.profileBtn} 
+            onPress={()=> { setAuthMode("login"); setAuthModalVisible(true); }}
+          >
+            <Text style={{ fontWeight:"800" }}>Вход</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.profileBtn} 
+            onPress={()=> { setAuthMode("register"); setAuthModalVisible(true); }}
+          >
+            <Text style={{ fontWeight:"800" }}>Регистрация</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      
       <View style={{ marginTop:16 }}>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("О нас","Демо")}><Text style={{ fontWeight:"500" }}>О нас</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Соглашения","Демо")}><Text style={{ fontWeight:"500" }}>Соглашения</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Тарифы","Демо")}><Text style={{ fontWeight:"500" }}>Тарифы</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Контакты","Демо")}><Text style={{ fontWeight:"500" }}>Контакты</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Для инвесторов","Демо")}><Text style={{ fontWeight:"500" }}>Для инвесторов</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Карьера в РЕБА","Демо")}><Text style={{ fontWeight:"500" }}>Карьера в РЕБА</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Настройки","Демо")}><Text style={{ fontWeight:"500" }}>Настройки</Text></TouchableOpacity>
-
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("О нас","РЕБА - агрегатор реабилитационных центров в России. Мы помогаем найти подходящий центр для лечения зависимостей.")}>
+          <Text style={{ fontWeight:"500" }}>О нас</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Соглашения","Пользовательское соглашение и политика конфиденциальности")}>
+          <Text style={{ fontWeight:"500" }}>Соглашения</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Тарифы","Информация о тарифах для центров")}>
+          <Text style={{ fontWeight:"500" }}>Тарифы</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Контакты","Свяжитесь с нами: support@reba.ru")}>
+          <Text style={{ fontWeight:"500" }}>Контакты</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Для инвесторов","Информация для инвесторов")}>
+          <Text style={{ fontWeight:"500" }}>Для инвесторов</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Карьера в РЕБА","Вакансии в нашей команде")}>
+          <Text style={{ fontWeight:"500" }}>Карьера в РЕБА</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.profileLink} onPress={()=> Alert.alert("Настройки","Настройки приложения")}>
+          <Text style={{ fontWeight:"500" }}>Настройки</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -648,6 +811,7 @@ const ProfileScreen = ()=>(
         { selectedCenter && <CenterDetail center={selectedCenter} /> }
         <FiltersModal />
         <RequestModal visible={requestModalVisible} onClose={()=> { setRequestModalVisible(false); setCurrentRequestCenter(null); }} center={currentRequestCenter} />
+        <AuthModal />
 
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={()=> setTab("home")}><Text style={{ color: tab==="home" ? THEME.primary : THEME.muted }}>Главная</Text></TouchableOpacity>
