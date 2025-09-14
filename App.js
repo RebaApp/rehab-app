@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   StyleSheet, Text, View, FlatList, TouchableOpacity, Image, ScrollView,
   TextInput, Linking, Platform, Animated, Dimensions, Modal, SafeAreaView,
-  KeyboardAvoidingView, Alert
+  KeyboardAvoidingView, Alert, RefreshControl
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
@@ -135,7 +135,35 @@ export default function App(){
   const [query,setQuery] = useState("");
   const [filtersVisible,setFiltersVisible] = useState(false);
 const [refreshing, setRefreshing] = useState(false);
-const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters()); setTimeout(()=> setRefreshing(false), 800); };
+const onRefresh = async ()=>{
+  setRefreshing(true);
+  try {
+    // Обновляем центры
+    setCenters(generateCenters());
+    
+    // Обновляем избранное из AsyncStorage
+    const favs = await AsyncStorage.getItem("reba:favorites_v1");
+    if (favs) setFavorites(JSON.parse(favs));
+    
+    // Обновляем комментарии к статьям
+    const comments = await AsyncStorage.getItem("reba:articleComments_v1");
+    if (comments) setArticleComments(JSON.parse(comments));
+    
+    // Обновляем лайки статей
+    const likes = await AsyncStorage.getItem("reba:liked_articles_v1");
+    if (likes) setLikedArticles(JSON.parse(likes));
+    
+    // Обновляем заявки
+    const reqs = await AsyncStorage.getItem("reba:requests_v1");
+    if (reqs) setRequests(JSON.parse(reqs));
+    
+    console.log("Data refreshed successfully");
+  } catch (error) {
+    console.error("Error refreshing data:", error);
+  } finally {
+    setTimeout(()=> setRefreshing(false), 1000);
+  }
+};
 
   const [selectedCenter,setSelectedCenter] = useState(null);
   const [articleOpen,setArticleOpen] = useState(null);
@@ -258,7 +286,7 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
   const reviewsHeight = useRef(new Animated.Value(0)).current;
 
   const toggleReviews = () => {
-    const collapsed = 120;
+    const collapsed = 0; // Полностью скрываем отзывы
     const expanded = Math.min(600, (center.reviews || []).length * 120);
     Animated.timing(reviewsHeight, {
       toValue: reviewsExpanded ? collapsed : expanded,
@@ -361,7 +389,9 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
             {/* Reviews */}
             <Text style={{ fontWeight: "800", marginTop: 16 }}>Отзывы ({center.reviews.length})</Text>
             <TouchableOpacity onPress={toggleReviews} style={{ marginTop:6 }}>
-              <Text style={{ color: THEME.primary }}>Посмотреть все отзывы</Text>
+              <Text style={{ color: THEME.primary, fontWeight: "700" }}>
+                {reviewsExpanded ? "Свернуть отзывы" : "Посмотреть все отзывы"}
+              </Text>
             </TouchableOpacity>
 
             <View style={{ marginTop:8 }}>
@@ -408,27 +438,27 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
 };
 
   // === Auth state and helpers ===
-  const [user, setUser] = useState(null);
-  const [authModalVisible, setAuthModalVisible] = useState(false);
-  const [authMode, setAuthMode] = useState("login");
-  const [authEmail, setAuthEmail] = useState("");
-  const [authPassword, setAuthPassword] = useState("");
+const [user, setUser] = useState(null);
+const [authModalVisible, setAuthModalVisible] = useState(false);
+const [authMode, setAuthMode] = useState("login");
+const [authEmail, setAuthEmail] = useState("");
+const [authPassword, setAuthPassword] = useState("");
   const [authName, setAuthName] = useState("");
   const [authAge, setAuthAge] = useState("");
   const [authPhone, setAuthPhone] = useState("");
-  const [authBusy, setAuthBusy] = useState(false);
+const [authBusy, setAuthBusy] = useState(false);
 
-  useEffect(()=>{
-    try{
+useEffect(()=>{
+  try{
       const unsub = onAuthStateChanged(auth, (u)=> {
         console.log("Auth state changed:", u ? "User logged in" : "User logged out");
         setUser(u);
       });
-      return ()=> { if(typeof unsub === "function") unsub(); }
-    }catch(e){
-      console.warn("onAuthStateChanged error", e);
-    }
-  },[]);
+    return ()=> { if(typeof unsub === "function") unsub(); }
+  }catch(e){
+    console.warn("onAuthStateChanged error", e);
+  }
+},[]);
 
   const registerWithEmail = async (email, password, name, age, phone) => {
     if (!email || !password || !name || !age || !phone) {
@@ -436,10 +466,10 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
       return;
     }
     
-    setAuthBusy(true);
-    try{
+  setAuthBusy(true);
+  try{
       console.log("Attempting to register:", email);
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
       console.log("Registration successful:", cred.user.uid);
       
       // Сохраняем дополнительные данные пользователя в Firestore
@@ -459,15 +489,15 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
         // Не блокируем регистрацию, если не удалось сохранить профиль
       }
       
-      setAuthModalVisible(false);
+    setAuthModalVisible(false);
       setAuthEmail(""); 
       setAuthPassword("");
       setAuthName("");
       setAuthAge("");
       setAuthPhone("");
       Alert.alert("Успех", "Аккаунт создан успешно!");
-      return cred.user;
-    }catch(e){
+    return cred.user;
+  }catch(e){
       console.error("Registration error:", e);
       let errorMessage = "Произошла ошибка при регистрации";
       
@@ -480,7 +510,7 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
       }
       
       Alert.alert("Ошибка регистрации", errorMessage);
-      throw e;
+    throw e;
     }finally{ 
       setAuthBusy(false); 
     }
@@ -492,17 +522,17 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
       return;
     }
     
-    setAuthBusy(true);
-    try{
+  setAuthBusy(true);
+  try{
       console.log("Attempting to login:", email);
-      const cred = await signInWithEmailAndPassword(auth, email, password);
+    const cred = await signInWithEmailAndPassword(auth, email, password);
       console.log("Login successful:", cred.user.uid);
-      setAuthModalVisible(false);
+    setAuthModalVisible(false);
       setAuthEmail(""); 
       setAuthPassword("");
       Alert.alert("Успех", "Вход выполнен успешно!");
-      return cred.user;
-    }catch(e){
+    return cred.user;
+  }catch(e){
       console.error("Login error:", e);
       let errorMessage = "Произошла ошибка при входе";
       
@@ -517,7 +547,7 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
       }
       
       Alert.alert("Ошибка входа", errorMessage);
-      throw e;
+    throw e;
     }finally{ 
       setAuthBusy(false); 
     }
@@ -628,7 +658,17 @@ const RequestModal = ({ visible, onClose, center })=>{
   };
 
   const HomeScreen = () => (
-    <ScrollView contentContainerStyle={{ padding:12 }}>
+    <ScrollView 
+      contentContainerStyle={{ padding:12 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[THEME.primary]}
+          tintColor={THEME.primary}
+        />
+      }
+    >
       <View style={{ alignItems:"center", marginTop:6 }}>
         <View style={{ position:"relative", alignItems:"center" }}>
           <Text style={styles.rebaTitle}>РЕБА</Text>
@@ -642,7 +682,13 @@ const RequestModal = ({ visible, onClose, center })=>{
 
       <View style={{ marginTop:18 }}>
         <Text style={{ fontWeight:"800", fontSize:16, marginBottom:10 }}>Мы пишем полезности:</Text>
-        <FlatList data={ARTICLES} keyExtractor={i=>i.id} renderItem={({item}) => <ArticleCard item={item} />} ItemSeparatorComponent={()=> <View style={{ height:12 }} />} />
+        <FlatList 
+          data={ARTICLES} 
+          keyExtractor={i=>i.id} 
+          renderItem={({item}) => <ArticleCard item={item} />} 
+          ItemSeparatorComponent={()=> <View style={{ height:12 }} />}
+          scrollEnabled={false}
+        />
       </View>
       <View style={{ height:120 }} />
     </ScrollView>
@@ -666,7 +712,7 @@ const RequestModal = ({ visible, onClose, center })=>{
 
   
   // === AuthModal component ===
-  const AuthModal = ()=>{
+const AuthModal = ()=>{
     const handleAuth = async () => {
       if (authMode === "login") {
         if (!authEmail.trim() || !authPassword.trim()) {
@@ -720,11 +766,11 @@ const RequestModal = ({ visible, onClose, center })=>{
                 activeOpacity={0.7}
               >
                 <Text style={{ fontSize:18 }}>←</Text>
-              </TouchableOpacity>
+          </TouchableOpacity>
               <Text style={{ fontSize:20, fontWeight:"900" }}>
                 {authMode==="login" ? "Вход в аккаунт" : "Регистрация"}
               </Text>
-            </View>
+        </View>
             
             <ScrollView showsVerticalScrollIndicator={false}>
               {authMode === "register" && (
@@ -812,13 +858,13 @@ const RequestModal = ({ visible, onClose, center })=>{
                 </Text>
               </TouchableOpacity>
             </ScrollView>
-          </SafeAreaView>
+      </SafeAreaView>
         </View>
-      </Modal>
-    );
-  };
+    </Modal>
+  );
+};
 
-  const ProfileScreen = ()=>(
+const ProfileScreen = ()=>(
     <ScrollView contentContainerStyle={{ padding:12 }}>
       <Text style={{ fontWeight:"900", fontSize:18, marginBottom:12 }}>Профиль</Text>
       
