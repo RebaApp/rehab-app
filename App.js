@@ -11,7 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 // Firebase integration (expected firebaseConfig.js in project root)
 import { auth, db } from './firebaseConfig';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 
 
 const { width: SCREEN_W } = Dimensions.get("window");
@@ -179,15 +179,48 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
   // filter apply
   const applyFilters = ()=>{
     let list = generateCenters();
-    if(filterCities.length>0) list = list.filter(c => filterCities.includes(c.city));
-    if(filterTypes.length>0) list = list.filter(c => filterTypes.some(t=> c.types.includes(t)));
-    if(minPrice) list = list.filter(c => parsePrice(c.price) >= Number(minPrice));
-    if(maxPrice) list = list.filter(c => parsePrice(c.price) <= Number(maxPrice));
-    if(minRating) list = list.filter(c => c.rating >= Number(minRating));
+    console.log("Original centers count:", list.length);
+    console.log("Filter cities:", filterCities);
+    console.log("Filter types:", filterTypes);
+    console.log("Min price:", minPrice);
+    console.log("Max price:", maxPrice);
+    console.log("Min rating:", minRating);
+    
+    if(filterCities.length>0) {
+      list = list.filter(c => filterCities.includes(c.city));
+      console.log("After city filter:", list.length);
+    }
+    if(filterTypes.length>0) {
+      list = list.filter(c => filterTypes.some(t=> c.types.includes(t)));
+      console.log("After type filter:", list.length);
+    }
+    if(minPrice) {
+      list = list.filter(c => parsePrice(c.price) >= Number(minPrice));
+      console.log("After min price filter:", list.length);
+    }
+    if(maxPrice) {
+      list = list.filter(c => parsePrice(c.price) <= Number(maxPrice));
+      console.log("After max price filter:", list.length);
+    }
+    if(minRating) {
+      list = list.filter(c => c.rating >= Number(minRating));
+      console.log("After rating filter:", list.length);
+    }
+    
+    console.log("Final filtered centers count:", list.length);
     setCenters(list);
     setFiltersVisible(false);
   };
-  const resetFilters = ()=>{ setFilterCities([]); setFilterTypes([]); setMinPrice(""); setMaxPrice(""); setMinRating(0); setCenters(generateCenters()); setFiltersVisible(false); };
+  const resetFilters = ()=>{ 
+    setFilterCities([]); 
+    setFilterTypes([]); 
+    setMinPrice(""); 
+    setMaxPrice(""); 
+    setMinRating(0); 
+    setCenters(generateCenters()); 
+    setFiltersVisible(false); 
+    console.log("Filters reset, showing all centers");
+  };
 
   const filteredCenters = (q)=>{
     const list = centers;
@@ -411,7 +444,7 @@ const onRefresh = async ()=>{ setRefreshing(true); setCenters(generateCenters())
       
       // Сохраняем дополнительные данные пользователя в Firestore
       try {
-        await addDoc(collection(db, 'users'), {
+        await setDoc(doc(db, 'users', cred.user.uid), {
           uid: cred.user.uid,
           email: email,
           name: name,
@@ -675,10 +708,7 @@ const RequestModal = ({ visible, onClose, center })=>{
           resetForm();
         }}
       >
-        <KeyboardAvoidingView 
-          style={{ flex: 1 }} 
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
+        <View style={{ flex: 1 }}>
           <SafeAreaView style={{ flex:1, padding:16, backgroundColor: THEME.bgTop }}>
             <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20 }}>
               <TouchableOpacity 
@@ -783,7 +813,7 @@ const RequestModal = ({ visible, onClose, center })=>{
               </TouchableOpacity>
             </ScrollView>
           </SafeAreaView>
-        </KeyboardAvoidingView>
+        </View>
       </Modal>
     );
   };
@@ -1016,5 +1046,16 @@ const styles = StyleSheet.create({
   filterChip: { paddingVertical:8, paddingHorizontal:10, borderRadius:10, backgroundColor:"#fff", borderWidth:1, borderColor:"#eef7ff", marginRight:8, marginBottom:8 },
   filterChipActive: { backgroundColor: THEME.primary, borderColor: THEME.primary },
   filterChipText: { fontWeight:"700" },
-  input: { backgroundColor:"#fff", padding:10, borderRadius:10, borderWidth:1, borderColor:"#eef7ff" }
+  input: { backgroundColor:"#fff", padding:10, borderRadius:10, borderWidth:1, borderColor:"#eef7ff" },
+  // Web-specific styles to prevent jumping
+  webButton: { 
+    backgroundColor:"#fff", 
+    padding:14, 
+    borderRadius:12, 
+    shadowColor: "#0a2740", 
+    shadowOpacity: 0.06, 
+    shadowRadius: 10, 
+    elevation: 3,
+    cursor: "pointer"
+  }
 });
