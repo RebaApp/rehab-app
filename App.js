@@ -971,7 +971,7 @@ const onRefresh = async ()=>{
           </TouchableOpacity>
           <TouchableOpacity 
             onPress={() => toggleFav(center.id)} 
-            style={styles.favoriteButton}
+            style={[styles.favoriteButton, { marginLeft: 8 }]}
             activeOpacity={0.7}
           >
             <Text style={{ fontSize: 24, color: (favorites && favorites[center.id]) ? THEME.primary : THEME.muted }}>{favorites && favorites[center.id] ? "♥" : "♡"}</Text>
@@ -1130,20 +1130,20 @@ const RequestModal = ({ visible, onClose, center })=>{
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-          <SafeAreaView style={{ flex:1 }}>
-            <View style={{ padding:14 }}>
-              <View style={{ flexDirection:"row", alignItems:"center", marginBottom:8 }}>
-                <TouchableOpacity 
-                  onPress={()=> {
-                    Keyboard.dismiss();
-                    onClose();
-                  }} 
-                  style={{ padding:8, marginRight:6 }}
-                >
-                  <Text style={{ fontSize:18 }}>←</Text>
-                </TouchableOpacity>
-                <Text style={{ fontWeight:"900", fontSize:18 }}>{`Заявка в ${center.name}`}</Text>
-              </View>
+          <SafeAreaView style={{ flex:1, backgroundColor: THEME.bgTop }}>
+            <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20, paddingHorizontal:16, paddingTop:16 }}>
+              <TouchableOpacity 
+                onPress={()=> {
+                  Keyboard.dismiss();
+                  onClose();
+                }} 
+                style={{ padding:8, marginRight:8 }}
+              >
+                <Text style={{ fontSize:18 }}>←</Text>
+              </TouchableOpacity>
+              <Text style={{ fontWeight:"900", fontSize:20, flex:1 }}>{`Заявка в ${center.name}`}</Text>
+            </View>
+            <View style={{ paddingHorizontal: 16, paddingBottom: 20 }}>
             <TextInput value={name} onChangeText={setName} placeholder="Ваше имя (необязательно)" style={[styles.input, { marginBottom:12 }]} />
             <TextInput value={phone} onChangeText={setPhone} placeholder="Телефон" keyboardType="phone-pad" style={[styles.input, { marginBottom:12 }]} />
             <TextInput value={note} onChangeText={setNote} placeholder="Дополнительная информация о запросе" style={[styles.input, { height:100, textAlignVertical:"top" }]} multiline />
@@ -1482,8 +1482,8 @@ const AuthModal = ()=>{
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-          <SafeAreaView style={{ flex:1, padding:16, backgroundColor: THEME.bgTop }}>
-            <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20 }}>
+          <SafeAreaView style={{ flex:1, backgroundColor: THEME.bgTop }}>
+            <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20, paddingHorizontal:16, paddingTop:16 }}>
               <TouchableOpacity 
                 onPress={()=> {
                   Keyboard.dismiss();
@@ -1495,7 +1495,7 @@ const AuthModal = ()=>{
               >
                 <Text style={{ fontSize:18 }}>←</Text>
           </TouchableOpacity>
-              <Text style={{ fontSize:20, fontWeight:"900" }}>
+              <Text style={{ fontSize:20, fontWeight:"900", flex:1 }}>
                 {authMode==="login" ? "Вход в аккаунт" : "Регистрация"}
               </Text>
         </View>
@@ -1503,7 +1503,7 @@ const AuthModal = ()=>{
             <ScrollView 
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ flexGrow: 1 }}
+              contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingBottom: 20 }}
             >
               {authMode === "register" && (
                 <>
@@ -1773,8 +1773,8 @@ const ProfileScreen = ()=>(
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-          <SafeAreaView style={{ flex:1, padding:16, backgroundColor: THEME.bgTop }}>
-            <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20 }}>
+          <SafeAreaView style={{ flex:1, backgroundColor: THEME.bgTop }}>
+            <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20, paddingHorizontal:16, paddingTop:16 }}>
               <TouchableOpacity 
                 onPress={()=> {
                   Keyboard.dismiss();
@@ -1785,12 +1785,13 @@ const ProfileScreen = ()=>(
               >
                 <Text style={{ fontSize:18 }}>←</Text>
               </TouchableOpacity>
-              <Text style={{ fontSize:20, fontWeight:"900" }}>Настройки</Text>
+              <Text style={{ fontSize:20, fontWeight:"900", flex:1 }}>Настройки</Text>
             </View>
             
             <ScrollView 
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
             >
             <View style={styles.settingsSection}>
               <Text style={styles.settingsSectionTitle}>Уведомления</Text>
@@ -1932,12 +1933,8 @@ const ProfileScreen = ()=>(
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-          <SafeAreaView style={{ flex:1 }}>
-            <ScrollView 
-              contentContainerStyle={{ padding:14 }}
-              keyboardShouldPersistTaps="handled"
-            >
-              <View style={{ flexDirection:"row", alignItems:"center", marginBottom:6 }}>
+          <SafeAreaView style={{ flex:1, backgroundColor: THEME.bgTop }}>
+            <View style={{ flexDirection:"row", alignItems:"center", marginBottom:20, paddingHorizontal:16, paddingTop:16 }}>
     <TouchableOpacity 
       onPress={()=> {
         Keyboard.dismiss();
@@ -1947,8 +1944,12 @@ const ProfileScreen = ()=>(
     >
       <Text style={{ fontSize:18 }}>←</Text>
     </TouchableOpacity>
-    <Text style={{ fontSize:18, fontWeight:"900" }}>Фильтры</Text>
+    <Text style={{ fontSize:20, fontWeight:"900", flex:1 }}>Фильтры</Text>
   </View>
+            <ScrollView 
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+              keyboardShouldPersistTaps="handled"
+            >
 
             <View style={{ marginTop:12 }}>
               <Text style={{ fontWeight:"700", marginBottom:8 }}>Города</Text>
@@ -2093,10 +2094,26 @@ const styles = StyleSheet.create({
   typePillText: { color:"#063a9b", fontWeight:"700", fontSize:12 },
   featurePill: { backgroundColor:"#e8f7ff", padding:8, borderRadius:8, marginRight:8, marginTop:6 },
   review: { marginTop:8, padding:10, borderRadius:10, backgroundColor:"#fbfeff", borderWidth:1, borderColor:"#eef7ff" },
-  detailFooter: { padding:10, flexDirection:"row", alignItems:"center", borderTopWidth:1, borderColor:"#f0f4fb", backgroundColor:"#fff" },
-  footerBtnPrimary: { flex:1, minWidth:0, padding:14, paddingHorizontal:18, backgroundColor: THEME.primary, borderRadius:12, marginRight:6, alignItems:"center" },
-  btnPrimary: { backgroundColor: THEME.primary, padding:12, borderRadius:10, alignItems:"center" },
-  btnSecondary: { padding:12, borderRadius:10, alignItems:"center", borderWidth:1, borderColor:"#dfefff", backgroundColor:"#fff" },
+  detailFooter: { padding:12, flexDirection:"row", alignItems:"center", borderTopWidth:1, borderColor:"#f0f4fb", backgroundColor:"#fff" },
+  footerBtnPrimary: { flex:1, minWidth:0, padding:14, paddingHorizontal:18, backgroundColor: THEME.primary, borderRadius:12, alignItems:"center" },
+  btnPrimary: { 
+    backgroundColor: THEME.primary, 
+    padding:14, 
+    borderRadius:12, 
+    alignItems:"center",
+    minHeight: 48,
+    justifyContent: "center"
+  },
+  btnSecondary: { 
+    padding:14, 
+    borderRadius:12, 
+    alignItems:"center", 
+    borderWidth:1, 
+    borderColor:"#dfefff", 
+    backgroundColor:"#fff",
+    minHeight: 48,
+    justifyContent: "center"
+  },
   bottomNav: { height:70, margin:12, backgroundColor:"#fff", borderRadius:16, flexDirection:"row", justifyContent:"space-around", alignItems:"center", ...THEME.shadow },
   navItem: { alignItems:"center", paddingVertical:6, paddingHorizontal:4 },
   navText: { fontSize: 11, fontWeight: "600", marginTop: 2 },
@@ -2106,7 +2123,15 @@ const styles = StyleSheet.create({
   filterChip: { paddingVertical:8, paddingHorizontal:10, borderRadius:10, backgroundColor:"#fff", borderWidth:1, borderColor:"#eef7ff", marginRight:8, marginBottom:8 },
   filterChipActive: { backgroundColor: THEME.primary, borderColor: THEME.primary },
   filterChipText: { fontWeight:"700" },
-  input: { backgroundColor:"#fff", padding:10, borderRadius:10, borderWidth:1, borderColor:"#eef7ff" },
+  input: { 
+    backgroundColor:"#fff", 
+    padding:12, 
+    borderRadius:12, 
+    borderWidth:1, 
+    borderColor:"#eef7ff",
+    fontSize: 16,
+    minHeight: 48
+  },
   // Web-specific styles to prevent jumping
   webButton: { 
     backgroundColor:"#fff", 
@@ -2121,7 +2146,6 @@ const styles = StyleSheet.create({
   // New design styles
   favoriteButton: {
     padding: 12,
-    marginLeft: 12,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#fff",
