@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArticleCardProps } from '../../types';
 import { THEME } from '../../utils/constants';
 import OptimizedImage from './OptimizedImage';
+import FormattedText from './FormattedText';
 
 const ArticleCard: React.FC<ArticleCardProps> = memo(({
   item,
@@ -58,9 +59,11 @@ const ArticleCard: React.FC<ArticleCardProps> = memo(({
             {item.title}
           </Text>
           
-          <Text style={styles.excerpt} numberOfLines={3}>
-            {item.excerpt}
-          </Text>
+          <FormattedText 
+            text={item.excerpt} 
+            maxLines={3}
+            style={styles.excerpt}
+          />
 
           <View style={styles.footer}>
             <View style={styles.authorContainer}>

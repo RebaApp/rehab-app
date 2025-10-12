@@ -15,6 +15,20 @@ export const THEME = {
 
 export const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center";
 
+// Рубрики статей
+export const ARTICLE_RUBRICS = [
+  'Наркомания',
+  'Алкоголизм', 
+  'Лудомания',
+  'Табакокурение',
+  'Восстановление',
+  'Психология',
+  'Семейная терапия',
+  'Медицинские методы',
+  'Реабилитация',
+  'Профилактика'
+];
+
 export const WATER = [
   "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center",
   "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&crop=center",

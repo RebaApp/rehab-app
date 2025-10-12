@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AppStore, Center, User } from '../types';
+import { AppStore, Center, User, Article } from '../types';
 import { ARTICLES } from '../utils/constants';
 
 // Веб-совместимый store с оригинальными данными
@@ -14,6 +14,12 @@ const useAppStore = create<AppStore>((set, get) => ({
       centersLoading: false,
       centersError: null,
       lastCentersUpdate: null,
+
+      // === ARTICLES STATE ===
+      articles: ARTICLES, // Начинаем с базовых статей
+      articlesLoading: false,
+      articlesError: null,
+      lastArticlesUpdate: null,
 
       // === FAVORITES STATE ===
       favorites: {},
@@ -388,13 +394,91 @@ const useAppStore = create<AppStore>((set, get) => ({
   },
 
   // === ARTICLES ACTIONS ===
+  setArticles: (articles: Article[]) => set({ articles }),
+  setArticlesLoading: (loading: boolean) => set({ articlesLoading: loading }),
+  setArticlesError: (error: string | null) => set({ articlesError: error }),
+
   loadArticles: async () => {
-    // Mock articles loading
-    return;
+    set({ articlesLoading: true, articlesError: null });
+    try {
+      // Пока используем локальные статьи, позже заменим на API
+      set({ 
+        articles: ARTICLES, 
+        articlesLoading: false,
+        articlesError: null,
+        lastArticlesUpdate: Date.now(),
+      });
+      return;
+    } catch (error) {
+      set({ 
+        articlesLoading: false,
+        articlesError: 'Failed to load articles',
+      });
+      return;
+    }
   },
 
   refreshArticles: async () => {
-    return;
+    return get().loadArticles();
+  },
+
+  // Добавление новой статьи
+  addArticle: (articleData: {
+    title: string;
+    excerpt: string;
+    body: string;
+    image: string;
+    authorName: string;
+    authorCredentials: string;
+    rubric: string;
+    articleType: 'media' | 'integration';
+    centerId?: string;
+  }) => {
+    const { articles } = get();
+    const newArticle: Article = {
+      id: `article_${Date.now()}`,
+      title: articleData.title,
+      excerpt: articleData.excerpt,
+      body: articleData.body,
+      image: articleData.image,
+      author: `${articleData.authorName} - ${articleData.authorCredentials}`,
+      category: articleData.rubric,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    set({
+      articles: [newArticle, ...articles], // Добавляем в начало списка
+      lastArticlesUpdate: Date.now(),
+    });
+
+    return newArticle;
+  },
+
+  // Обновление статьи
+  updateArticle: (id: string, updates: Partial<Article>) => {
+    const { articles } = get();
+    const updatedArticles = articles.map((article: Article) =>
+      article.id === id 
+        ? { ...article, ...updates, updatedAt: new Date().toISOString() }
+        : article
+    );
+
+    set({
+      articles: updatedArticles,
+      lastArticlesUpdate: Date.now(),
+    });
+  },
+
+  // Удаление статьи
+  deleteArticle: (id: string) => {
+    const { articles } = get();
+    const filteredArticles = articles.filter((article: Article) => article.id !== id);
+
+    set({
+      articles: filteredArticles,
+      lastArticlesUpdate: Date.now(),
+    });
   },
 
       // === FAVORITES ACTIONS ===

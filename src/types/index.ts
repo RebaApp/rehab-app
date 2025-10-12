@@ -140,8 +140,16 @@ export interface FavoritesState {
   favoritesLoading: boolean;
 }
 
+// === ARTICLES STATE TYPES ===
+export interface ArticlesState {
+  articles: Article[];
+  articlesLoading: boolean;
+  articlesError: string | null;
+  lastArticlesUpdate: number | null;
+}
+
 // === STORE TYPES ===
-export interface AppStore extends AuthState, CentersState, FavoritesState, UIState {
+export interface AppStore extends AuthState, CentersState, FavoritesState, ArticlesState, UIState {
   filters: Filters;
   
   // Auth actions
@@ -156,6 +164,26 @@ export interface AppStore extends AuthState, CentersState, FavoritesState, UISta
   setCentersLoading: (loading: boolean) => void;
   setCentersError: (error: string | null) => void;
   loadCenters: () => Promise<void>;
+  
+  // Articles actions
+  setArticles: (articles: Article[]) => void;
+  setArticlesLoading: (loading: boolean) => void;
+  setArticlesError: (error: string | null) => void;
+  loadArticles: () => Promise<void>;
+  refreshArticles: () => Promise<void>;
+  addArticle: (articleData: {
+    title: string;
+    excerpt: string;
+    body: string;
+    image: string;
+    authorName: string;
+    authorCredentials: string;
+    rubric: string;
+    articleType: 'media' | 'integration';
+    centerId?: string;
+  }) => Article;
+  updateArticle: (id: string, updates: Partial<Article>) => void;
+  deleteArticle: (id: string) => void;
   
   // Favorites actions
   setFavorites: (favorites: Record<string, boolean>) => void;

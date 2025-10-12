@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,6 +10,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { User } from '../types';
 import { THEME } from '../utils/constants';
+import AdminModal from '../components/common/AdminModal';
+import CreateArticleModal from '../components/common/CreateArticleModal';
+import CreateCenterModal from '../components/common/CreateCenterModal';
+import useAppStore from '../store/useAppStore';
 
 interface ProfileScreenProps {
   user: User | null;
@@ -28,6 +32,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = memo(({
   onLogoutPress,
   onSettingsPress
 }) => {
+  const [adminModalVisible, setAdminModalVisible] = useState(false);
+  const [createArticleModalVisible, setCreateArticleModalVisible] = useState(false);
+  const [createCenterModalVisible, setCreateCenterModalVisible] = useState(false);
   const handleAboutPress = useCallback(() => {
     Alert.alert(
       'О нас',
@@ -68,6 +75,37 @@ const ProfileScreen: React.FC<ProfileScreenProps> = memo(({
       'Карьера в РЕБА',
       'Вакансии в нашей команде'
     );
+  }, []);
+
+  // Админ функции
+  const handleAdminPress = useCallback(() => {
+    setAdminModalVisible(true);
+  }, []);
+
+  const handleCreateArticle = useCallback(() => {
+    setCreateArticleModalVisible(true);
+  }, []);
+
+  const handleCreateCenter = useCallback(() => {
+    setCreateCenterModalVisible(true);
+  }, []);
+
+  const handleSaveArticle = useCallback((article: any) => {
+    const { addArticle } = useAppStore.getState();
+    try {
+      const newArticle = addArticle(article);
+      console.log('Article saved:', newArticle);
+      Alert.alert('Успех', `Статья "${article.title}" добавлена в рубрику "${article.rubric}"!`);
+    } catch (error) {
+      console.error('Error saving article:', error);
+      Alert.alert('Ошибка', 'Не удалось сохранить статью');
+    }
+  }, []);
+
+  const handleSaveCenter = useCallback((center: any) => {
+    console.log('Saving center:', center);
+    Alert.alert('Успех', 'Центр сохранен! (Пока только в консоли)');
+    // TODO: Отправить на сервер
   }, []);
 
   return (
@@ -153,7 +191,34 @@ const ProfileScreen: React.FC<ProfileScreenProps> = memo(({
           <Text style={styles.menuItemText}>Настройки</Text>
           <Ionicons name="chevron-forward" size={16} color={THEME.muted} />
         </TouchableOpacity>
+        
+        {/* Админ панель - показываем всем для разработки */}
+        <TouchableOpacity style={[styles.menuItem, styles.adminMenuItem]} onPress={handleAdminPress}>
+          <Ionicons name="construct-outline" size={20} color={THEME.primary} />
+          <Text style={[styles.menuItemText, styles.adminMenuItemText]}>Админ панель</Text>
+          <Ionicons name="chevron-forward" size={16} color={THEME.primary} />
+        </TouchableOpacity>
       </View>
+
+      {/* Модальные окна */}
+      <AdminModal
+        visible={adminModalVisible}
+        onClose={() => setAdminModalVisible(false)}
+        onCreateArticle={handleCreateArticle}
+        onCreateCenter={handleCreateCenter}
+      />
+
+      <CreateArticleModal
+        visible={createArticleModalVisible}
+        onClose={() => setCreateArticleModalVisible(false)}
+        onSave={handleSaveArticle}
+      />
+
+      <CreateCenterModal
+        visible={createCenterModalVisible}
+        onClose={() => setCreateCenterModalVisible(false)}
+        onSave={handleSaveCenter}
+      />
     </ScrollView>
   );
 });
@@ -281,6 +346,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     marginLeft: 12
+  },
+  adminMenuItem: {
+    backgroundColor: THEME.primary + '10',
+    borderLeftWidth: 3,
+    borderLeftColor: THEME.primary,
+  },
+  adminMenuItemText: {
+    color: THEME.primary,
+    fontWeight: '600',
   }
 });
 

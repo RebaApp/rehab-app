@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Article } from '../types';
 import { THEME } from '../utils/constants';
 import OptimizedImage from '../components/common/OptimizedImage';
+import FormattedText from '../components/common/FormattedText';
 
 interface ArticleDetailScreenProps {
   article: Article;
@@ -74,9 +75,10 @@ const ArticleDetailScreen: React.FC<ArticleDetailScreenProps> = memo(({
 
             <Text style={styles.excerpt}>{article.excerpt}</Text>
             
-            <Text style={styles.body}>
-              {article.body || article.content || 'Содержимое статьи недоступно.'}
-            </Text>
+            <FormattedText 
+              text={article.body || article.content || 'Содержимое статьи недоступно.'}
+              style={styles.body}
+            />
           </View>
         </ScrollView>
       </LinearGradient>

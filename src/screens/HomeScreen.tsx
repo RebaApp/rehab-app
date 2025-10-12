@@ -14,7 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Article } from '../types';
 import ArticleCard from '../components/common/ArticleCard';
-import { THEME, ARTICLES } from '../utils/constants';
+import { THEME } from '../utils/constants';
+import useAppStore from '../store/useAppStore';
 
 interface HomeScreenProps {
   onArticlePress: (article: Article) => void;
@@ -26,21 +27,22 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({
   shimmer
 }) => {
   const [articleQuery, setArticleQuery] = React.useState('');
+  const { articles } = useAppStore();
 
   const handleSearchChange = useCallback((text: string) => {
     setArticleQuery(text);
   }, []);
 
   const filteredArticles = useMemo(() => {
-    if (!articleQuery) return ARTICLES;
+    if (!articleQuery) return articles;
     
     const query = articleQuery.toLowerCase();
-    return ARTICLES.filter(article =>
+    return articles.filter(article =>
       article.title.toLowerCase().includes(query) ||
       article.excerpt.toLowerCase().includes(query) ||
       (article.body || '').toLowerCase().includes(query)
     );
-  }, [articleQuery]);
+  }, [articleQuery, articles]);
 
   const renderArticle = useCallback(({ item }: { item: Article }) => (
     <ArticleCard
