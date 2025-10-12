@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: reba_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: reba_db
+      POSTGRES_USER: reba_user
+      POSTGRES_PASSWORD: reba_password_2024
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - reba_network
+
+  # Node.js API Server
+  api:
+    build: .
+    container_name: reba_api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://reba_user:reba_password_2024@postgres:5432/reba_db?schema=public
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRES_IN: 7d
+      PORT: 3001
+      CORS_ORIGIN: "*"
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+    networks:
+      - reba_network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: reba_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./uploads:/var/www/uploads
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - api
+    networks:
+      - reba_network
+
+volumes:
+  postgres_data:
+
+networks:
+  reba_network:
+    driver: bridge

@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  # Простой API без базы данных для тестирования
+  api:
+    build:
+      context: .
+      dockerfile: SimpleDockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+    volumes:
+      - ./src:/app/src
+      - ./uploads:/app/uploads
+    command: node src/simple-server.js
+
+  # Nginx для проксирования
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./uploads:/app/uploads
+    depends_on:
+      - api

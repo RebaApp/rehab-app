@@ -1,0 +1,21 @@
+# Простой Dockerfile без Prisma
+FROM node:18-alpine
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем package.json
+COPY package.json ./
+
+# Устанавливаем только основные зависимости
+RUN npm install express cors dotenv multer
+
+# Копируем исходный код
+COPY src/ ./src/
+COPY uploads/ ./uploads/
+
+# Открываем порт
+EXPOSE 3001
+
+# Запускаем приложение
+CMD ["node", "src/simple-server.js"]

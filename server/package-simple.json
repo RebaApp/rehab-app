@@ -1,0 +1,22 @@
+{
+  "name": "rehab-server-simple",
+  "version": "1.0.0",
+  "description": "Simple backend for RehaBnB application",
+  "main": "src/simple-server.js",
+  "scripts": {
+    "start": "node src/simple-server.js",
+    "dev": "nodemon src/simple-server.js"
+  },
+  "keywords": ["rehab", "api", "backend"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

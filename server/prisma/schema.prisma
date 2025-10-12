@@ -1,0 +1,158 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  phone     String?
+  age       Int?
+  userType  UserType @default(USER)
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  centers   Center[] @relation("CenterOwner")
+  reviews   Review[]
+  bookings  Booking[]
+
+  @@map("users")
+}
+
+model Center {
+  id              String   @id @default(cuid())
+  name            String
+  city            String
+  address         String?
+  description     String?
+  descriptionShort String?
+  phone           String?
+  email           String?
+  website         String?
+  workingHours    String?
+  capacity        Int?
+  yearFounded     Int?
+  license         String?
+  verified        Boolean  @default(false)
+  verifiedUntil   String?
+  rating          Float    @default(0)
+  price           String?
+  coordinates     Json?    // { latitude: number, longitude: number }
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  ownerId    String?
+  owner      User?   @relation("CenterOwner", fields: [ownerId], references: [id])
+  photos     Photo[]
+  types      CenterType[]
+  services   Service[]
+  methods    Method[]
+  reviews    Review[]
+  bookings   Booking[]
+
+  @@map("centers")
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  url       String
+  alt       String?
+  centerId  String
+  center    Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("photos")
+}
+
+model CenterType {
+  id       String @id @default(cuid())
+  name     String @unique
+  centers  Center[]
+
+  @@map("center_types")
+}
+
+model Service {
+  id       String @id @default(cuid())
+  name     String @unique
+  centers  Center[]
+
+  @@map("services")
+}
+
+model Method {
+  id       String @id @default(cuid())
+  name     String @unique
+  centers  Center[]
+
+  @@map("methods")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      @db.SmallInt
+  text      String?
+  date      String
+  centerId  String
+  userId    String
+  center    Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("reviews")
+}
+
+model Booking {
+  id        String      @id @default(cuid())
+  date      String
+  time      String?
+  status    BookingStatus @default(PENDING)
+  notes     String?
+  centerId  String
+  userId    String
+  center    Center      @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@map("bookings")
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  excerpt     String?
+  image       String?
+  author      String?
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("articles")
+}
+
+enum UserType {
+  USER
+  CENTER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
