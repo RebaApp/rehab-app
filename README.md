@@ -1,4 +1,4 @@
-# 🏥 Rehab App - Приложение реабилитационных центров
+# 🏥 РЕБА App - Приложение реабилитационных центров
 
 [![React Native](https://img.shields.io/badge/React%20Native-0.73-blue.svg)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-SDK%2053-000020.svg)](https://expo.dev/)
