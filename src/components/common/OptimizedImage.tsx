@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { Image } from 'expo-image';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform, Image as RNImage } from 'react-native';
 import { THEME } from '../../utils/constants';
 
 interface OptimizedImageProps {
@@ -37,20 +37,32 @@ const OptimizedImage: React.FC<OptimizedImageProps> = memo(({
 
   return (
     <View style={[styles.container, style]}>
-      <Image
-        source={imageSource}
-        placeholder={placeholderSource}
-        contentFit={contentFit}
-        transition={transition}
-        priority={priority ? 'high' : 'normal'}
-        cachePolicy={cachePolicy}
-        recyclingKey={uri}
-        style={StyleSheet.absoluteFillObject}
-        onError={() => {
-          // В production можно логировать ошибки загрузки изображений
-          // console.warn('Failed to load image:', uri);
-        }}
-      />
+      {Platform.OS === 'web' ? (
+        <RNImage
+          source={{ uri: uri || fallback }}
+          style={StyleSheet.absoluteFillObject}
+          resizeMode="cover"
+          onError={() => {
+            // В production можно логировать ошибки загрузки изображений
+            // console.warn('Failed to load image:', uri);
+          }}
+        />
+      ) : (
+        <Image
+          source={imageSource}
+          placeholder={placeholderSource}
+          contentFit={contentFit}
+          transition={transition}
+          priority={priority ? 'high' : 'normal'}
+          cachePolicy={cachePolicy}
+          recyclingKey={uri}
+          style={StyleSheet.absoluteFillObject}
+          onError={() => {
+            // В production можно логировать ошибки загрузки изображений
+            // console.warn('Failed to load image:', uri);
+          }}
+        />
+      )}
     </View>
   );
 });

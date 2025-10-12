@@ -6,6 +6,8 @@ import {
   TextInput,
   TouchableOpacity,
   Animated,
+  FlatList,
+  Platform,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,7 +18,7 @@ import { THEME, ARTICLES } from '../utils/constants';
 
 interface HomeScreenProps {
   onArticlePress: (article: Article) => void;
-  shimmer: Animated.Value;
+  shimmer?: Animated.Value;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = memo(({
@@ -51,17 +53,19 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({
     <View style={styles.header}>
       <View style={styles.titleContainer}>
         <Text style={styles.title}>РЕБА</Text>
-        <Animated.View 
-          pointerEvents="none" 
-          style={[styles.shimmerOverlay, { opacity: shimmer }]}
-        >
-          <LinearGradient 
-            colors={["rgba(255,255,255,0)", "rgba(255,255,255,0.6)", "rgba(255,255,255,0)"]} 
-            start={[0,0]} 
-            end={[1,0]} 
-            style={styles.shimmerGradient} 
-          />
-        </Animated.View>
+        {shimmer && (
+          <Animated.View 
+            pointerEvents="none" 
+            style={[styles.shimmerOverlay, { opacity: shimmer }]}
+          >
+            <LinearGradient 
+              colors={["rgba(255,255,255,0)", "rgba(255,255,255,0.6)", "rgba(255,255,255,0)"]} 
+              start={[0,0]} 
+              end={[1,0]} 
+              style={styles.shimmerGradient} 
+            />
+          </Animated.View>
+        )}
       </View>
       <Text style={styles.subtitle}>ПОМОЩЬ БЛИЖЕ ЧЕМ КАЖЕТСЯ</Text>
       
@@ -100,20 +104,37 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({
 
   return (
     <View style={styles.container}>
-      <FlashList
-        data={filteredArticles}
-        renderItem={renderArticle}
-        keyExtractor={keyExtractor}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmpty}
-        estimatedItemSize={200}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
-        drawDistance={500}
-        overrideItemLayout={(layout, _item) => {
-          layout.size = 200;
-        }}
-      />
+      {Platform.OS === 'web' ? (
+        <FlatList
+          data={filteredArticles}
+          renderItem={renderArticle}
+          keyExtractor={keyExtractor}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={renderEmpty}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContainer}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={100}
+          initialNumToRender={5}
+          windowSize={10}
+        />
+      ) : (
+        <FlashList
+          data={filteredArticles}
+          renderItem={renderArticle}
+          keyExtractor={keyExtractor}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={renderEmpty}
+          estimatedItemSize={200}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContainer}
+          drawDistance={500}
+          overrideItemLayout={(layout, _item) => {
+            layout.size = 200;
+          }}
+        />
+      )}
     </View>
   );
 });

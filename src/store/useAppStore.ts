@@ -1,12 +1,9 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppStore, Center, User, ApiResponse } from '../types';
+import { AppStore, Center, User } from '../types';
 import { ARTICLES } from '../utils/constants';
 
-const useAppStore = create<AppStore>()(
-  persist(
-    (set, get) => ({
+// Веб-совместимый store с оригинальными данными
+const useAppStore = create<AppStore>((set, get) => ({
       // === AUTH STATE ===
       user: null,
       isAuthenticated: false,
@@ -32,6 +29,7 @@ const useAppStore = create<AppStore>()(
       articleOpen: null,
       isOnline: true,
       refreshing: false,
+  shimmer: new (require('react-native').Animated).Value(0),
 
       // === FILTERS STATE ===
       filters: {
@@ -40,8 +38,8 @@ const useAppStore = create<AppStore>()(
         minPrice: '',
         maxPrice: '',
         minRating: 0,
-        sortBy: 'rating',
-        sortOrder: 'desc'
+    sortBy: 'rating' as const,
+    sortOrder: 'desc' as const,
       },
 
       // === AUTH ACTIONS ===
@@ -52,7 +50,7 @@ const useAppStore = create<AppStore>()(
 
       setAuthLoading: (loading) => set({ authLoading: loading }),
 
-      login: async (email: string, _password: string): Promise<ApiResponse<User>> => {
+  login: async (email: string, _password: string) => {
         set({ authLoading: true });
         try {
           // Mock login - в реальном приложении здесь будет API вызов
@@ -81,7 +79,7 @@ const useAppStore = create<AppStore>()(
         }
       },
 
-      register: async (userData: Partial<User>): Promise<ApiResponse<User>> => {
+  register: async (userData: Partial<User>) => {
         set({ authLoading: true });
         try {
           const newUser: User = {
@@ -110,111 +108,324 @@ const useAppStore = create<AppStore>()(
         }
       },
 
-      logout: () => set({ 
+  logout: () => {
+    set({ 
         user: null, 
         isAuthenticated: false,
-        favorites: {},
-        selectedCenter: null,
-        articleOpen: null
-      }),
+      favorites: {}
+    });
+  },
+
+  loadUser: async () => {
+    // Mock user loading
+    return;
+  },
 
       // === CENTERS ACTIONS ===
-      setCenters: (centers) => set({ 
-        centers, 
-        lastCentersUpdate: Date.now() 
-      }),
-
+  setCenters: (centers) => set({ centers }),
       setCentersLoading: (loading) => set({ centersLoading: loading }),
-
       setCentersError: (error) => set({ centersError: error }),
 
       loadCenters: async () => {
         set({ centersLoading: true, centersError: null });
         try {
-          // Mock данные центров
+      // Mock API call with realistic delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Оригинальные данные центров с вашими изображениями
           const mockCenters: Center[] = [
             {
               id: '1',
-              name: 'Центр Возрождение',
+          name: 'Центр "Новая Жизнь"',
               city: 'Москва',
-              address: 'ул. Примерная, д. 1',
+          address: 'ул. Ленина, 10',
               phone: '+7 (495) 123-45-67',
-              email: 'info@center1.ru',
+          email: 'info@newlife.ru',
+          description: 'Современный центр реабилитации с комплексным подходом к лечению зависимостей.',
+          services: ['Детокс', 'Психотерапия', 'Групповая терапия'],
+          photos: [require("../../assets/images/centers/center1.jpg")],
               rating: 4.5,
-              reviewsCount: 25,
+          reviewsCount: 120,
+          price: 'от 50,000 ₽/месяц',
               verified: true,
-              photos: ['https://via.placeholder.com/300x200'],
-              services: ['Консультация', 'Детокс', 'Реабилитация'],
-              description: 'Профессиональная помощь в борьбе с зависимостями',
-              price: '50 000 ₽/месяц',
               coordinates: { latitude: 55.7558, longitude: 37.6176 },
-              workingHours: 'Пн-Вс: 9:00-21:00',
               capacity: 50,
               yearFounded: 2010,
-              license: 'ЛО-77-01-123456',
+          workingHours: '24/7',
+          license: 'Лицензия №123456',
+          descriptionFull: 'Полное описание центра реабилитации',
+          methods: ['Когнитивно-поведенческая терапия', 'Групповая терапия'],
+          reviews: [],
+        },
+        {
+          id: '2',
+          name: 'Клиника "Возрождение"',
+          city: 'Санкт-Петербург',
+          address: 'пр. Невский, 100',
+          phone: '+7 (812) 987-65-43',
+          email: 'info@vozrozhdenie.ru',
+          description: 'Профессиональная помощь в преодолении зависимостей с индивидуальным подходом.',
+          services: ['Медикаментозное лечение', 'Психотерапия', 'Семейная терапия'],
+          photos: [require("../../assets/images/centers/center2.jpg")],
+          rating: 4.8,
+          reviewsCount: 89,
+          price: 'от 45,000 ₽/месяц',
+          verified: true,
+          coordinates: { latitude: 59.9311, longitude: 30.3609 },
+          capacity: 30,
+          yearFounded: 2015,
+          workingHours: '8:00 - 20:00',
+          license: 'Лицензия №789012',
+          descriptionFull: 'Полное описание клиники реабилитации',
+          methods: ['Медикаментозное лечение', 'Семейная терапия'],
+          reviews: [],
+        },
+        {
+          id: '3',
+          name: 'Центр "Путь к Свободе"',
+          city: 'Казань',
+          address: 'ул. Баумана, 25',
+          phone: '+7 (843) 555-12-34',
+          email: 'info@putksvobode.ru',
+          description: 'Специализированный центр для лечения алкогольной зависимости.',
+          services: ['Детокс', 'Психотерапия', 'Трудовая терапия'],
+          photos: [require("../../assets/images/centers/center3.jpg")],
+          rating: 4.3,
+          reviewsCount: 67,
+          price: 'от 40,000 ₽/месяц',
+          verified: true,
+          coordinates: { latitude: 55.8304, longitude: 49.0661 },
+          capacity: 40,
+          yearFounded: 2012,
+          workingHours: 'Пн-Пт: 9:00-18:00',
+          license: 'Лицензия №345678',
+          descriptionFull: 'Полное описание центра',
+          methods: ['12 шагов', 'Трудовая терапия'],
+          reviews: [],
+        },
+        {
+          id: '4',
+          name: 'Клиника "Гармония"',
+          city: 'Екатеринбург',
+          address: 'ул. Малышева, 15',
+          phone: '+7 (343) 777-88-99',
+          email: 'info@garmoniya.ru',
+          description: 'Комплексная реабилитация с использованием современных методов лечения.',
+          services: ['Детокс', 'Психотерапия', 'Арт-терапия'],
+          photos: [require("../../assets/images/centers/center4.jpg")],
+          rating: 4.7,
+          reviewsCount: 95,
+          price: 'от 55,000 ₽/месяц',
+          verified: true,
+          coordinates: { latitude: 56.8431, longitude: 60.6454 },
+          capacity: 35,
+          yearFounded: 2018,
+          workingHours: '24/7',
+          license: 'Лицензия №901234',
+          descriptionFull: 'Полное описание клиники',
+          methods: ['Арт-терапия', 'КПТ'],
+          reviews: [],
+        },
+        {
+          id: '5',
+          name: 'Центр "Спасение"',
+          city: 'Новосибирск',
+          address: 'пр. Красный, 50',
+          phone: '+7 (383) 333-44-55',
+          email: 'info@spasenie.ru',
+          description: 'Профессиональная помощь в борьбе с наркозависимостью.',
+          services: ['Детокс', 'Психотерапия', 'Семейная терапия'],
+          photos: [require("../../assets/images/centers/center5.jpg")],
+          rating: 4.6,
+          reviewsCount: 78,
+          price: 'от 48,000 ₽/месяц',
+          verified: true,
+          coordinates: { latitude: 55.0084, longitude: 82.9357 },
+          capacity: 45,
+          yearFounded: 2016,
+          workingHours: 'Пн-Вс: 8:00-22:00',
+          license: 'Лицензия №567890',
+          descriptionFull: 'Полное описание центра',
+          methods: ['Семейная терапия', '12 шагов'],
+          reviews: [],
+        },
+        {
+          id: '6',
+          name: 'Клиника "Надежда"',
+          city: 'Нижний Новгород',
+          address: 'ул. Большая Покровская, 30',
+          phone: '+7 (831) 222-33-44',
+          email: 'info@nadezhda.ru',
+          description: 'Современный подход к лечению зависимостей с индивидуальными программами.',
+          services: ['Детокс', 'Психотерапия', 'Групповая терапия'],
+          photos: ["https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center"],
+          rating: 4.4,
+          reviewsCount: 56,
+          price: 'от 42,000 ₽/месяц',
+          verified: true,
+          coordinates: { latitude: 56.2965, longitude: 43.9361 },
+          capacity: 25,
+          yearFounded: 2014,
+          workingHours: 'Пн-Пт: 9:00-19:00',
+          license: 'Лицензия №123789',
+          descriptionFull: 'Полное описание клиники',
+          methods: ['КПТ', 'Групповая терапия'],
+          reviews: [],
+        },
+        {
+          id: '7',
+          name: 'Центр "Восстановление"',
+          city: 'Самара',
+          address: 'ул. Ленинградская, 20',
+          phone: '+7 (846) 444-55-66',
+          email: 'info@vosstanovlenie.ru',
+          description: 'Комплексная реабилитация с использованием проверенных методов.',
+          services: ['Детокс', 'Психотерапия', 'Трудовая терапия'],
+          photos: ["https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&crop=center"],
+          rating: 4.2,
+          reviewsCount: 43,
+          price: 'от 38,000 ₽/месяц',
+          verified: true,
+          coordinates: { latitude: 53.2001, longitude: 50.1500 },
+          capacity: 30,
+          yearFounded: 2013,
+          workingHours: 'Пн-Вс: 8:00-20:00',
+          license: 'Лицензия №456123',
+          descriptionFull: 'Полное описание центра',
+          methods: ['Трудовая терапия', '12 шагов'],
+          reviews: [],
+        },
+        {
+          id: '8',
+          name: 'Клиника "Исцеление"',
+          city: 'Омск',
+          address: 'ул. Ленина, 5',
+          phone: '+7 (3812) 666-77-88',
+          email: 'info@istselenie.ru',
+          description: 'Специализированный центр для лечения различных видов зависимостей.',
+          services: ['Детокс', 'Психотерапия', 'Арт-терапия'],
+          photos: ["https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop&crop=center"],
+          rating: 4.5,
+          reviewsCount: 72,
+          price: 'от 46,000 ₽/месяц',
+          verified: true,
+          coordinates: { latitude: 54.9885, longitude: 73.3242 },
+          capacity: 35,
+          yearFounded: 2017,
+          workingHours: '24/7',
+          license: 'Лицензия №789456',
+          descriptionFull: 'Полное описание клиники',
+          methods: ['Арт-терапия', 'КПТ'],
+          reviews: [],
+        },
+        {
+          id: '9',
+          name: 'Центр "Обновление"',
+          city: 'Ростов-на-Дону',
+          address: 'пр. Буденновский, 40',
+          phone: '+7 (863) 888-99-00',
+          email: 'info@obnovlenie.ru',
+          description: 'Современные методы лечения зависимостей в комфортных условиях.',
+          services: ['Детокс', 'Психотерапия', 'Семейная терапия'],
+          photos: ["https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop&crop=center"],
+          rating: 4.6,
+          reviewsCount: 84,
+          price: 'от 52,000 ₽/месяц',
+          verified: true,
+          coordinates: { latitude: 47.2225, longitude: 39.7187 },
+          capacity: 40,
+          yearFounded: 2019,
+          workingHours: 'Пн-Вс: 9:00-21:00',
+          license: 'Лицензия №012345',
               descriptionFull: 'Полное описание центра',
-              methods: ['12 шагов', 'КПТ'],
-              reviews: []
-            }
+          methods: ['Семейная терапия', '12 шагов'],
+          reviews: [],
+        },
+        {
+          id: '10',
+          name: 'Клиника "Здоровье"',
+          city: 'Уфа',
+          address: 'ул. Ленина, 15',
+          phone: '+7 (347) 999-00-11',
+          email: 'info@zdorovie.ru',
+          description: 'Профессиональная помощь в преодолении зависимостей с индивидуальным подходом.',
+          services: ['Детокс', 'Психотерапия', 'Групповая терапия'],
+          photos: ["https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=300&fit=crop&crop=center"],
+          rating: 4.3,
+          reviewsCount: 61,
+          price: 'от 44,000 ₽/месяц',
+          verified: true,
+          coordinates: { latitude: 54.7388, longitude: 55.9721 },
+          capacity: 28,
+          yearFounded: 2015,
+          workingHours: 'Пн-Пт: 8:00-18:00',
+          license: 'Лицензия №345012',
+          descriptionFull: 'Полное описание клиники',
+          methods: ['Групповая терапия', 'КПТ'],
+          reviews: [],
+        },
           ];
           
           set({ 
             centers: mockCenters, 
             centersLoading: false,
-            lastCentersUpdate: Date.now()
+        centersError: null,
+        lastCentersUpdate: Date.now(),
           });
+
+      return;
         } catch (error) {
           set({ 
             centersLoading: false,
-            centersError: error instanceof Error ? error.message : 'Failed to load centers'
-          });
-        }
-      },
+        centersError: 'Failed to load centers',
+      });
+      return;
+    }
+  },
+
+  refreshCenters: async () => {
+    return get().loadCenters();
+  },
+
+  // === ARTICLES ACTIONS ===
+  loadArticles: async () => {
+    // Mock articles loading
+    return;
+  },
+
+  refreshArticles: async () => {
+    return;
+  },
 
       // === FAVORITES ACTIONS ===
       setFavorites: (favorites) => set({ favorites }),
-
-      toggleFavorite: (centerId: string) => {
+  isFavorite: (centerId) => get().favorites[centerId] || false,
+  toggleFavorite: (centerId) => {
         const { favorites } = get();
-        const newFavorites = { ...favorites };
-        if (newFavorites[centerId]) {
-          delete newFavorites[centerId];
-        } else {
-          newFavorites[centerId] = true;
-        }
-        set({ favorites: newFavorites });
+    set({
+      favorites: {
+        ...favorites,
+        [centerId]: !favorites[centerId],
       },
-
-      isFavorite: (centerId: string) => {
-        const { favorites } = get();
-        return !!favorites[centerId];
-      },
+    });
+  },
+  setFavoritesLoading: (loading: boolean) => set({ favoritesLoading: loading }),
 
       // === UI ACTIONS ===
       setCurrentTab: (tab) => set({ currentTab: tab }),
-
-      setSearchQuery: (query) => set({ searchQuery: query }),
-
-      setArticleQuery: (query) => set({ articleQuery: query }),
-
-      setFiltersVisible: (visible) => set({ filtersVisible: visible }),
-
-      setSettingsVisible: (visible) => set({ settingsVisible: visible }),
-
       setSelectedCenter: (center) => set({ selectedCenter: center }),
-
       setArticleOpen: (article) => set({ articleOpen: article }),
-
-      setIsOnline: (online) => set({ isOnline: online }),
-
-      setRefreshing: (refreshing) => set({ refreshing: refreshing }),
-
-      // === FILTER ACTIONS ===
-      setFilters: (newFilters) => {
-        const { filters } = get();
-        set({ filters: { ...filters, ...newFilters } });
-      },
-
+  setSettingsVisible: (visible) => set({ settingsVisible: visible }),
+  setFiltersVisible: (visible) => set({ filtersVisible: visible }),
+  setRefreshing: (refreshing) => set({ refreshing }),
+  setSearchQuery: (query: string) => set({ searchQuery: query }),
+  setArticleQuery: (query: string) => set({ articleQuery: query }),
+  setSearchText: (_text: string) => set(state => ({ filters: { ...state.filters } })),
+  setCityFilter: (_city: string) => set(state => ({ filters: { ...state.filters } })),
+  setServicesFilter: (_services: string[]) => set(state => ({ filters: { ...state.filters } })),
+  setRatingFilter: (rating: number) => set(state => ({ filters: { ...state.filters, minRating: rating } })),
+  setIsOnline: (online: boolean) => set({ isOnline: online }),
+  setFilters: (filters) => set(state => ({ filters: { ...state.filters, ...filters } })),
       resetFilters: () => set({
         filters: {
           cities: [],
@@ -222,119 +433,39 @@ const useAppStore = create<AppStore>()(
           minPrice: '',
           maxPrice: '',
           minRating: 0,
-          sortBy: 'rating',
-          sortOrder: 'desc'
-        }
-      }),
+      sortBy: 'rating' as const,
+      sortOrder: 'desc' as const,
+    }
+  }),
+  applyFilters: () => get().getFilteredCenters(),
 
-      applyFilters: () => {
-        const { centers, searchQuery, filters } = get();
-        let filtered = [...centers];
-
-        // Поиск по тексту
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          filtered = filtered.filter(center =>
-            center.name.toLowerCase().includes(query) ||
-            center.city.toLowerCase().includes(query) ||
-            center.description.toLowerCase().includes(query)
-          );
-        }
-
-        // Фильтр по городам
-        if (filters.cities.length > 0) {
-          filtered = filtered.filter(center =>
-            filters.cities.includes(center.city)
-          );
-        }
-
-        // Фильтр по типам услуг
-        if (filters.types.length > 0) {
-          filtered = filtered.filter(center =>
-            filters.types.some(type => center.services.includes(type))
-          );
-        }
-
-        // Фильтр по цене
-        if (filters.minPrice) {
-          const minPrice = parseFloat(filters.minPrice);
-          filtered = filtered.filter(center => {
-            const price = parseFloat(center.price.replace(/\D/g, ''));
-            return price >= minPrice;
-          });
-        }
-
-        if (filters.maxPrice) {
-          const maxPrice = parseFloat(filters.maxPrice);
-          filtered = filtered.filter(center => {
-            const price = parseFloat(center.price.replace(/\D/g, ''));
-            return price <= maxPrice;
-          });
-        }
-
-        // Фильтр по рейтингу
-        if (filters.minRating > 0) {
-          filtered = filtered.filter(center => center.rating >= filters.minRating);
-        }
-
-        // Сортировка
-        filtered.sort((a, b) => {
-          let comparison = 0;
-          switch (filters.sortBy) {
-            case 'rating':
-              comparison = a.rating - b.rating;
-              break;
-            case 'price': {
-              const priceA = parseFloat(a.price.replace(/\D/g, ''));
-              const priceB = parseFloat(b.price.replace(/\D/g, ''));
-              comparison = priceA - priceB;
-              break;
-            }
-            case 'distance':
-              comparison = (a.distance || 0) - (b.distance || 0);
-              break;
-          }
-          return filters.sortOrder === 'desc' ? -comparison : comparison;
-        });
-
-        return filtered;
-      },
-
-      // === COMPUTED VALUES ===
-      getFilteredCenters: () => {
-        return get().applyFilters();
-      },
-
-      getFavoriteCenters: () => {
-        const { centers, favorites } = get();
-        return centers.filter(center => favorites[center.id]);
+  // === HELPER METHODS ===
+  getFilteredCenters: () => {
+    const { centers, filters } = get();
+    return centers.filter(center => {
+      const matchesCity = filters.cities.length === 0 || filters.cities.includes(center.city);
+      const matchesRating = center.rating >= filters.minRating;
+      return matchesCity && matchesRating;
+    });
       },
 
       getFilteredArticles: () => {
         const { articleQuery } = get();
-        if (!articleQuery) return ARTICLES;
-        
+    if (!articleQuery) {
+      return ARTICLES;
+    }
         const query = articleQuery.toLowerCase();
         return ARTICLES.filter(article =>
           article.title.toLowerCase().includes(query) ||
           article.excerpt.toLowerCase().includes(query) ||
           (article.body || '').toLowerCase().includes(query)
         );
-      }
-    }),
-    {
-      name: 'reba-app-storage',
-      storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-        favorites: state.favorites,
-        filters: state.filters,
-        centers: state.centers,
-        lastCentersUpdate: state.lastCentersUpdate
-      })
-    }
-  )
-);
+  },
+
+  getFavoriteCenters: () => {
+    const { centers, favorites } = get();
+    return centers.filter(center => favorites[center.id]);
+  },
+}));
 
 export default useAppStore;

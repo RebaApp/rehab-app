@@ -108,7 +108,7 @@ export interface PaginatedResponse<T> {
 
 // === UI STATE TYPES ===
 export interface UIState {
-  currentTab: 'home' | 'search' | 'fav' | 'profile';
+  currentTab: 'home' | 'search' | 'favorites' | 'profile';
   searchQuery: string;
   articleQuery: string;
   filtersVisible: boolean;

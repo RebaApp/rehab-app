@@ -1,9 +1,10 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,13 +19,44 @@ const CenterCard: React.FC<CenterCardProps> = memo(({
   isFavorite,
   showDistance = false
 }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const heartScaleAnim = useRef(new Animated.Value(1)).current;
+
   const handlePress = useCallback(() => {
     onPress(item);
   }, [item, onPress]);
 
   const handleFavoritePress = useCallback(() => {
+    // Анимация нажатия на кнопку
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Анимация сердца
+    Animated.sequence([
+      Animated.timing(heartScaleAnim, {
+        toValue: 1.3,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(heartScaleAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     onToggleFavorite(item.id);
-  }, [item.id, onToggleFavorite]);
+  }, [item.id, onToggleFavorite, scaleAnim, heartScaleAnim]);
 
   const renderStars = useMemo(() => {
     const stars = [];
@@ -54,11 +86,12 @@ const CenterCard: React.FC<CenterCardProps> = memo(({
   }, [item.rating]);
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={handlePress}
-      activeOpacity={0.8}
-    >
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        style={styles.container}
+        onPress={handlePress}
+        activeOpacity={0.8}
+      >
       <LinearGradient
         colors={[THEME.bgTop, THEME.bgMid]}
         style={styles.gradient}
@@ -77,11 +110,13 @@ const CenterCard: React.FC<CenterCardProps> = memo(({
             onPress={handleFavoritePress}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons
-              name={isFavorite ? "heart" : "heart-outline"}
-              size={20}
-              color={isFavorite ? "#ff6b6b" : "#fff"}
-            />
+            <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
+              <Ionicons
+                name={isFavorite ? "heart" : "heart-outline"}
+                size={20}
+                color={isFavorite ? "#ff6b6b" : "#fff"}
+              />
+            </Animated.View>
           </TouchableOpacity>
           
           {item.verified && (
@@ -145,6 +180,7 @@ const CenterCard: React.FC<CenterCardProps> = memo(({
         </View>
       </LinearGradient>
     </TouchableOpacity>
+    </Animated.View>
   );
 });
 
@@ -175,12 +211,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     right: 12,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   verifiedBadge: {
     position: 'absolute',

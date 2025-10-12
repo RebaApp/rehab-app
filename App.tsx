@@ -1,325 +1,255 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import {
-  StyleSheet,
   View,
-  Animated,
-  SafeAreaView,
-  Alert,
-  TouchableOpacity,
   Text,
+  StyleSheet,
+  SafeAreaView,
+  Animated,
+  TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-
-// Store
 import useAppStore from './src/store/useAppStore';
-
-// Components
-import ErrorBoundary from './src/components/common/ErrorBoundary';
-import LoadingSpinner from './src/components/common/LoadingSpinner';
-
-// Screens
 import HomeScreen from './src/screens/HomeScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import FavoritesScreen from './src/screens/FavoritesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
-
-// Utils
+import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
+import CenterDetailScreen from './src/screens/CenterDetailScreen';
 import { THEME } from './src/utils/constants';
 
-// Types
-import { Center, Article } from './src/types';
-
 export default function App() {
-  // Zustand store
   const {
-    // State
     user,
     isAuthenticated,
-    authLoading,
-    centersLoading,
-    centersError,
     currentTab,
-    refreshing,
-    
-    // Actions
     setCurrentTab,
-    setSelectedCenter,
-    setArticleOpen,
-    setSettingsVisible,
-    setFiltersVisible,
-    setRefreshing,
+    centersLoading,
+    loadCenters,
     toggleFavorite,
     isFavorite,
-    logout,
   } = useAppStore();
 
-  // Animations
-  const tabTransition = useRef(new Animated.Value(0)).current;
-  const shimmer = useRef(new Animated.Value(0.3)).current;
-
-  // Effects
   useEffect(() => {
-    // Initialize shimmer animation
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, {
-          toValue: 0.9,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmer, {
-          toValue: 0.3,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, [shimmer]);
+    console.log('App mounted, loading centers...');
+    try {
+      loadCenters();
+    } catch (error) {
+      console.error('Failed to load centers:', error);
+    }
+  }, [loadCenters]);
 
-  useEffect(() => {
-    // Tab transition animation
-    Animated.timing(tabTransition, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      tabTransition.setValue(0);
-    });
-  }, [currentTab, tabTransition]);
+  const [selectedArticle, setSelectedArticle] = React.useState(null);
+  const [selectedCenter, setSelectedCenter] = React.useState(null);
 
-  // Handlers
-  const handleTabChange = (newTab: 'home' | 'search' | 'fav' | 'profile') => {
-    setCurrentTab(newTab);
-  };
+  const handleArticlePress = useCallback((article: any) => {
+    console.log('Article pressed:', article.title);
+    setSelectedArticle(article);
+  }, []);
 
-  const handleCenterPress = (center: Center) => {
+  const handleCenterPress = useCallback((center: any) => {
+    console.log('Center pressed:', center.name);
     setSelectedCenter(center);
-  };
+  }, []);
 
-  const handleArticlePress = (article: Article) => {
-    setArticleOpen(article);
-  };
+  const handleCloseArticle = useCallback(() => {
+    setSelectedArticle(null);
+  }, []);
 
-  const handleLoginPress = () => {
-    Alert.alert('Вход', 'Функция входа будет добавлена в следующей версии');
-  };
+  const handleCloseCenter = useCallback(() => {
+    setSelectedCenter(null);
+  }, []);
 
-  const handleRegisterPress = () => {
-    Alert.alert('Регистрация', 'Функция регистрации будет добавлена в следующей версии');
-  };
-
-  const handleLogout = async () => {
-    try {
-      logout();
-      Alert.alert('Выход', 'Вы вышли из аккаунта');
-    } catch {
-      Alert.alert('Ошибка', 'Не удалось выйти из аккаунта');
+  const renderContent = () => {
+    // Если открыта статья, показываем её детальную страницу
+    if (selectedArticle) {
+      return (
+        <ArticleDetailScreen
+          article={selectedArticle}
+          onClose={handleCloseArticle}
+        />
+      );
     }
-  };
 
-  const handleSettingsPress = () => {
-    setSettingsVisible(true);
-  };
-
-  const handleFiltersPress = () => {
-    setFiltersVisible(true);
-  };
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      // Simulate refresh
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    } catch {
-      // В production можно логировать ошибки в сервис аналитики
-      // console.error('Refresh error:', error);
-    } finally {
-      setRefreshing(false);
+    // Если открыт центр, показываем его детальную страницу
+    if (selectedCenter) {
+      return (
+        <CenterDetailScreen
+          center={selectedCenter}
+          onClose={handleCloseCenter}
+          onToggleFavorite={toggleFavorite}
+          isFavorite={isFavorite(selectedCenter?.id || '')}
+        />
+      );
     }
-  };
 
-  // Render loading screen
-  if (authLoading || centersLoading) {
-    return (
-      <ErrorBoundary>
+    if (centersLoading) {
+      return (
         <View style={styles.loadingContainer}>
-          <LoadingSpinner />
+          <Ionicons name="hourglass-outline" size={50} color={THEME.primary} />
+          <Text style={styles.loadingText}>Загрузка данных...</Text>
         </View>
-      </ErrorBoundary>
-    );
-  }
+      );
+    }
 
-  // Render error screen
-  if (centersError) {
-    return (
-      <ErrorBoundary>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Ошибка загрузки данных</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
-            <Text style={styles.retryButtonText}>Повторить</Text>
-          </TouchableOpacity>
-        </View>
-      </ErrorBoundary>
-    );
-  }
+    switch (currentTab) {
+      case 'home':
+        return (
+          <HomeScreen
+            onArticlePress={handleArticlePress}
+          />
+        );
+      case 'search':
+        return (
+          <SearchScreen
+            onCenterPress={handleCenterPress}
+            onToggleFavorite={toggleFavorite}
+            isFavorite={isFavorite}
+            onRefresh={() => {
+              console.log('Refresh pressed');
+            }}
+            refreshing={false}
+            onFiltersPress={() => {
+              console.log('Filters pressed');
+            }}
+          />
+        );
+      case 'favorites':
+        return (
+          <FavoritesScreen
+            onCenterPress={handleCenterPress}
+            onToggleFavorite={toggleFavorite}
+            isFavorite={isFavorite}
+            onSearchPress={() => {
+              setCurrentTab('search');
+            }}
+          />
+        );
+      case 'profile':
+        return (
+          <ProfileScreen
+            user={user}
+            isAuthenticated={isAuthenticated}
+            onLoginPress={() => {
+              console.log('Login pressed');
+            }}
+            onRegisterPress={() => {
+              console.log('Register pressed');
+            }}
+            onLogoutPress={() => {
+              console.log('Logout pressed');
+            }}
+            onSettingsPress={() => {
+              console.log('Settings pressed');
+            }}
+          />
+        );
+      default:
+        return (
+          <View style={styles.content}>
+            <Text style={styles.title}>РЕБА - Реабилитационные центры</Text>
+            <Text style={styles.subtitle}>Приложение работает!</Text>
+            <Text style={styles.info}>Текущая вкладка: {currentTab}</Text>
+            <Text style={styles.info}>Центров загружено: {centersLoading ? 'Загрузка...' : 'Готово'}</Text>
+            <Ionicons name="checkmark-circle" size={50} color={THEME.primary} />
+          </View>
+        );
+    }
+  };
+
+  const renderTabBar = () => (
+    <View style={styles.tabContainer}>
+      <TouchableOpacity
+        style={[styles.tab, currentTab === 'home' && styles.activeTab]}
+        onPress={() => setCurrentTab('home')}
+      >
+        <Ionicons 
+          name={currentTab === 'home' ? 'home' : 'home-outline'} 
+          size={20} 
+          color={currentTab === 'home' ? '#fff' : THEME.muted} 
+        />
+        <Text style={[styles.tabText, currentTab === 'home' && styles.activeTabText]}>
+          Главная
+        </Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        style={[styles.tab, currentTab === 'search' && styles.activeTab]}
+        onPress={() => setCurrentTab('search')}
+      >
+        <Ionicons 
+          name={currentTab === 'search' ? 'search' : 'search-outline'} 
+          size={20} 
+          color={currentTab === 'search' ? '#fff' : THEME.muted} 
+        />
+        <Text style={[styles.tabText, currentTab === 'search' && styles.activeTabText]}>
+          Поиск
+        </Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        style={[styles.tab, currentTab === 'favorites' && styles.activeTab]}
+        onPress={() => setCurrentTab('favorites')}
+      >
+        <Ionicons 
+          name={currentTab === 'favorites' ? 'heart' : 'heart-outline'} 
+          size={20} 
+          color={currentTab === 'favorites' ? '#fff' : THEME.muted} 
+        />
+        <Text style={[styles.tabText, currentTab === 'favorites' && styles.activeTabText]}>
+          Избранное
+        </Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        style={[styles.tab, currentTab === 'profile' && styles.activeTab]}
+        onPress={() => setCurrentTab('profile')}
+      >
+        <Ionicons 
+          name={currentTab === 'profile' ? 'person' : 'person-outline'} 
+          size={20} 
+          color={currentTab === 'profile' ? '#fff' : THEME.muted} 
+        />
+        <Text style={[styles.tabText, currentTab === 'profile' && styles.activeTabText]}>
+          Профиль
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
-    <ErrorBoundary>
-      <LinearGradient colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]} style={styles.app}>
-        <SafeAreaView style={styles.container}>
-          <Animated.View
-            style={[
-              styles.content,
-              {
-                opacity: tabTransition.interpolate({
-                  inputRange: [0, 0.5, 1],
-                  outputRange: [1, 0.7, 1],
-                }),
-                transform: [
-                  {
-                    scale: tabTransition.interpolate({
-                      inputRange: [0, 0.5, 1],
-                      outputRange: [1, 0.98, 1],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          >
-            {currentTab === 'home' && (
-              <HomeScreen
-                onArticlePress={handleArticlePress}
-                shimmer={shimmer}
-              />
-            )}
-            {currentTab === 'search' && (
-              <SearchScreen
-                onCenterPress={handleCenterPress}
-                onToggleFavorite={toggleFavorite}
-                isFavorite={isFavorite}
-                onFiltersPress={handleFiltersPress}
-                onRefresh={handleRefresh}
-                refreshing={refreshing}
-              />
-            )}
-            {currentTab === 'fav' && (
-              <FavoritesScreen
-                onCenterPress={handleCenterPress}
-                onToggleFavorite={toggleFavorite}
-                isFavorite={isFavorite}
-                onSearchPress={() => setCurrentTab('search')}
-              />
-            )}
-            {currentTab === 'profile' && (
-              <ProfileScreen
-                user={user}
-                isAuthenticated={isAuthenticated}
-                onLoginPress={handleLoginPress}
-                onRegisterPress={handleRegisterPress}
-                onLogoutPress={handleLogout}
-                onSettingsPress={handleSettingsPress}
-              />
-            )}
-          </Animated.View>
-
-          {/* Bottom Navigation */}
-          <View style={styles.bottomNav}>
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => handleTabChange('home')}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={currentTab === 'home' ? 'home' : 'home-outline'}
-                size={24}
-                color={currentTab === 'home' ? THEME.primary : THEME.muted}
-              />
-              <Text
-                style={[
-                  styles.navText,
-                  { color: currentTab === 'home' ? THEME.primary : THEME.muted },
-                ]}
-              >
-                Главная
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => handleTabChange('search')}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={currentTab === 'search' ? 'search' : 'search-outline'}
-                size={24}
-                color={currentTab === 'search' ? THEME.primary : THEME.muted}
-              />
-              <Text
-                style={[
-                  styles.navText,
-                  { color: currentTab === 'search' ? THEME.primary : THEME.muted },
-                ]}
-              >
-                Поиск
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => handleTabChange('fav')}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={currentTab === 'fav' ? 'heart' : 'heart-outline'}
-                size={24}
-                color={currentTab === 'fav' ? THEME.primary : THEME.muted}
-              />
-              <Text
-                style={[
-                  styles.navText,
-                  { color: currentTab === 'fav' ? THEME.primary : THEME.muted },
-                ]}
-              >
-                Избранное
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => handleTabChange('profile')}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={currentTab === 'profile' ? 'person' : 'person-outline'}
-                size={24}
-                color={currentTab === 'profile' ? THEME.primary : THEME.muted}
-              />
-              <Text
-                style={[
-                  styles.navText,
-                  { color: currentTab === 'profile' ? THEME.primary : THEME.muted },
-                ]}
-              >
-                Профиль
-              </Text>
-            </TouchableOpacity>
+    <SafeAreaView style={styles.container}>
+      <Animated.View style={styles.animatedContainer}>
+        <LinearGradient
+          colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
+          style={styles.gradient}
+        >
+          <View style={styles.content}>
+            {renderContent()}
           </View>
-        </SafeAreaView>
-      </LinearGradient>
-    </ErrorBoundary>
+            {!selectedArticle && !selectedCenter && renderTabBar()}
+        </LinearGradient>
+      </Animated.View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  app: {
+  container: {
+    flex: 1,
+    backgroundColor: THEME.bgTop,
+  },
+  animatedContainer: {
     flex: 1,
   },
-  container: {
+  gradient: {
     flex: 1,
   },
   content: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   loadingContainer: {
     flex: 1,
@@ -327,47 +257,69 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: THEME.bgTop,
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: THEME.bgTop,
-    padding: 20,
+  loadingText: {
+    fontSize: 16,
+    color: THEME.text,
+    marginTop: 10,
   },
-  errorText: {
-    fontSize: 18,
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: THEME.text,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 16,
     color: THEME.muted,
     textAlign: 'center',
     marginBottom: 20,
   },
-  retryButton: {
-    backgroundColor: THEME.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
+  info: {
+    fontSize: 14,
+    color: THEME.text,
+    textAlign: 'center',
+    marginBottom: 5,
   },
-  retryButtonText: {
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderTopWidth: 1,
+    borderTopColor: THEME.border,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginHorizontal: 2,
+  },
+  activeTab: {
+    backgroundColor: THEME.primary,
+  },
+  tabText: {
+    fontSize: 12,
+    color: THEME.muted,
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  activeTabText: {
     color: '#fff',
     fontWeight: '600',
   },
-  bottomNav: {
-    height: 70,
-    margin: 12,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    ...THEME.shadow,
+  button: {
+    backgroundColor: THEME.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 20,
   },
-  navItem: {
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-  },
-  navText: {
-    fontSize: 11,
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: '600',
-    marginTop: 2,
+    textAlign: 'center',
   },
 });

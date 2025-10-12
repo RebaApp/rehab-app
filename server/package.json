@@ -1,14 +1,14 @@
 {
-  "name": "rehab-server-simple",
+  "name": "reba-server-simple",
   "version": "1.0.0",
-  "description": "Simple backend for RehaBnB application",
+  "description": "Simple backend for REBA application",
   "main": "src/simple-server.js",
   "scripts": {
     "start": "node src/simple-server.js",
     "dev": "nodemon src/simple-server.js"
   },
   "keywords": [
-    "rehab",
+    "reba",
     "api",
     "backend"
   ],

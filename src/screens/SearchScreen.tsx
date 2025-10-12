@@ -5,13 +5,14 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  RefreshControl,
+  FlatList,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { Center } from '../types';
 import CenterCard from '../components/common/CenterCard';
+import FiltersModal from '../components/common/FiltersModal';
 import { THEME } from '../utils/constants';
+import useAppStore from '../store/useAppStore';
 
 interface SearchScreenProps {
   onCenterPress: (center: Center) => void;
@@ -20,6 +21,7 @@ interface SearchScreenProps {
   onFiltersPress: () => void;
   onRefresh: () => void;
   refreshing: boolean;
+  shimmer?: any;
 }
 
 const SearchScreen: React.FC<SearchScreenProps> = memo(({
@@ -31,48 +33,74 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(({
   refreshing
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortByDistance, setSortByDistance] = useState(false);
+  const [filtersVisible, setFiltersVisible] = useState(false);
+  const { centers, filters, setFilters } = useAppStore();
 
   const handleSearchChange = useCallback((text: string) => {
     setSearchQuery(text);
   }, []);
 
-  const handleSortToggle = useCallback(() => {
-    setSortByDistance(!sortByDistance);
-  }, [sortByDistance]);
+  const handleFiltersPress = useCallback(() => {
+    setFiltersVisible(true);
+  }, []);
 
-  // Mock data - в реальном приложении это будет приходить из store
-  const mockCenters: Center[] = [
-    {
-      id: '1',
-      name: 'Центр Возрождение',
-      city: 'Москва',
-      address: 'ул. Примерная, д. 1',
-      phone: '+7 (495) 123-45-67',
-      email: 'info@center1.ru',
-      rating: 4.5,
-      reviewsCount: 25,
-      verified: true,
-      photos: ['https://via.placeholder.com/300x200'],
-      services: ['Консультация', 'Детокс', 'Реабилитация'],
-      description: 'Профессиональная помощь в борьбе с зависимостями',
-      price: '50 000 ₽/месяц',
-      coordinates: { latitude: 55.7558, longitude: 37.6176 },
-      workingHours: 'Пн-Вс: 9:00-21:00',
-      capacity: 50,
-      yearFounded: 2010,
-      license: 'ЛО-77-01-123456',
-      descriptionFull: 'Полное описание центра',
-      methods: ['12 шагов', 'КПТ'],
-      reviews: []
+  const handleFiltersClose = useCallback(() => {
+    setFiltersVisible(false);
+  }, []);
+
+  const handleFiltersApply = useCallback((newFilters: any) => {
+    setFilters(newFilters);
+    setFiltersVisible(false);
+  }, [setFilters]);
+
+  const filteredCenters = centers.filter(center => {
+    // Поиск по тексту
+    const matchesSearch = !searchQuery || 
+      center.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      center.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      center.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Фильтр по городам
+    const matchesCity = filters.cities.length === 0 || 
+      filters.cities.includes(center.city);
+
+    // Фильтр по рейтингу
+    const matchesRating = center.rating >= filters.minRating;
+
+    // Фильтр по цене (если указан)
+    let matchesPrice = true;
+    if (filters.minPrice || filters.maxPrice) {
+      const centerPrice = parseInt(center.price.replace(/\D/g, ''));
+      if (filters.minPrice && centerPrice < parseInt(filters.minPrice)) {
+        matchesPrice = false;
+      }
+      if (filters.maxPrice && centerPrice > parseInt(filters.maxPrice)) {
+        matchesPrice = false;
+      }
     }
-  ];
 
-  const filteredCenters = mockCenters.filter(center =>
-    center.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    center.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    center.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    return matchesSearch && matchesCity && matchesRating && matchesPrice;
+  }).sort((a, b) => {
+    // Сортировка
+    switch (filters.sortBy) {
+      case 'rating':
+        return filters.sortOrder === 'asc' ? a.rating - b.rating : b.rating - a.rating;
+      case 'price':
+        const priceA = parseInt(a.price.replace(/\D/g, ''));
+        const priceB = parseInt(b.price.replace(/\D/g, ''));
+        return filters.sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
+      case 'name':
+        return filters.sortOrder === 'asc' 
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+      case 'reviewsCount':
+        return filters.sortOrder === 'asc' 
+          ? a.reviewsCount - b.reviewsCount 
+          : b.reviewsCount - a.reviewsCount;
+      default:
+        return 0;
+    }
+  });
 
   const renderCenter = useCallback(({ item }: { item: Center }) => (
     <CenterCard
@@ -80,9 +108,9 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(({
       onPress={onCenterPress}
       onToggleFavorite={onToggleFavorite}
       isFavorite={isFavorite(item.id)}
-      showDistance={sortByDistance}
+      showDistance={false}
     />
-  ), [onCenterPress, onToggleFavorite, isFavorite, sortByDistance]);
+  ), [onCenterPress, onToggleFavorite, isFavorite]);
 
   const renderHeader = useCallback(() => (
     <View style={styles.header}>
@@ -94,152 +122,123 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(({
           onChangeText={handleSearchChange}
           placeholderTextColor={THEME.muted}
         />
-        <TouchableOpacity style={styles.filterButton} onPress={onFiltersPress}>
-          <Text style={styles.filterButtonText}>Фильтры</Text>
+        <TouchableOpacity style={styles.filterButton} onPress={handleFiltersPress}>
+          <Ionicons name="options-outline" size={20} color={THEME.primary} />
+          {(filters.cities.length > 0 || filters.types.length > 0 || filters.minRating > 0 || filters.minPrice || filters.maxPrice) && (
+            <View style={styles.filterBadge} />
+          )}
         </TouchableOpacity>
       </View>
-      
-      <View style={styles.sortControls}>
-        <TouchableOpacity
-          style={[styles.sortButton, sortByDistance && styles.sortButtonActive]}
-          onPress={handleSortToggle}
-        >
-          <Ionicons
-            name={sortByDistance ? 'location' : 'location-outline'}
-            size={16}
-            color={sortByDistance ? '#fff' : THEME.primary}
-          />
-          <Text style={[styles.sortButtonText, sortByDistance && styles.sortButtonTextActive]}>
-            {sortByDistance ? 'По расстоянию' : 'Ближайшие'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {filteredCenters.length > 0 && (
+        <Text style={styles.resultsCount}>
+          Найдено центров: {filteredCenters.length}
+        </Text>
+      )}
     </View>
-  ), [searchQuery, handleSearchChange, onFiltersPress, sortByDistance, handleSortToggle]);
-
-  const renderEmpty = useCallback(() => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="search-outline" size={48} color={THEME.muted} />
-      <Text style={styles.emptyTitle}>Центры не найдены</Text>
-      <Text style={styles.emptyText}>
-        Попробуйте изменить поисковый запрос или фильтры
-      </Text>
-    </View>
-  ), []);
-
-  const keyExtractor = useCallback((item: Center) => item.id, []);
+  ), [searchQuery, handleSearchChange, handleFiltersPress, filters, filteredCenters.length]);
 
   return (
     <View style={styles.container}>
-      <FlashList
+      {renderHeader()}
+      <FlatList
         data={filteredCenters}
         renderItem={renderCenter}
-        keyExtractor={keyExtractor}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmpty}
-        estimatedItemSize={250}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[THEME.primary]}
-            tintColor={THEME.primary}
-          />
-        }
+        keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
-        drawDistance={500}
-        overrideItemLayout={(layout, _item) => {
-          layout.size = 250;
-        }}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Ionicons name="search-outline" size={64} color={THEME.muted} />
+            <Text style={styles.emptyText}>
+              {searchQuery ? 'Центры не найдены' : 'Начните поиск центров'}
+            </Text>
+            <Text style={styles.emptySubtext}>
+              {searchQuery ? 'Попробуйте изменить поисковый запрос или фильтры' : 'Используйте поиск или фильтры для поиска подходящих центров'}
+            </Text>
+          </View>
+        }
+      />
+      <FiltersModal
+        visible={filtersVisible}
+        onClose={handleFiltersClose}
+        onApply={handleFiltersApply}
+        initialFilters={filters}
       />
     </View>
   );
 });
 
-SearchScreen.displayName = 'SearchScreen';
-
 const styles = StyleSheet.create({
   container: {
-    flex: 1
-  },
-  listContainer: {
-    paddingBottom: 20
+    flex: 1,
+    backgroundColor: THEME.bgTop,
   },
   header: {
-    padding: 12
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderBottomWidth: 1,
+    borderBottomColor: THEME.border,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: THEME.border,
   },
   searchInput: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 12,
     fontSize: 16,
-    ...THEME.shadow
+    color: THEME.text,
   },
   filterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginLeft: 10,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#eef7ff'
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(26, 132, 255, 0.1)',
+    position: 'relative',
   },
-  filterButtonText: {
-    fontWeight: '700',
-    color: THEME.primary
+  filterBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ff4444',
   },
-  sortControls: {
-    flexDirection: 'row',
-    gap: 8
-  },
-  sortButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: THEME.primary,
-    backgroundColor: '#fff'
-  },
-  sortButtonActive: {
-    backgroundColor: THEME.primary,
-    borderColor: THEME.primary
-  },
-  sortButtonText: {
-    marginLeft: 4,
-    fontSize: 12,
-    fontWeight: '600',
-    color: THEME.primary
-  },
-  sortButtonTextActive: {
-    color: '#fff'
+  resultsCount: {
+    fontSize: 14,
+    color: THEME.muted,
+    marginTop: 8,
+    textAlign: 'center',
   },
   emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 60,
-    paddingHorizontal: 40
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
-    marginTop: 16,
-    marginBottom: 8
   },
   emptyText: {
-    fontSize: 16,
-    color: THEME.muted,
+    fontSize: 18,
+    fontWeight: '600',
+    color: THEME.text,
+    marginTop: 16,
     textAlign: 'center',
-    lineHeight: 22
-  }
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: THEME.muted,
+    marginTop: 8,
+    textAlign: 'center',
+    paddingHorizontal: 40,
+    lineHeight: 20,
+  },
+  listContainer: {
+    padding: 20,
+  },
 });
 
 export default SearchScreen;

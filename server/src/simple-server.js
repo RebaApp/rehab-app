@@ -319,7 +319,7 @@ app.get('/health', (req, res) => {
 // Главная страница
 app.get('/', (req, res) => {
   res.json({
-    message: 'RehaBnB API is running!',
+    message: 'REBA API is running!',
     version: '1.0.0',
     endpoints: {
       health: '/health',

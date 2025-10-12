@@ -1,4 +1,4 @@
-# 🏥 Rehab App - Приложение реабилитационных центров
+# 🏥 REBA - Приложение реабилитационных центров
 
 [![React Native](https://img.shields.io/badge/React%20Native-0.73-blue.svg)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-SDK%2053-000020.svg)](https://expo.dev/)
@@ -67,8 +67,8 @@
 
 1. **Клонирование репозитория**
 ```bash
-git clone https://github.com/RebaApp/rehab-app.git
-cd rehab-app
+git clone https://github.com/RebaApp/reba-app.git
+cd reba-app
 ```
 
 2. **Установка зависимостей**
@@ -117,7 +117,7 @@ npm run dev
 ## 📁 Структура проекта
 
 ```
-rehab-app/
+reba-app/
 ├── 📱 src/                          # Исходный код приложения
 │   ├── components/                  # React компоненты
 │   │   └── common/                  # Переиспользуемые компоненты
@@ -261,9 +261,9 @@ docker-compose up -d
 
 Если у вас есть вопросы или предложения:
 
-- 📧 Email: support@rehabapp.com
-- 🐛 Issues: [GitHub Issues](https://github.com/RebaApp/rehab-app/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/RebaApp/rehab-app/discussions)
+- 📧 Email: support@rebaapp.com
+- 🐛 Issues: [GitHub Issues](https://github.com/RebaApp/reba-app/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/RebaApp/reba-app/discussions)
 
 ## 🎉 Благодарности
 
@@ -275,6 +275,6 @@ docker-compose up -d
 
 **Сделано с ❤️ для помощи людям в поиске качественной реабилитации**
 
-[⭐ Поставьте звезду](https://github.com/RebaApp/rehab-app) | [🐛 Сообщить об ошибке](https://github.com/RebaApp/rehab-app/issues) | [💡 Предложить улучшение](https://github.com/RebaApp/rehab-app/discussions)
+[⭐ Поставьте звезду](https://github.com/RebaApp/reba-app) | [🐛 Сообщить об ошибке](https://github.com/RebaApp/reba-app/issues) | [💡 Предложить улучшение](https://github.com/RebaApp/reba-app/discussions)
 
 </div>

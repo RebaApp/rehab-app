@@ -10,12 +10,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { Center } from '../types';
 import CenterCard from '../components/common/CenterCard';
 import { THEME } from '../utils/constants';
+import useAppStore from '../store/useAppStore';
 
 interface FavoritesScreenProps {
   onCenterPress: (center: Center) => void;
   onToggleFavorite: (centerId: string) => void;
   isFavorite: (centerId: string) => boolean;
   onSearchPress: () => void;
+  shimmer?: any;
 }
 
 const FavoritesScreen: React.FC<FavoritesScreenProps> = memo(({
@@ -24,8 +26,10 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = memo(({
   isFavorite,
   onSearchPress
 }) => {
-  // Mock data - в реальном приложении это будет приходить из store
-  const favoriteCenters: Center[] = [];
+  const { centers, favorites } = useAppStore();
+  
+  // Получаем избранные центры
+  const favoriteCenters = centers.filter(center => favorites[center.id]);
 
   const renderCenter = useCallback(({ item }: { item: Center }) => (
     <CenterCard
