@@ -126,7 +126,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     borderRadius: THEME.radius,
     overflow: 'hidden',
-    ...THEME.shadow,
   },
   image: {
     width: '100%',

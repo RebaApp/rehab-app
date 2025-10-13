@@ -75,7 +75,6 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
     maxWidth: 300,
-    ...THEME.shadow
   },
   title: {
     fontSize: 20,

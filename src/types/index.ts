@@ -61,6 +61,8 @@ export interface Article {
   image: string;
   createdAt?: string;
   updatedAt?: string;
+  views?: number;
+  likes?: number;
 }
 
 // === BOOKING TYPES ===

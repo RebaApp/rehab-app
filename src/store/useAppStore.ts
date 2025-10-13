@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { AppStore, Center, User, Article } from '../types';
-import { ARTICLES } from '../utils/constants';
+import { ARTICLES, CENTERS } from '../utils/constants';
 
 // Веб-совместимый store с оригинальными данными
 const useAppStore = create<AppStore>((set, get) => ({
@@ -10,7 +10,7 @@ const useAppStore = create<AppStore>((set, get) => ({
       authLoading: false,
 
       // === CENTERS STATE ===
-      centers: [],
+      centers: CENTERS, // Начинаем с базовых центров
       centersLoading: false,
       centersError: null,
       lastCentersUpdate: null,

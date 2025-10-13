@@ -97,7 +97,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 16,
     overflow: 'hidden',
-    ...THEME.shadow
   },
   gradient: {
     borderRadius: 16,

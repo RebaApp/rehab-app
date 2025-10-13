@@ -15,13 +15,15 @@ interface AdminModalProps {
   onClose: () => void;
   onCreateArticle: () => void;
   onCreateCenter: () => void;
+  onManageArticles: () => void;
 }
 
 const AdminModal: React.FC<AdminModalProps> = memo(({
   visible,
   onClose,
   onCreateArticle,
-  onCreateCenter
+  onCreateCenter,
+  onManageArticles
 }) => {
   const handleCreateArticle = useCallback(() => {
     onClose();
@@ -32,6 +34,11 @@ const AdminModal: React.FC<AdminModalProps> = memo(({
     onClose();
     onCreateCenter();
   }, [onClose, onCreateCenter]);
+
+  const handleManageArticles = useCallback(() => {
+    onClose();
+    onManageArticles();
+  }, [onClose, onManageArticles]);
 
   return (
     <Modal
@@ -62,6 +69,19 @@ const AdminModal: React.FC<AdminModalProps> = memo(({
               <Text style={styles.optionTitle}>Новая статья</Text>
               <Text style={styles.optionDescription}>
                 Создать статью о реабилитации и зависимостях
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.optionButton} 
+              onPress={handleManageArticles}
+            >
+              <View style={styles.optionIcon}>
+                <Ionicons name="list" size={32} color={THEME.primary} />
+              </View>
+              <Text style={styles.optionTitle}>Управление статьями</Text>
+              <Text style={styles.optionDescription}>
+                Редактировать существующие статьи и просматривать статистику
               </Text>
             </TouchableOpacity>
             
@@ -99,7 +119,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     width: '100%',
     maxWidth: 400,
-    ...THEME.shadow,
   },
   header: {
     flexDirection: 'row',

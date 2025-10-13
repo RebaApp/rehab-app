@@ -5,12 +5,16 @@ import {
   View,
   FlatList,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Center } from '../types';
 import CenterCard from '../components/common/CenterCard';
 import { THEME } from '../utils/constants';
 import useAppStore from '../store/useAppStore';
+
+const { height: screenHeight } = Dimensions.get('window');
 
 interface FavoritesScreenProps {
   onCenterPress: (center: Center) => void;
@@ -42,7 +46,7 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = memo(({
 
   const renderEmpty = useCallback(() => (
     <View style={styles.emptyContainer}>
-      <Ionicons name="heart-outline" size={64} color={THEME.muted} />
+      <Ionicons name="heart-outline" size={48} color={THEME.muted} />
       <Text style={styles.emptyTitle}>Пока нет избранных центров</Text>
       <Text style={styles.emptyText}>
         Добавьте центры в избранное, чтобы они появились здесь
@@ -56,21 +60,24 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = memo(({
   const keyExtractor = useCallback((item: Center) => item.id, []);
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
+      style={styles.container}
+    >
       <FlatList
         data={favoriteCenters}
         renderItem={renderCenter}
         keyExtractor={keyExtractor}
         ListEmptyComponent={renderEmpty}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={favoriteCenters.length === 0 ? styles.emptyListContainer : styles.listContainer}
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         updateCellsBatchingPeriod={100}
         initialNumToRender={5}
         windowSize={10}
       />
-    </View>
+    </LinearGradient>
   );
 });
 
@@ -84,37 +91,43 @@ const styles = StyleSheet.create({
     padding: 12,
     paddingBottom: 20
   },
-  emptyContainer: {
+  emptyListContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: screenHeight * 0.7,
+  },
+  emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 40
+    paddingHorizontal: 40,
+    paddingVertical: 40,
   },
   emptyTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '600',
     color: '#333',
-    marginTop: 20,
-    marginBottom: 12,
+    marginTop: 16,
+    marginBottom: 8,
     textAlign: 'center'
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 14,
     color: THEME.muted,
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 24
+    lineHeight: 20,
+    marginBottom: 20
   },
   searchButton: {
     backgroundColor: THEME.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10
   },
   searchButtonText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 16
+    fontSize: 14
   }
 });
 

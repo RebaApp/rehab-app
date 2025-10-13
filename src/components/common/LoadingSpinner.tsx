@@ -94,7 +94,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     padding: 24,
     borderRadius: 16,
-    ...THEME.shadow
   },
   message: {
     fontSize: 16,

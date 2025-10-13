@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react';
 import { Animated, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 const AnimatedCard = ({ 
   children, 

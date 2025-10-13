@@ -6,14 +6,18 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { User } from '../types';
+import { LinearGradient } from 'expo-linear-gradient';
+import { User, Article } from '../types';
 import { THEME } from '../utils/constants';
-import AdminModal from '../components/common/AdminModal';
-import CreateArticleModal from '../components/common/CreateArticleModal';
-import CreateCenterModal from '../components/common/CreateCenterModal';
+import AdminPanel from './admin/AdminPanel';
+import AuthModal from '../components/common/AuthModal';
 import useAppStore from '../store/useAppStore';
+import Constants from 'expo-constants';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface ProfileScreenProps {
   user: User | null;
@@ -32,9 +36,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = memo(({
   onLogoutPress,
   onSettingsPress
 }) => {
-  const [adminModalVisible, setAdminModalVisible] = useState(false);
-  const [createArticleModalVisible, setCreateArticleModalVisible] = useState(false);
-  const [createCenterModalVisible, setCreateCenterModalVisible] = useState(false);
+  const [adminPanelVisible, setAdminPanelVisible] = useState(false);
+  const [authModalVisible, setAuthModalVisible] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'register-center'>('login');
   const handleAboutPress = useCallback(() => {
     Alert.alert(
       'О нас',
@@ -79,147 +83,219 @@ const ProfileScreen: React.FC<ProfileScreenProps> = memo(({
 
   // Админ функции
   const handleAdminPress = useCallback(() => {
-    setAdminModalVisible(true);
+    setAdminPanelVisible(true);
   }, []);
 
-  const handleCreateArticle = useCallback(() => {
-    setCreateArticleModalVisible(true);
+  // Аутентификация
+  const handleLoginPress = useCallback(() => {
+    setAuthMode('login');
+    setAuthModalVisible(true);
   }, []);
 
-  const handleCreateCenter = useCallback(() => {
-    setCreateCenterModalVisible(true);
+  const handleRegisterPress = useCallback(() => {
+    setAuthMode('register');
+    setAuthModalVisible(true);
   }, []);
 
-  const handleSaveArticle = useCallback((article: any) => {
-    const { addArticle } = useAppStore.getState();
-    try {
-      const newArticle = addArticle(article);
-      console.log('Article saved:', newArticle);
-      Alert.alert('Успех', `Статья "${article.title}" добавлена в рубрику "${article.rubric}"!`);
-    } catch (error) {
-      console.error('Error saving article:', error);
-      Alert.alert('Ошибка', 'Не удалось сохранить статью');
-    }
+  const handleRegisterCenterPress = useCallback(() => {
+    setAuthMode('register-center');
+    setAuthModalVisible(true);
   }, []);
 
-  const handleSaveCenter = useCallback((center: any) => {
-    console.log('Saving center:', center);
-    Alert.alert('Успех', 'Центр сохранен! (Пока только в консоли)');
-    // TODO: Отправить на сервер
+  const handleAuthSuccess = useCallback((userData: any) => {
+    Alert.alert('Успех', 'Вы успешно вошли в систему!');
+    // Здесь будет реальная аутентификация
   }, []);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Профиль</Text>
-      
-      {isAuthenticated && user ? (
-        <View style={styles.authenticatedContainer}>
-          <View style={styles.userInfo}>
-            <View style={styles.avatarContainer}>
-              <Ionicons name="person" size={40} color={THEME.primary} />
+    <LinearGradient
+      colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
+      style={styles.container}
+    >
+      <ScrollView 
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={true}
+      >
+        {/* Пользовательская информация */}
+        {isAuthenticated && user ? (
+          <View style={styles.userSection}>
+            <View style={styles.userInfo}>
+              <View style={styles.avatarContainer}>
+                <Ionicons name="person" size={40} color={THEME.primary} />
+              </View>
+              <View style={styles.userDetails}>
+                <Text style={styles.userName}>{user.name}</Text>
+                <Text style={styles.userEmail}>{user.email}</Text>
+                <Text style={styles.userType}>
+                  {user.userType === 'USER' ? 'Пользователь' : 
+                   user.userType === 'CENTER_OWNER' ? 'Владелец центра' : 'Администратор'}
+                </Text>
+              </View>
             </View>
-            <View style={styles.userDetails}>
-              <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.userEmail}>{user.email}</Text>
-              <Text style={styles.userType}>
-                {user.userType === 'USER' ? 'Пользователь' : 
-                 user.userType === 'CENTER_OWNER' ? 'Владелец центра' : 'Администратор'}
-              </Text>
-            </View>
+            
+            <TouchableOpacity 
+              style={styles.logoutButton} 
+              onPress={onLogoutPress}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="log-out-outline" size={20} color="#fff" />
+              <Text style={styles.logoutButtonText}>Выйти из аккаунта</Text>
+            </TouchableOpacity>
           </View>
-          
-          <TouchableOpacity style={styles.logoutButton} onPress={onLogoutPress}>
-            <Ionicons name="log-out-outline" size={20} color="#fff" />
-            <Text style={styles.logoutButtonText}>Выйти из аккаунта</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.unauthenticatedContainer}>
-          <View style={styles.authButtons}>
-            <TouchableOpacity style={styles.loginButton} onPress={onLoginPress}>
+        ) : (
+          <View style={styles.authSection}>
+            <TouchableOpacity 
+              style={styles.loginButton} 
+              onPress={handleLoginPress}
+              activeOpacity={0.7}
+            >
               <Ionicons name="log-in-outline" size={20} color={THEME.primary} />
               <Text style={styles.loginButtonText}>Вход</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.registerButton} onPress={onRegisterPress}>
+            <TouchableOpacity 
+              style={styles.registerButton} 
+              onPress={handleRegisterPress}
+              activeOpacity={0.7}
+            >
               <Ionicons name="person-add-outline" size={20} color="#fff" />
               <Text style={styles.registerButtonText}>Регистрация</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.registerCenterButton} 
+              onPress={handleRegisterCenterPress}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="business-outline" size={20} color="#fff" />
+              <Text style={styles.registerCenterButtonText}>Регистрация центра</Text>
+            </TouchableOpacity>
           </View>
+        )}
+        
+        {/* Меню - каждый пункт отдельная кнопка */}
+        <View style={styles.menuContainer}>
+          <TouchableOpacity 
+            style={styles.menuButton} 
+            onPress={handleAboutPress}
+            activeOpacity={0.6}
+          >
+            <View style={styles.menuButtonContent}>
+              <Ionicons name="information-circle-outline" size={24} color={THEME.primary} />
+              <Text style={styles.menuButtonText}>О нас</Text>
+              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
+            </View>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuButton} 
+            onPress={handleAgreementsPress}
+            activeOpacity={0.6}
+          >
+            <View style={styles.menuButtonContent}>
+              <Ionicons name="document-text-outline" size={24} color={THEME.primary} />
+              <Text style={styles.menuButtonText}>Соглашения</Text>
+              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
+            </View>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuButton} 
+            onPress={handlePricingPress}
+            activeOpacity={0.6}
+          >
+            <View style={styles.menuButtonContent}>
+              <Ionicons name="card-outline" size={24} color={THEME.primary} />
+              <Text style={styles.menuButtonText}>Тарифы</Text>
+              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
+            </View>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuButton} 
+            onPress={handleContactsPress}
+            activeOpacity={0.6}
+          >
+            <View style={styles.menuButtonContent}>
+              <Ionicons name="mail-outline" size={24} color={THEME.primary} />
+              <Text style={styles.menuButtonText}>Контакты</Text>
+              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
+            </View>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuButton} 
+            onPress={handleInvestorsPress}
+            activeOpacity={0.6}
+          >
+            <View style={styles.menuButtonContent}>
+              <Ionicons name="trending-up-outline" size={24} color={THEME.primary} />
+              <Text style={styles.menuButtonText}>Для инвесторов</Text>
+              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
+            </View>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuButton} 
+            onPress={handleCareerPress}
+            activeOpacity={0.6}
+          >
+            <View style={styles.menuButtonContent}>
+              <Ionicons name="briefcase-outline" size={24} color={THEME.primary} />
+              <Text style={styles.menuButtonText}>Карьера в РЕБА</Text>
+              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
+            </View>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuButton} 
+            onPress={onSettingsPress}
+            activeOpacity={0.6}
+          >
+            <View style={styles.menuButtonContent}>
+              <Ionicons name="settings-outline" size={24} color={THEME.primary} />
+              <Text style={styles.menuButtonText}>Настройки</Text>
+              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
+            </View>
+          </TouchableOpacity>
+          
+          {/* Админ панель - показываем только в dev режиме или если включена в настройках */}
+          {(__DEV__ || Constants.expoConfig?.extra?.enableAdminPanel) && (
+            <TouchableOpacity 
+              style={[styles.menuButton, styles.adminMenuButton]} 
+              onPress={handleAdminPress}
+              activeOpacity={0.6}
+            >
+              <View style={styles.menuButtonContent}>
+                <Ionicons name="construct-outline" size={24} color="#ff6b35" />
+                <Text style={[styles.menuButtonText, styles.adminMenuButtonText]}>
+                  Админ панель {__DEV__ ? '(DEV)' : '(PROD)'}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color="#ff6b35" />
+              </View>
+            </TouchableOpacity>
+          )}
         </View>
+      </ScrollView>
+
+      {/* Админ панель - только в dev режиме или если включена в настройках */}
+      {(__DEV__ || Constants.expoConfig?.extra?.enableAdminPanel) && (
+        <AdminPanel
+          visible={adminPanelVisible}
+          onClose={() => setAdminPanelVisible(false)}
+        />
       )}
-      
-      <View style={styles.menuSection}>
-        <TouchableOpacity style={styles.menuItem} onPress={handleAboutPress}>
-          <Ionicons name="information-circle-outline" size={20} color={THEME.muted} />
-          <Text style={styles.menuItemText}>О нас</Text>
-          <Ionicons name="chevron-forward" size={16} color={THEME.muted} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem} onPress={handleAgreementsPress}>
-          <Ionicons name="document-text-outline" size={20} color={THEME.muted} />
-          <Text style={styles.menuItemText}>Соглашения</Text>
-          <Ionicons name="chevron-forward" size={16} color={THEME.muted} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem} onPress={handlePricingPress}>
-          <Ionicons name="card-outline" size={20} color={THEME.muted} />
-          <Text style={styles.menuItemText}>Тарифы</Text>
-          <Ionicons name="chevron-forward" size={16} color={THEME.muted} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem} onPress={handleContactsPress}>
-          <Ionicons name="mail-outline" size={20} color={THEME.muted} />
-          <Text style={styles.menuItemText}>Контакты</Text>
-          <Ionicons name="chevron-forward" size={16} color={THEME.muted} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem} onPress={handleInvestorsPress}>
-          <Ionicons name="trending-up-outline" size={20} color={THEME.muted} />
-          <Text style={styles.menuItemText}>Для инвесторов</Text>
-          <Ionicons name="chevron-forward" size={16} color={THEME.muted} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem} onPress={handleCareerPress}>
-          <Ionicons name="briefcase-outline" size={20} color={THEME.muted} />
-          <Text style={styles.menuItemText}>Карьера в РЕБА</Text>
-          <Ionicons name="chevron-forward" size={16} color={THEME.muted} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem} onPress={onSettingsPress}>
-          <Ionicons name="settings-outline" size={20} color={THEME.muted} />
-          <Text style={styles.menuItemText}>Настройки</Text>
-          <Ionicons name="chevron-forward" size={16} color={THEME.muted} />
-        </TouchableOpacity>
-        
-        {/* Админ панель - показываем всем для разработки */}
-        <TouchableOpacity style={[styles.menuItem, styles.adminMenuItem]} onPress={handleAdminPress}>
-          <Ionicons name="construct-outline" size={20} color={THEME.primary} />
-          <Text style={[styles.menuItemText, styles.adminMenuItemText]}>Админ панель</Text>
-          <Ionicons name="chevron-forward" size={16} color={THEME.primary} />
-        </TouchableOpacity>
-      </View>
 
-      {/* Модальные окна */}
-      <AdminModal
-        visible={adminModalVisible}
-        onClose={() => setAdminModalVisible(false)}
-        onCreateArticle={handleCreateArticle}
-        onCreateCenter={handleCreateCenter}
+      {/* Модальное окно аутентификации */}
+      <AuthModal
+        visible={authModalVisible}
+        mode={authMode}
+        onClose={() => setAuthModalVisible(false)}
+        onSuccess={handleAuthSuccess}
       />
-
-      <CreateArticleModal
-        visible={createArticleModalVisible}
-        onClose={() => setCreateArticleModalVisible(false)}
-        onSave={handleSaveArticle}
-      />
-
-      <CreateCenterModal
-        visible={createCenterModalVisible}
-        onClose={() => setCreateCenterModalVisible(false)}
-        onSave={handleSaveCenter}
-      />
-    </ScrollView>
+    </LinearGradient>
   );
 });
 
@@ -227,28 +303,29 @@ ProfileScreen.displayName = 'ProfileScreen';
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
   },
-  content: {
-    padding: 12
+  scrollContainer: {
+    flex: 1,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#333',
-    marginBottom: 20
+  scrollContent: {
+    paddingBottom: 20,
   },
-  authenticatedContainer: {
-    marginBottom: 24
+  
+  // Секция пользователя
+  userSection: {
+    marginLeft: Math.max(16, screenWidth * 0.04),
+    marginRight: Math.max(16, screenWidth * 0.04),
+    marginTop: 20,
+    marginBottom: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    padding: 20,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    ...THEME.shadow
+    marginBottom: 20
   },
   avatarContainer: {
     width: 60,
@@ -285,29 +362,34 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff4444',
     padding: 16,
     borderRadius: 12,
-    ...THEME.shadow
+    marginTop: 8,
   },
   logoutButtonText: {
     color: '#fff',
     fontWeight: '600',
     marginLeft: 8
   },
-  unauthenticatedContainer: {
-    marginBottom: 24
-  },
-  authButtons: {
-    gap: 12
+
+  // Секция аутентификации
+  authSection: {
+    marginLeft: Math.max(16, screenWidth * 0.04),
+    marginRight: Math.max(16, screenWidth * 0.04),
+    marginTop: 20,
+    marginBottom: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    padding: 20,
   },
   loginButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     padding: 16,
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: THEME.primary,
-    ...THEME.shadow
+    marginBottom: 12,
   },
   loginButtonText: {
     color: THEME.primary,
@@ -321,39 +403,63 @@ const styles = StyleSheet.create({
     backgroundColor: THEME.primary,
     padding: 16,
     borderRadius: 12,
-    ...THEME.shadow
+    marginBottom: 12,
   },
   registerButtonText: {
     color: '#fff',
     fontWeight: '600',
     marginLeft: 8
   },
-  menuSection: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    overflow: 'hidden',
-    ...THEME.shadow
-  },
-  menuItem: {
+  registerCenterButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#28a745',
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0'
+    borderRadius: 12,
   },
-  menuItemText: {
+  registerCenterButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    marginLeft: 8
+  },
+
+  // Контейнер меню
+  menuContainer: {
+    marginLeft: Math.max(16, screenWidth * 0.04),
+    marginRight: Math.max(16, screenWidth * 0.04),
+    marginBottom: 20,
+  },
+
+  // Кнопки меню - каждая отдельная кнопка
+  menuButton: {
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    marginBottom: 8,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  menuButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  menuButtonText: {
     flex: 1,
     fontSize: 16,
     color: '#333',
-    marginLeft: 12
+    marginLeft: 12,
+    fontWeight: '500',
   },
-  adminMenuItem: {
-    backgroundColor: THEME.primary + '10',
-    borderLeftWidth: 3,
-    borderLeftColor: THEME.primary,
+  adminMenuButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#ff6b35',
   },
-  adminMenuItemText: {
-    color: THEME.primary,
+  adminMenuButtonText: {
+    color: '#ff6b35',
     fontWeight: '600',
   }
 });

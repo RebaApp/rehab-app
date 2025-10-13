@@ -64,7 +64,8 @@
     "extra": {
       "eas": {
         "projectId": "cf9a68a6-63c7-40dc-bd3e-2be53f3193b9"
-      }
+      },
+      "enableAdminPanel": false
     }
   }
 }
