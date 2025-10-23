@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { CenterCardProps } from '../../types';
-import { THEME } from '../../utils/constants';
 import OptimizedImage from './OptimizedImage';
 
 const CenterCard: React.FC<CenterCardProps> = memo(({
@@ -92,94 +92,118 @@ const CenterCard: React.FC<CenterCardProps> = memo(({
         onPress={handlePress}
         activeOpacity={0.8}
       >
-      <LinearGradient
-        colors={[THEME.bgTop, THEME.bgMid]}
-        style={styles.gradient}
-      >
-        <View style={styles.imageContainer}>
-          <OptimizedImage
-            uri={item.photos[0] || 'https://via.placeholder.com/300x200'}
-            style={styles.image}
-            priority={false}
-            cachePolicy="memory"
-            contentFit="cover"
-            transition={150}
-          />
-          <TouchableOpacity
-            style={styles.favoriteButton}
-            onPress={handleFavoritePress}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        <BlurView intensity={15} tint="light" style={styles.cardBlur}>
+          <LinearGradient
+            colors={['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.8)']}
+            style={styles.cardGradient}
           >
-            <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
-              <Ionicons
-                name={isFavorite ? "heart" : "heart-outline"}
-                size={20}
-                color={isFavorite ? "#ff6b6b" : "#fff"}
+            <View style={styles.imageContainer}>
+              <OptimizedImage
+                uri={item.photos[0] || 'https://via.placeholder.com/300x200'}
+                style={styles.image}
+                priority={false}
+                cachePolicy="memory"
+                contentFit="cover"
+                transition={150}
               />
-            </Animated.View>
-          </TouchableOpacity>
-          
-          {item.verified && (
-            <View style={styles.verifiedBadge}>
-              <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+              
+              <TouchableOpacity
+                style={styles.favoriteButton}
+                onPress={handleFavoritePress}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <BlurView intensity={10} tint="light" style={styles.favoriteBlur}>
+                  <LinearGradient
+                    colors={isFavorite ? ['#ff6b6b', '#ff5252'] : ['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.3)']}
+                    style={styles.favoriteGradient}
+                  >
+                    <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
+                      <Ionicons
+                        name={isFavorite ? "heart" : "heart-outline"}
+                        size={20}
+                        color="#FFFFFF"
+                      />
+                    </Animated.View>
+                  </LinearGradient>
+                </BlurView>
+              </TouchableOpacity>
+              
+              {item.verified && (
+                <View style={styles.verifiedBadge}>
+                  <BlurView intensity={10} tint="light" style={styles.verifiedBlur}>
+                    <LinearGradient
+                      colors={['rgba(76, 175, 80, 0.9)', 'rgba(76, 175, 80, 0.8)']}
+                      style={styles.verifiedGradient}
+                    >
+                      <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+                    </LinearGradient>
+                  </BlurView>
+                </View>
+              )}
             </View>
-          )}
-        </View>
 
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.name} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <View style={styles.ratingContainer}>
-              {renderStars}
-              <Text style={styles.ratingText}>
-                {item.rating.toFixed(1)}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.locationContainer}>
-            <Ionicons name="location-outline" size={14} color={THEME.muted} />
-            <Text style={styles.location} numberOfLines={1}>
-              {item.city}
-            </Text>
-            {showDistance && item.distance && (
-              <Text style={styles.distance}>
-                {item.distance.toFixed(1)} км
-              </Text>
-            )}
-          </View>
-
-          <View style={styles.servicesContainer}>
-            {item.services.slice(0, 2).map((service, index) => (
-              <View key={index} style={styles.serviceTag}>
-                <Text style={styles.serviceText}>{service}</Text>
+            <View style={styles.content}>
+              <View style={styles.header}>
+                <Text style={styles.name} numberOfLines={1}>
+                  {item.name}
+                </Text>
+                <View style={styles.ratingContainer}>
+                  {renderStars}
+                  <Text style={styles.ratingText}>
+                    {item.rating.toFixed(1)}
+                  </Text>
+                </View>
               </View>
-            ))}
-            {item.services.length > 2 && (
-              <Text style={styles.moreServices}>
-                +{item.services.length - 2}
-              </Text>
-            )}
-          </View>
 
-          <Text style={styles.description} numberOfLines={2}>
-            {item.description}
-          </Text>
+              <View style={styles.locationContainer}>
+                <Ionicons name="location-outline" size={16} color="#81D4FA" />
+                <Text style={styles.location} numberOfLines={1}>
+                  {item.city}
+                </Text>
+                {showDistance && item.distance && (
+                  <Text style={styles.distance}>
+                    {item.distance.toFixed(1)} км
+                  </Text>
+                )}
+              </View>
 
-          <View style={styles.footer}>
-            <Text style={styles.price}>{item.price}</Text>
-            <View style={styles.reviewsContainer}>
-              <Ionicons name="chatbubble-outline" size={12} color={THEME.muted} />
-              <Text style={styles.reviewsText}>
-                {item.reviewsCount} отзывов
+              <View style={styles.servicesContainer}>
+                {item.services.slice(0, 2).map((service, index) => (
+                  <View key={index} style={styles.serviceTag}>
+                    <BlurView intensity={10} tint="light" style={styles.serviceBlur}>
+                      <LinearGradient
+                        colors={['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
+                        style={styles.serviceGradient}
+                      >
+                        <Text style={styles.serviceText}>{service}</Text>
+                      </LinearGradient>
+                    </BlurView>
+                  </View>
+                ))}
+                {item.services.length > 2 && (
+                  <Text style={styles.moreServices}>
+                    +{item.services.length - 2}
+                  </Text>
+                )}
+              </View>
+
+              <Text style={styles.description} numberOfLines={2}>
+                {item.description}
               </Text>
+
+              <View style={styles.footer}>
+                <Text style={styles.price}>{item.price}</Text>
+                <View style={styles.reviewsContainer}>
+                  <Ionicons name="chatbubble-outline" size={12} color="#81D4FA" />
+                  <Text style={styles.reviewsText}>
+                    {item.reviewsCount} отзывов
+                  </Text>
+                </View>
+              </View>
             </View>
-          </View>
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
+          </LinearGradient>
+        </BlurView>
+      </TouchableOpacity>
     </Animated.View>
   );
 });
@@ -188,14 +212,23 @@ CenterCard.displayName = 'CenterCard';
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 12,
-    marginBottom: 16,
-    borderRadius: 16,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  cardBlur: {
+    borderRadius: 20,
     overflow: 'hidden',
   },
-  gradient: {
-    borderRadius: 16,
-    overflow: 'hidden'
+  cardGradient: {
+    borderRadius: 20,
+    overflow: 'hidden',
   },
   imageContainer: {
     position: 'relative',
@@ -208,38 +241,56 @@ const styles = StyleSheet.create({
   },
   favoriteButton: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: 16,
+    right: 16,
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  favoriteBlur: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  favoriteGradient: {
+    width: 40,
+    height: 40,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   verifiedBadge: {
     position: 'absolute',
-    top: 12,
-    left: 12,
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    top: 16,
+    left: 16,
     borderRadius: 12,
-    padding: 4
+    overflow: 'hidden',
+  },
+  verifiedBlur: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  verifiedGradient: {
+    padding: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
-    padding: 16
+    padding: 20
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8
+    marginBottom: 12
   },
   name: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: '#1a1a1a',
     flex: 1,
-    marginRight: 8
+    marginRight: 12,
+    lineHeight: 22,
+    letterSpacing: -0.3,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -247,55 +298,65 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: 14,
+    color: '#666',
+    marginLeft: 6,
     fontWeight: '600',
-    color: '#333',
-    marginLeft: 4
   },
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12
+    marginBottom: 16
   },
   location: {
     fontSize: 14,
-    color: THEME.muted,
-    marginLeft: 4,
-    flex: 1
+    color: '#666',
+    marginLeft: 8,
+    flex: 1,
+    fontWeight: '500',
   },
   distance: {
-    fontSize: 12,
-    color: THEME.primary,
+    fontSize: 14,
+    color: '#42A5F5',
+    marginLeft: 8,
     fontWeight: '600',
-    marginLeft: 8
   },
   servicesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 12
+    marginBottom: 16
   },
   serviceTag: {
-    backgroundColor: THEME.primary + '20',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
     borderRadius: 12,
-    marginRight: 6,
-    marginBottom: 4
+    overflow: 'hidden',
+    marginRight: 8,
+    marginBottom: 8
+  },
+  serviceBlur: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  serviceGradient: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignItems: 'center',
   },
   serviceText: {
     fontSize: 12,
-    color: THEME.primary,
-    fontWeight: '600'
+    color: '#42A5F5',
+    fontWeight: '600',
   },
   moreServices: {
     fontSize: 12,
-    color: THEME.muted,
-    alignSelf: 'center'
+    color: '#666',
+    alignSelf: 'center',
+    fontWeight: '500',
   },
   description: {
     fontSize: 14,
     color: '#666',
     lineHeight: 20,
-    marginBottom: 12
+    marginBottom: 16,
+    fontWeight: '400',
   },
   footer: {
     flexDirection: 'row',
@@ -303,9 +364,9 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   price: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
-    color: THEME.primary
+    color: '#42A5F5'
   },
   reviewsContainer: {
     flexDirection: 'row',
@@ -313,8 +374,9 @@ const styles = StyleSheet.create({
   },
   reviewsText: {
     fontSize: 12,
-    color: THEME.muted,
-    marginLeft: 4
+    color: '#666',
+    marginLeft: 6,
+    fontWeight: '500',
   }
 });
 

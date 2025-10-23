@@ -1,227 +1,154 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo } from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  TextInput,
   TouchableOpacity,
-  Animated,
-  FlatList,
-  Platform,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Article } from '../types';
-import ArticleCard from '../components/common/ArticleCard';
 import { THEME } from '../utils/constants';
-import useAppStore from '../store/useAppStore';
 
 interface HomeScreenProps {
-  onArticlePress: (article: Article) => void;
-  shimmer?: Animated.Value;
+  onArticlePress: (article: any) => void;
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = memo(({
-  onArticlePress,
-  shimmer
-}) => {
-  const [articleQuery, setArticleQuery] = React.useState('');
-  const { articles } = useAppStore();
-
-  const handleSearchChange = useCallback((text: string) => {
-    setArticleQuery(text);
-  }, []);
-
-  const filteredArticles = useMemo(() => {
-    if (!articleQuery) return articles;
-    
-    const query = articleQuery.toLowerCase();
-    return articles.filter(article =>
-      article.title.toLowerCase().includes(query) ||
-      article.excerpt.toLowerCase().includes(query) ||
-      (article.body || '').toLowerCase().includes(query)
-    );
-  }, [articleQuery, articles]);
-
-  const renderArticle = useCallback(({ item }: { item: Article }) => (
-    <ArticleCard
-      item={item}
-      onPress={onArticlePress}
-    />
-  ), [onArticlePress]);
-
-  const renderHeader = useCallback(() => (
-    <View style={styles.header}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>РЕБА</Text>
-        {shimmer && (
-          <Animated.View 
-            pointerEvents="none" 
-            style={[styles.shimmerOverlay, { opacity: shimmer }]}
-          >
-            <LinearGradient 
-              colors={["rgba(255,255,255,0)", "rgba(255,255,255,0.6)", "rgba(255,255,255,0)"]} 
-              start={[0,0]} 
-              end={[1,0]} 
-              style={styles.shimmerGradient} 
-            />
-          </Animated.View>
-        )}
-      </View>
-      <Text style={styles.subtitle}>ПОМОЩЬ БЛИЖЕ ЧЕМ КАЖЕТСЯ</Text>
-      
-      <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={20} color={THEME.muted} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Поиск статей..."
-          value={articleQuery}
-          onChangeText={handleSearchChange}
-          placeholderTextColor={THEME.muted}
-        />
-        {articleQuery.length > 0 && (
-          <TouchableOpacity
-            onPress={() => setArticleQuery('')}
-            style={styles.clearButton}
-          >
-            <Ionicons name="close-circle" size={20} color={THEME.muted} />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  ), [articleQuery, handleSearchChange, shimmer]);
-
-  const renderEmpty = useCallback(() => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="document-outline" size={48} color={THEME.muted} />
-      <Text style={styles.emptyTitle}>Статьи не найдены</Text>
-      <Text style={styles.emptyText}>
-        Попробуйте изменить поисковый запрос
-      </Text>
-    </View>
-  ), []);
-
-  const keyExtractor = useCallback((item: Article) => item.id, []);
-
+const HomeScreen: React.FC<HomeScreenProps> = memo(() => {
   return (
-    <View style={styles.container}>
-      {Platform.OS === 'web' ? (
-        <FlatList
-          data={filteredArticles}
-          renderItem={renderArticle}
-          keyExtractor={keyExtractor}
-          ListHeaderComponent={renderHeader}
-          ListEmptyComponent={renderEmpty}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
-          removeClippedSubviews={true}
-          maxToRenderPerBatch={10}
-          updateCellsBatchingPeriod={100}
-          initialNumToRender={5}
-          windowSize={10}
-        />
-      ) : (
-        <FlashList
-          data={filteredArticles}
-          renderItem={renderArticle}
-          keyExtractor={keyExtractor}
-          ListHeaderComponent={renderHeader}
-          ListEmptyComponent={renderEmpty}
-          estimatedItemSize={200}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
-          drawDistance={500}
-          overrideItemLayout={(layout, _item) => {
-            layout.size = 200;
-          }}
-        />
-      )}
-    </View>
+    <LinearGradient
+      colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
+      style={styles.container}
+    >
+      <View style={styles.content}>
+        {/* Заголовок */}
+        <View style={styles.header}>
+          <Text style={styles.title}>РЕБА</Text>
+          <Text style={styles.subtitle}>Реабилитационные центры</Text>
+          <Text style={styles.description}>
+            Находим подходящие центры для лечения зависимостей
+          </Text>
+        </View>
+
+        {/* Быстрые окна */}
+        <View style={styles.quickActions}>
+          <TouchableOpacity 
+            style={styles.quickActionCard}
+            onPress={() => console.log('Найти центр')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="search" size={32} color={THEME.primary} />
+            <Text style={styles.quickActionTitle}>Найти центр</Text>
+            <Text style={styles.quickActionDescription}>
+              Поиск по городу и типу лечения
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.quickActionCard}
+            onPress={() => console.log('Консультация')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="call" size={32} color={THEME.primary} />
+            <Text style={styles.quickActionTitle}>Консультация</Text>
+            <Text style={styles.quickActionDescription}>
+              Бесплатная консультация специалиста
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.quickActionCard}
+            onPress={() => console.log('Статьи')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="book" size={32} color={THEME.primary} />
+            <Text style={styles.quickActionTitle}>Статьи</Text>
+            <Text style={styles.quickActionDescription}>
+              Полезная информация о лечении
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.quickActionCard}
+            onPress={() => console.log('Поддержка')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="heart" size={32} color={THEME.primary} />
+            <Text style={styles.quickActionTitle}>Поддержка</Text>
+            <Text style={styles.quickActionDescription}>
+              Группы поддержки и сообщество
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </LinearGradient>
   );
 });
 
-HomeScreen.displayName = 'HomeScreen';
-
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
   },
-  listContainer: {
-    paddingBottom: 20
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
   },
   header: {
     alignItems: 'center',
-    marginTop: 6,
-    paddingHorizontal: 20,
-    paddingBottom: 20
-  },
-  titleContainer: {
-    position: 'relative',
-    alignItems: 'center'
+    marginBottom: 40,
   },
   title: {
-    fontSize: 36,
+    fontSize: 48,
     fontWeight: '900',
-    color: '#023245',
-    letterSpacing: 1
-  },
-  shimmerOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: -100,
-    width: 200,
-    height: 44,
-    borderRadius: 8,
-    overflow: 'hidden'
-  },
-  shimmerGradient: {
-    width: 200,
-    height: 44
+    color: THEME.textPrimary,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
-    color: THEME.muted,
-    marginTop: 6,
-    fontWeight: '700'
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginTop: 10,
-    width: '100%',
-    maxWidth: 640,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-    marginLeft: 12
-  },
-  clearButton: {
-    padding: 4
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 40
-  },
-  emptyTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
-    marginTop: 16,
-    marginBottom: 8
+    fontWeight: '600',
+    color: THEME.textSecondary,
+    textAlign: 'center',
+    marginBottom: 12,
   },
-  emptyText: {
+  description: {
     fontSize: 16,
     color: THEME.muted,
     textAlign: 'center',
-    lineHeight: 22
-  }
+    lineHeight: 22,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  quickActionCard: {
+    width: '48%',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  quickActionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: THEME.textPrimary,
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  quickActionDescription: {
+    fontSize: 14,
+    color: THEME.muted,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
 });
 
 export default HomeScreen;

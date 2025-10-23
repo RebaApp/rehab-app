@@ -1,112 +1,30 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
-  Alert,
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { User, Article } from '../types';
+import { User } from '../types';
 import { THEME } from '../utils/constants';
-import AdminPanel from './admin/AdminPanel';
-import AuthModal from '../components/common/AuthModal';
-import useAppStore from '../store/useAppStore';
-import Constants from 'expo-constants';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 
 interface ProfileScreenProps {
   user: User | null;
   isAuthenticated: boolean;
-  onLoginPress: () => void;
-  onRegisterPress: () => void;
   onLogoutPress: () => void;
-  onSettingsPress: () => void;
 }
 
 const ProfileScreen: React.FC<ProfileScreenProps> = memo(({
   user,
   isAuthenticated,
-  onLoginPress,
-  onRegisterPress,
-  onLogoutPress,
-  onSettingsPress
+  onLogoutPress
 }) => {
-  const [adminPanelVisible, setAdminPanelVisible] = useState(false);
-  const [authModalVisible, setAuthModalVisible] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'register' | 'register-center'>('login');
-  const handleAboutPress = useCallback(() => {
-    Alert.alert(
-      'О нас',
-      'РЕБА - агрегатор реабилитационных центров в России. Мы помогаем найти подходящий центр для лечения зависимостей.'
-    );
-  }, []);
-
-  const handleAgreementsPress = useCallback(() => {
-    Alert.alert(
-      'Соглашения',
-      'Пользовательское соглашение и политика конфиденциальности'
-    );
-  }, []);
-
-  const handlePricingPress = useCallback(() => {
-    Alert.alert(
-      'Тарифы',
-      'Информация о тарифах для центров'
-    );
-  }, []);
-
-  const handleContactsPress = useCallback(() => {
-    Alert.alert(
-      'Контакты',
-      'Свяжитесь с нами: support@reba.ru'
-    );
-  }, []);
-
-  const handleInvestorsPress = useCallback(() => {
-    Alert.alert(
-      'Для инвесторов',
-      'Информация для инвесторов'
-    );
-  }, []);
-
-  const handleCareerPress = useCallback(() => {
-    Alert.alert(
-      'Карьера в РЕБА',
-      'Вакансии в нашей команде'
-    );
-  }, []);
-
-  // Админ функции
-  const handleAdminPress = useCallback(() => {
-    setAdminPanelVisible(true);
-  }, []);
-
-  // Аутентификация
-  const handleLoginPress = useCallback(() => {
-    setAuthMode('login');
-    setAuthModalVisible(true);
-  }, []);
-
-  const handleRegisterPress = useCallback(() => {
-    setAuthMode('register');
-    setAuthModalVisible(true);
-  }, []);
-
-  const handleRegisterCenterPress = useCallback(() => {
-    setAuthMode('register-center');
-    setAuthModalVisible(true);
-  }, []);
-
-  const handleAuthSuccess = useCallback((userData: any) => {
-    Alert.alert('Успех', 'Вы успешно вошли в систему!');
-    // Здесь будет реальная аутентификация
-  }, []);
-
   return (
     <LinearGradient
       colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
@@ -148,7 +66,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = memo(({
           <View style={styles.authSection}>
             <TouchableOpacity 
               style={styles.loginButton} 
-              onPress={handleLoginPress}
+              onPress={() => console.log('Login pressed')}
               activeOpacity={0.7}
             >
               <Ionicons name="log-in-outline" size={20} color={THEME.primary} />
@@ -157,7 +75,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = memo(({
             
             <TouchableOpacity 
               style={styles.registerButton} 
-              onPress={handleRegisterPress}
+              onPress={() => console.log('Register pressed')}
               activeOpacity={0.7}
             >
               <Ionicons name="person-add-outline" size={20} color="#fff" />
@@ -166,7 +84,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = memo(({
 
             <TouchableOpacity 
               style={styles.registerCenterButton} 
-              onPress={handleRegisterCenterPress}
+              onPress={() => console.log('Register center pressed')}
               activeOpacity={0.7}
             >
               <Ionicons name="business-outline" size={20} color="#fff" />
@@ -174,127 +92,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = memo(({
             </TouchableOpacity>
           </View>
         )}
-        
-        {/* Меню - каждый пункт отдельная кнопка */}
-        <View style={styles.menuContainer}>
-          <TouchableOpacity 
-            style={styles.menuButton} 
-            onPress={handleAboutPress}
-            activeOpacity={0.6}
-          >
-            <View style={styles.menuButtonContent}>
-              <Ionicons name="information-circle-outline" size={24} color={THEME.primary} />
-              <Text style={styles.menuButtonText}>О нас</Text>
-              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
-            </View>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.menuButton} 
-            onPress={handleAgreementsPress}
-            activeOpacity={0.6}
-          >
-            <View style={styles.menuButtonContent}>
-              <Ionicons name="document-text-outline" size={24} color={THEME.primary} />
-              <Text style={styles.menuButtonText}>Соглашения</Text>
-              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
-            </View>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.menuButton} 
-            onPress={handlePricingPress}
-            activeOpacity={0.6}
-          >
-            <View style={styles.menuButtonContent}>
-              <Ionicons name="card-outline" size={24} color={THEME.primary} />
-              <Text style={styles.menuButtonText}>Тарифы</Text>
-              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
-            </View>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.menuButton} 
-            onPress={handleContactsPress}
-            activeOpacity={0.6}
-          >
-            <View style={styles.menuButtonContent}>
-              <Ionicons name="mail-outline" size={24} color={THEME.primary} />
-              <Text style={styles.menuButtonText}>Контакты</Text>
-              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
-            </View>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.menuButton} 
-            onPress={handleInvestorsPress}
-            activeOpacity={0.6}
-          >
-            <View style={styles.menuButtonContent}>
-              <Ionicons name="trending-up-outline" size={24} color={THEME.primary} />
-              <Text style={styles.menuButtonText}>Для инвесторов</Text>
-              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
-            </View>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.menuButton} 
-            onPress={handleCareerPress}
-            activeOpacity={0.6}
-          >
-            <View style={styles.menuButtonContent}>
-              <Ionicons name="briefcase-outline" size={24} color={THEME.primary} />
-              <Text style={styles.menuButtonText}>Карьера в РЕБА</Text>
-              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
-            </View>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.menuButton} 
-            onPress={onSettingsPress}
-            activeOpacity={0.6}
-          >
-            <View style={styles.menuButtonContent}>
-              <Ionicons name="settings-outline" size={24} color={THEME.primary} />
-              <Text style={styles.menuButtonText}>Настройки</Text>
-              <Ionicons name="chevron-forward" size={18} color={THEME.muted} />
-            </View>
-          </TouchableOpacity>
-          
-          {/* Админ панель - показываем только в dev режиме или если включена в настройках */}
-          {(__DEV__ || Constants.expoConfig?.extra?.enableAdminPanel) && (
-            <TouchableOpacity 
-              style={[styles.menuButton, styles.adminMenuButton]} 
-              onPress={handleAdminPress}
-              activeOpacity={0.6}
-            >
-              <View style={styles.menuButtonContent}>
-                <Ionicons name="construct-outline" size={24} color="#ff6b35" />
-                <Text style={[styles.menuButtonText, styles.adminMenuButtonText]}>
-                  Админ панель {__DEV__ ? '(DEV)' : '(PROD)'}
-                </Text>
-                <Ionicons name="chevron-forward" size={18} color="#ff6b35" />
-              </View>
-            </TouchableOpacity>
-          )}
-        </View>
       </ScrollView>
 
-      {/* Админ панель - только в dev режиме или если включена в настройках */}
-      {(__DEV__ || Constants.expoConfig?.extra?.enableAdminPanel) && (
-        <AdminPanel
-          visible={adminPanelVisible}
-          onClose={() => setAdminPanelVisible(false)}
-        />
-      )}
-
-      {/* Модальное окно аутентификации */}
-      <AuthModal
-        visible={authModalVisible}
-        mode={authMode}
-        onClose={() => setAuthModalVisible(false)}
-        onSuccess={handleAuthSuccess}
-      />
     </LinearGradient>
   );
 });
@@ -422,6 +221,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     marginLeft: 8
+  },
+  authText: {
+    fontSize: 16,
+    color: THEME.muted,
+    textAlign: 'center',
+    padding: 20,
   },
 
   // Контейнер меню

@@ -19,6 +19,7 @@ export interface Center {
   address: string;
   phone: string;
   email: string;
+  website?: string;
   rating: number;
   reviewsCount: number;
   verified: boolean;
@@ -39,6 +40,9 @@ export interface Center {
   methods: string[];
   reviews: Review[];
   distance?: number;
+  image?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Review {
@@ -54,10 +58,15 @@ export interface Article {
   id: string;
   title: string;
   content?: string;
-  body?: string;
+  body: string;
   excerpt: string;
   category?: string;
   author?: string;
+  authorName?: string;
+  authorCredentials?: string;
+  rubric?: string;
+  articleType?: 'media' | 'integration';
+  centerId?: string;
   image: string;
   createdAt?: string;
   updatedAt?: string;
@@ -86,7 +95,7 @@ export interface Filters {
   minPrice: string;
   maxPrice: string;
   minRating: number;
-  sortBy: 'rating' | 'distance' | 'price';
+  sortBy: 'rating' | 'distance' | 'price' | 'name' | 'reviewsCount';
   sortOrder: 'asc' | 'desc';
 }
 
@@ -110,7 +119,7 @@ export interface PaginatedResponse<T> {
 
 // === UI STATE TYPES ===
 export interface UIState {
-  currentTab: 'home' | 'search' | 'favorites' | 'profile';
+  currentTab: 'home' | 'search' | 'journey' | 'favorites' | 'profile';
   searchQuery: string;
   articleQuery: string;
   filtersVisible: boolean;
@@ -119,6 +128,7 @@ export interface UIState {
   articleOpen: Article | null;
   isOnline: boolean;
   refreshing: boolean;
+  shimmer: any; // Animated value for shimmer effect
 }
 
 // === AUTH STATE TYPES ===
@@ -263,6 +273,69 @@ export interface AppError {
 }
 
 // === THEME TYPES ===
+// Journey Hub Types
+export interface JourneyStage {
+  id: string;
+  title: string;
+  description: string;
+  status: 'completed' | 'current' | 'upcoming';
+  progress: number; // 0-100
+  startDate?: string;
+  endDate?: string;
+  photo?: string;
+  achievements?: string[];
+}
+
+export interface JourneyHubState {
+  stages: JourneyStage[];
+  currentStageId: string;
+  totalProgress: number;
+  achievements: Achievement[];
+  emergencyContacts: EmergencyContact[];
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  date: string;
+  photo?: string;
+}
+
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  phone: string;
+  type: 'center' | 'psychologist' | 'crisis_line';
+  available: boolean;
+}
+
+export interface VideoTour {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  thumbnail: string;
+  url: string;
+  centerId: string;
+}
+
+export interface QuickHelpItem {
+  id: string;
+  title: string;
+  icon: string;
+  action: 'crisis' | 'motivation' | 'contacts' | 'video';
+}
+
+export interface JourneyHubProps {
+  onStagePress: (stage: JourneyStage) => void;
+  onAchievementPress: (achievement: Achievement) => void;
+  onEmergencyPress: () => void;
+  onVideoPress: (video: VideoTour) => void;
+  onSharePress: () => void;
+}
+
 export interface Theme {
   colors: {
     primary: string;

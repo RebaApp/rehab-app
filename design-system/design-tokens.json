@@ -1,0 +1,333 @@
+{
+  "version": "1.0.0",
+  "name": "REBA Design System 2025",
+  "description": "Современная дизайн-система для мобильного приложения РЕБА",
+  
+  "colors": {
+    "primary": {
+      "50": "#E6F3FF",
+      "100": "#CCE7FF", 
+      "200": "#99CFFF",
+      "300": "#66B7FF",
+      "400": "#339FFF",
+      "500": "#0A84FF",
+      "600": "#086ACC",
+      "700": "#065099",
+      "800": "#043666",
+      "900": "#021D33"
+    },
+    "secondary": {
+      "50": "#F8F9FA",
+      "100": "#F1F3F4",
+      "200": "#E8EAED",
+      "300": "#DADCE0",
+      "400": "#BDC1C6",
+      "500": "#9AA0A6",
+      "600": "#80868B",
+      "700": "#5F6368",
+      "800": "#3C4043",
+      "900": "#202124"
+    },
+    "semantic": {
+      "success": {
+        "50": "#E8F5E8",
+        "500": "#34A853",
+        "600": "#2E7D32",
+        "700": "#1B5E20"
+      },
+      "warning": {
+        "50": "#FFF3E0",
+        "500": "#FF9800",
+        "600": "#F57C00",
+        "700": "#E65100"
+      },
+      "error": {
+        "50": "#FFEBEE",
+        "500": "#F44336",
+        "600": "#E53935",
+        "700": "#D32F2F"
+      },
+      "info": {
+        "50": "#E3F2FD",
+        "500": "#2196F3",
+        "600": "#1E88E5",
+        "700": "#1976D2"
+      }
+    },
+    "neutral": {
+      "white": "#FFFFFF",
+      "black": "#0B0B0B",
+      "gray": {
+        "50": "#FAFAFA",
+        "100": "#F5F5F5",
+        "200": "#EEEEEE",
+        "300": "#E0E0E0",
+        "400": "#BDBDBD",
+        "500": "#9E9E9E",
+        "600": "#757575",
+        "700": "#616161",
+        "800": "#424242",
+        "900": "#212121"
+      }
+    },
+    "background": {
+      "primary": "#FFFFFF",
+      "secondary": "#FAFAFA",
+      "tertiary": "#F5F5F5",
+      "overlay": "rgba(0, 0, 0, 0.5)",
+      "modal": "rgba(0, 0, 0, 0.4)"
+    },
+    "text": {
+      "primary": "#0B0B0B",
+      "secondary": "#424242",
+      "tertiary": "#757575",
+      "disabled": "#BDBDBD",
+      "inverse": "#FFFFFF",
+      "accent": "#0A84FF"
+    },
+    "border": {
+      "light": "#E0E0E0",
+      "medium": "#BDBDBD",
+      "dark": "#757575",
+      "focus": "#0A84FF"
+    }
+  },
+
+  "typography": {
+    "fontFamily": {
+      "primary": "Inter",
+      "fallback": "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    },
+    "fontWeight": {
+      "regular": "400",
+      "medium": "500", 
+      "semibold": "600",
+      "bold": "700"
+    },
+    "fontSize": {
+      "xs": "12px",
+      "sm": "14px",
+      "base": "16px",
+      "lg": "18px",
+      "xl": "20px",
+      "2xl": "24px",
+      "3xl": "30px",
+      "4xl": "36px",
+      "5xl": "48px"
+    },
+    "lineHeight": {
+      "tight": "1.2",
+      "normal": "1.4",
+      "relaxed": "1.6",
+      "loose": "1.8"
+    },
+    "letterSpacing": {
+      "tight": "-0.025em",
+      "normal": "0",
+      "wide": "0.025em",
+      "wider": "0.05em"
+    },
+    "styles": {
+      "h1": {
+        "fontSize": "36px",
+        "fontWeight": "700",
+        "lineHeight": "1.2",
+        "letterSpacing": "-0.025em"
+      },
+      "h2": {
+        "fontSize": "30px", 
+        "fontWeight": "700",
+        "lineHeight": "1.2",
+        "letterSpacing": "-0.025em"
+      },
+      "h3": {
+        "fontSize": "24px",
+        "fontWeight": "600",
+        "lineHeight": "1.3",
+        "letterSpacing": "0"
+      },
+      "h4": {
+        "fontSize": "20px",
+        "fontWeight": "600", 
+        "lineHeight": "1.3",
+        "letterSpacing": "0"
+      },
+      "body": {
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "1.5",
+        "letterSpacing": "0"
+      },
+      "bodySmall": {
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "lineHeight": "1.4",
+        "letterSpacing": "0"
+      },
+      "caption": {
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "lineHeight": "1.3",
+        "letterSpacing": "0.025em"
+      },
+      "button": {
+        "fontSize": "16px",
+        "fontWeight": "600",
+        "lineHeight": "1.2",
+        "letterSpacing": "0"
+      },
+      "buttonSmall": {
+        "fontSize": "14px",
+        "fontWeight": "600",
+        "lineHeight": "1.2",
+        "letterSpacing": "0"
+      }
+    }
+  },
+
+  "spacing": {
+    "0": "0px",
+    "1": "4px",
+    "2": "8px", 
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px",
+    "16": "64px",
+    "20": "80px",
+    "24": "96px",
+    "32": "128px"
+  },
+
+  "borderRadius": {
+    "none": "0px",
+    "sm": "4px",
+    "base": "8px",
+    "md": "12px",
+    "lg": "16px",
+    "xl": "20px",
+    "2xl": "24px",
+    "full": "9999px"
+  },
+
+  "shadows": {
+    "none": "none",
+    "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    "base": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+    "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+    "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+    "2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+  },
+
+  "elevation": {
+    "0": {
+      "shadowColor": "transparent",
+      "shadowOffset": "0px 0px",
+      "shadowOpacity": "0",
+      "shadowRadius": "0px",
+      "elevation": "0"
+    },
+    "1": {
+      "shadowColor": "#000000",
+      "shadowOffset": "0px 1px",
+      "shadowOpacity": "0.05",
+      "shadowRadius": "2px",
+      "elevation": "1"
+    },
+    "2": {
+      "shadowColor": "#000000", 
+      "shadowOffset": "0px 2px",
+      "shadowOpacity": "0.1",
+      "shadowRadius": "4px",
+      "elevation": "2"
+    },
+    "3": {
+      "shadowColor": "#000000",
+      "shadowOffset": "0px 4px", 
+      "shadowOpacity": "0.1",
+      "shadowRadius": "8px",
+      "elevation": "3"
+    },
+    "4": {
+      "shadowColor": "#000000",
+      "shadowOffset": "0px 8px",
+      "shadowOpacity": "0.15",
+      "shadowRadius": "16px", 
+      "elevation": "4"
+    },
+    "5": {
+      "shadowColor": "#000000",
+      "shadowOffset": "0px 16px",
+      "shadowOpacity": "0.2",
+      "shadowRadius": "24px",
+      "elevation": "5"
+    }
+  },
+
+  "breakpoints": {
+    "mobile": {
+      "small": "320px",
+      "medium": "375px", 
+      "large": "414px"
+    },
+    "tablet": {
+      "portrait": "768px",
+      "landscape": "1024px"
+    }
+  },
+
+  "zIndex": {
+    "hide": "-1",
+    "auto": "auto",
+    "base": "0",
+    "docked": "10",
+    "dropdown": "1000",
+    "sticky": "1100",
+    "banner": "1200",
+    "overlay": "1300",
+    "modal": "1400",
+    "popover": "1500",
+    "skipLink": "1600",
+    "toast": "1700",
+    "tooltip": "1800"
+  },
+
+  "animation": {
+    "duration": {
+      "fast": "120ms",
+      "normal": "240ms", 
+      "slow": "360ms",
+      "slower": "480ms"
+    },
+    "easing": {
+      "linear": "linear",
+      "ease": "ease",
+      "easeIn": "ease-in",
+      "easeOut": "ease-out",
+      "easeInOut": "ease-in-out",
+      "standard": "cubic-bezier(0.4, 0.0, 0.2, 1)",
+      "deceleration": "cubic-bezier(0.0, 0.0, 0.2, 1)",
+      "acceleration": "cubic-bezier(0.4, 0.0, 1, 1)",
+      "spring": "cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+    }
+  },
+
+  "accessibility": {
+    "minTouchTarget": "44px",
+    "focusRing": {
+      "width": "2px",
+      "style": "solid",
+      "color": "#0A84FF",
+      "offset": "2px"
+    },
+    "contrast": {
+      "aa": "4.5:1",
+      "aaa": "7:1"
+    }
+  }
+}
+

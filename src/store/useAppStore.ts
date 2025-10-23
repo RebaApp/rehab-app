@@ -35,7 +35,7 @@ const useAppStore = create<AppStore>((set, get) => ({
       articleOpen: null,
       isOnline: true,
       refreshing: false,
-  shimmer: new (require('react-native').Animated).Value(0),
+  shimmer: null, // Will be initialized when needed
 
       // === FILTERS STATE ===
       filters: {

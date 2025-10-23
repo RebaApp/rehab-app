@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { Center } from '../types';
-import { THEME } from '../utils/constants';
 import OptimizedImage from '../components/common/OptimizedImage';
 
 interface CenterDetailScreenProps {
@@ -80,186 +80,153 @@ const CenterDetailScreen: React.FC<CenterDetailScreenProps> = memo(({
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
-        style={styles.gradient}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={24} color={THEME.text} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Центр</Text>
-          <TouchableOpacity style={styles.favoriteButton} onPress={handleFavoritePress}>
-            <Ionicons 
-              name={isFavorite ? "heart" : "heart-outline"} 
-              size={24} 
-              color={isFavorite ? "#ff6b6b" : THEME.text} 
-            />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Галерея изображений */}
-          <View style={styles.imageContainer}>
-            <OptimizedImage
-              uri={center.photos[0] || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center'}
-              style={styles.image}
-              priority={true}
-              cachePolicy="memory"
-              contentFit="cover"
-              transition={200}
-            />
-            {center.verified && (
-              <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                <Text style={styles.verifiedText}>Проверен</Text>
-              </View>
-            )}
+      <BlurView intensity={20} tint="light" style={styles.blurContainer}>
+        <LinearGradient
+          colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
+          style={styles.gradient}
+        >
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <BlurView intensity={10} tint="light" style={styles.closeBlur}>
+                <LinearGradient
+                  colors={['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
+                  style={styles.closeGradient}
+                >
+                  <Ionicons name="close" size={20} color="#42A5F5" />
+                </LinearGradient>
+              </BlurView>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Центр</Text>
+            <TouchableOpacity style={styles.favoriteButton} onPress={handleFavoritePress}>
+              <BlurView intensity={10} tint="light" style={styles.favoriteBlur}>
+                <LinearGradient
+                  colors={isFavorite ? ['#ff6b6b', '#ff5252'] : ['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
+                  style={styles.favoriteGradient}
+                >
+                  <Ionicons 
+                    name={isFavorite ? "heart" : "heart-outline"} 
+                    size={20} 
+                    color="#FFFFFF" 
+                  />
+                </LinearGradient>
+              </BlurView>
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.textContainer}>
-            {/* Основная информация */}
-            <Text style={styles.title}>{center.name}</Text>
-            
-            <View style={styles.ratingContainer}>
-              <View style={styles.starsContainer}>
-                {renderStars}
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            {/* Галерея изображений */}
+            <View style={styles.imageContainer}>
+              <OptimizedImage
+                uri={center.photos[0] || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center'}
+                style={styles.image}
+                priority={true}
+                cachePolicy="memory"
+                contentFit="cover"
+                transition={200}
+              />
+              {center.verified && (
+                <View style={styles.verifiedBadge}>
+                  <BlurView intensity={10} tint="light" style={styles.verifiedBlur}>
+                    <LinearGradient
+                      colors={['rgba(76, 175, 80, 0.9)', 'rgba(76, 175, 80, 0.8)']}
+                      style={styles.verifiedGradient}
+                    >
+                      <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+                      <Text style={styles.verifiedText}>Проверен</Text>
+                    </LinearGradient>
+                  </BlurView>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.textContainer}>
+              {/* Основная информация */}
+              <Text style={styles.title}>{center.name}</Text>
+              
+              <View style={styles.ratingContainer}>
+                <View style={styles.starsContainer}>
+                  {renderStars}
+                </View>
+                <Text style={styles.ratingText}>{center.rating}</Text>
+                <Text style={styles.reviewsText}>({center.reviewsCount} отзывов)</Text>
               </View>
-              <Text style={styles.ratingText}>{center.rating}</Text>
-              <Text style={styles.reviewsText}>({center.reviewsCount} отзывов)</Text>
-            </View>
 
-            <View style={styles.locationContainer}>
-              <Ionicons name="location-outline" size={16} color={THEME.muted} />
-              <Text style={styles.locationText}>{center.city}, {center.address}</Text>
-            </View>
-
-            <Text style={styles.description}>{center.description}</Text>
-
-            {/* Цена и услуги */}
-            <View style={styles.priceContainer}>
-              <Text style={styles.priceLabel}>Стоимость:</Text>
-              <Text style={styles.price}>{center.price}</Text>
-            </View>
-
-            {center.duration && (
-              <View style={styles.durationContainer}>
-                <Text style={styles.durationLabel}>Длительность:</Text>
-                <Text style={styles.duration}>{center.duration}</Text>
+              <View style={styles.locationContainer}>
+                <Ionicons name="location-outline" size={16} color="#81D4FA" />
+                <Text style={styles.locationText}>{center.city}, {center.address}</Text>
               </View>
-            )}
 
-            {/* Услуги */}
-            <View style={styles.servicesContainer}>
-              <Text style={styles.sectionTitle}>Услуги:</Text>
-              <View style={styles.servicesList}>
-                {center.services.map((service, index) => (
-                  <View key={index} style={styles.serviceItem}>
-                    <Ionicons name="checkmark-circle-outline" size={16} color={THEME.primary} />
-                    <Text style={styles.serviceText}>{service}</Text>
-                  </View>
-                ))}
+              <Text style={styles.description}>{center.description}</Text>
+
+              {/* Цена и услуги */}
+              <View style={styles.priceContainer}>
+                <Text style={styles.priceLabel}>Стоимость:</Text>
+                <Text style={styles.price}>{center.price}</Text>
               </View>
-            </View>
 
-            {/* Методы лечения */}
-            {center.methods && center.methods.length > 0 && (
-              <View style={styles.methodsContainer}>
-                <Text style={styles.sectionTitle}>Методы лечения:</Text>
-                <View style={styles.methodsList}>
-                  {center.methods.map((method, index) => (
-                    <View key={index} style={styles.methodItem}>
-                      <Ionicons name="medical-outline" size={16} color={THEME.primary} />
-                      <Text style={styles.methodText}>{method}</Text>
+              {/* Услуги */}
+              <View style={styles.servicesContainer}>
+                <Text style={styles.servicesTitle}>Услуги:</Text>
+                <View style={styles.servicesList}>
+                  {center.services.map((service, index) => (
+                    <View key={index} style={styles.serviceTag}>
+                      <BlurView intensity={10} tint="light" style={styles.serviceBlur}>
+                        <LinearGradient
+                          colors={['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
+                          style={styles.serviceGradient}
+                        >
+                          <Text style={styles.serviceText}>{service}</Text>
+                        </LinearGradient>
+                      </BlurView>
                     </View>
                   ))}
                 </View>
               </View>
-            )}
 
-            {/* Дополнительная информация */}
-            <View style={styles.infoContainer}>
-              <Text style={styles.sectionTitle}>Информация о центре:</Text>
-              
-              <View style={styles.infoItem}>
-                <Ionicons name="time-outline" size={16} color={THEME.muted} />
-                <Text style={styles.infoLabel}>Режим работы:</Text>
-                <Text style={styles.infoValue}>{center.workingHours}</Text>
-              </View>
+              {/* Контактная информация */}
+              <View style={styles.contactContainer}>
+                <Text style={styles.contactTitle}>Контакты:</Text>
+                
+                <TouchableOpacity style={styles.contactItem} onPress={handleCall}>
+                  <BlurView intensity={10} tint="light" style={styles.contactBlur}>
+                    <LinearGradient
+                      colors={['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
+                      style={styles.contactGradient}
+                    >
+                      <Ionicons name="call" size={20} color="#42A5F5" />
+                      <Text style={styles.contactText}>{center.phone}</Text>
+                    </LinearGradient>
+                  </BlurView>
+                </TouchableOpacity>
 
-              <View style={styles.infoItem}>
-                <Ionicons name="people-outline" size={16} color={THEME.muted} />
-                <Text style={styles.infoLabel}>Вместимость:</Text>
-                <Text style={styles.infoValue}>{center.capacity} мест</Text>
-              </View>
+                <TouchableOpacity style={styles.contactItem} onPress={handleEmail}>
+                  <BlurView intensity={10} tint="light" style={styles.contactBlur}>
+                    <LinearGradient
+                      colors={['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
+                      style={styles.contactGradient}
+                    >
+                      <Ionicons name="mail" size={20} color="#42A5F5" />
+                      <Text style={styles.contactText}>{center.email}</Text>
+                    </LinearGradient>
+                  </BlurView>
+                </TouchableOpacity>
 
-              <View style={styles.infoItem}>
-                <Ionicons name="calendar-outline" size={16} color={THEME.muted} />
-                <Text style={styles.infoLabel}>Основан:</Text>
-                <Text style={styles.infoValue}>{center.yearFounded} год</Text>
-              </View>
-
-              <View style={styles.infoItem}>
-                <Ionicons name="document-text-outline" size={16} color={THEME.muted} />
-                <Text style={styles.infoLabel}>Лицензия:</Text>
-                <Text style={styles.infoValue}>{center.license}</Text>
+                <TouchableOpacity style={styles.contactItem} onPress={handleMap}>
+                  <BlurView intensity={10} tint="light" style={styles.contactBlur}>
+                    <LinearGradient
+                      colors={['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
+                      style={styles.contactGradient}
+                    >
+                      <Ionicons name="map" size={20} color="#42A5F5" />
+                      <Text style={styles.contactText}>Открыть на карте</Text>
+                    </LinearGradient>
+                  </BlurView>
+                </TouchableOpacity>
               </View>
             </View>
-
-            {/* Полное описание */}
-            {center.descriptionFull && (
-              <View style={styles.fullDescriptionContainer}>
-                <Text style={styles.sectionTitle}>Подробное описание:</Text>
-                <Text style={styles.fullDescription}>{center.descriptionFull}</Text>
-              </View>
-            )}
-
-            {/* Отзывы */}
-            {center.reviews && center.reviews.length > 0 && (
-              <View style={styles.reviewsContainer}>
-                <Text style={styles.sectionTitle}>Отзывы:</Text>
-                {center.reviews.map((review, index) => (
-                  <View key={index} style={styles.reviewItem}>
-                    <View style={styles.reviewHeader}>
-                      <Text style={styles.reviewAuthor}>{review.userName}</Text>
-                      <View style={styles.reviewRating}>
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <Ionicons
-                            key={i}
-                            name={i < review.rating ? "star" : "star-outline"}
-                            size={12}
-                            color="#FFD700"
-                          />
-                        ))}
-                      </View>
-                    </View>
-                    <Text style={styles.reviewText}>{review.text}</Text>
-                    <Text style={styles.reviewDate}>{review.date}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-        </ScrollView>
-
-        {/* Кнопки действий */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
-            <Ionicons name="call" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Позвонить</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.actionButton} onPress={handleEmail}>
-            <Ionicons name="mail" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Написать</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.actionButton} onPress={handleMap}>
-            <Ionicons name="map" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Карта</Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+          </ScrollView>
+        </LinearGradient>
+      </BlurView>
     </SafeAreaView>
   );
 });
@@ -267,7 +234,10 @@ const CenterDetailScreen: React.FC<CenterDetailScreenProps> = memo(({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.bgTop,
+    backgroundColor: '#f8f9fa',
+  },
+  blurContainer: {
+    flex: 1,
   },
   gradient: {
     flex: 1,
@@ -277,36 +247,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.border,
+    borderBottomColor: 'rgba(129, 212, 250, 0.2)',
   },
   closeButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  closeBlur: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  closeGradient: {
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: THEME.text,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    letterSpacing: -0.3,
   },
   favoriteButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  favoriteBlur: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  favoriteGradient: {
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
   },
   imageContainer: {
-    height: 250,
-    marginHorizontal: 20,
-    marginTop: 20,
-    borderRadius: THEME.radius,
-    overflow: 'hidden',
     position: 'relative',
+    height: 250,
+    width: '100%',
   },
   image: {
     width: '100%',
@@ -314,20 +297,26 @@ const styles = StyleSheet.create({
   },
   verifiedBadge: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: 16,
+    left: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  verifiedBlur: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  verifiedGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   verifiedText: {
     fontSize: 12,
+    color: '#FFFFFF',
     fontWeight: '600',
-    color: '#4CAF50',
+    marginLeft: 6,
   },
   textContainer: {
     padding: 20,
@@ -335,199 +324,128 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: THEME.text,
-    lineHeight: 32,
-    marginBottom: 10,
+    color: '#1a1a1a',
+    marginBottom: 12,
+    letterSpacing: -0.5,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
-    gap: 8,
+    marginBottom: 16,
   },
   starsContainer: {
     flexDirection: 'row',
-    gap: 2,
+    marginRight: 8,
   },
   ratingText: {
     fontSize: 16,
     fontWeight: '600',
-    color: THEME.text,
+    color: '#1a1a1a',
+    marginRight: 8,
   },
   reviewsText: {
     fontSize: 14,
-    color: THEME.muted,
+    color: '#666',
+    fontWeight: '500',
   },
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
-    gap: 6,
+    marginBottom: 16,
   },
   locationText: {
     fontSize: 14,
-    color: THEME.muted,
+    color: '#666',
+    marginLeft: 8,
     fontWeight: '500',
   },
   description: {
     fontSize: 16,
-    color: THEME.text,
+    color: '#1a1a1a',
     lineHeight: 24,
     marginBottom: 20,
+    fontWeight: '400',
   },
   priceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
-    gap: 8,
+    marginBottom: 20,
   },
   priceLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: THEME.text,
+    color: '#666',
+    fontWeight: '500',
+    marginRight: 8,
   },
   price: {
     fontSize: 18,
     fontWeight: '700',
-    color: THEME.primary,
-  },
-  durationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    gap: 8,
-  },
-  durationLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: THEME.text,
-  },
-  duration: {
-    fontSize: 16,
-    color: THEME.text,
+    color: '#42A5F5',
   },
   servicesContainer: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
-  methodsContainer: {
-    marginBottom: 20,
-  },
-  infoContainer: {
-    marginBottom: 20,
-  },
-  fullDescriptionContainer: {
-    marginBottom: 20,
-  },
-  reviewsContainer: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
+  servicesTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: THEME.text,
-    marginBottom: 10,
+    color: '#1a1a1a',
+    marginBottom: 12,
+    letterSpacing: -0.3,
   },
   servicesList: {
-    gap: 8,
-  },
-  serviceItem: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  serviceTag: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  serviceBlur: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  serviceGradient: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     alignItems: 'center',
-    gap: 8,
   },
   serviceText: {
-    fontSize: 14,
-    color: THEME.text,
-  },
-  methodsList: {
-    gap: 8,
-  },
-  methodItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  methodText: {
-    fontSize: 14,
-    color: THEME.text,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    gap: 8,
-  },
-  infoLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: THEME.text,
-    minWidth: 100,
-  },
-  infoValue: {
-    fontSize: 14,
-    color: THEME.text,
-    flex: 1,
-  },
-  fullDescription: {
-    fontSize: 16,
-    color: THEME.text,
-    lineHeight: 24,
-    textAlign: 'justify',
-  },
-  reviewItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  reviewAuthor: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: THEME.text,
-  },
-  reviewRating: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-  reviewText: {
-    fontSize: 14,
-    color: THEME.text,
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  reviewDate: {
     fontSize: 12,
-    color: THEME.muted,
+    color: '#42A5F5',
+    fontWeight: '600',
   },
-  actionButtons: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderTopWidth: 1,
-    borderTopColor: THEME.border,
-    gap: 10,
+  contactContainer: {
+    marginBottom: 24,
   },
-  actionButton: {
-    flex: 1,
+  contactTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 12,
+    letterSpacing: -0.3,
+  },
+  contactItem: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  contactBlur: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  contactGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: THEME.primary,
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 8,
-    gap: 6,
   },
-  actionButtonText: {
+  contactText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
+    color: '#42A5F5',
+    fontWeight: '500',
+    marginLeft: 12,
   },
 });
 

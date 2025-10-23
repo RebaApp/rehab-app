@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useAppStore from './src/store/useAppStore';
 import HomeScreen from './src/screens/HomeScreen';
 import SearchScreen from './src/screens/SearchScreen';
+import JourneyScreen from './src/screens/JourneyScreen';
 import FavoritesScreen from './src/screens/FavoritesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
@@ -78,7 +79,7 @@ export default function App() {
           center={selectedCenter}
           onClose={handleCloseCenter}
           onToggleFavorite={toggleFavorite}
-          isFavorite={isFavorite(selectedCenter?.id || '')}
+          isFavorite={selectedCenter ? isFavorite((selectedCenter as any).id) : false}
         />
       );
     }
@@ -105,15 +106,10 @@ export default function App() {
             onCenterPress={handleCenterPress}
             onToggleFavorite={toggleFavorite}
             isFavorite={isFavorite}
-            onRefresh={() => {
-              console.log('Refresh pressed');
-            }}
-            refreshing={false}
-            onFiltersPress={() => {
-              console.log('Filters pressed');
-            }}
           />
         );
+      case 'journey':
+        return <JourneyScreen />;
       case 'favorites':
         return (
           <FavoritesScreen
@@ -130,17 +126,8 @@ export default function App() {
           <ProfileScreen
             user={user}
             isAuthenticated={isAuthenticated}
-            onLoginPress={() => {
-              console.log('Login pressed');
-            }}
-            onRegisterPress={() => {
-              console.log('Register pressed');
-            }}
             onLogoutPress={() => {
               console.log('Logout pressed');
-            }}
-            onSettingsPress={() => {
-              console.log('Settings pressed');
             }}
           />
         );
@@ -184,6 +171,20 @@ export default function App() {
         />
         <Text style={[styles.tabText, currentTab === 'search' && styles.activeTabText]}>
           Поиск
+        </Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        style={[styles.tab, currentTab === 'journey' && styles.activeTab]}
+        onPress={() => setCurrentTab('journey')}
+      >
+        <Ionicons 
+          name="trending-up" 
+          size={20} 
+          color={currentTab === 'journey' ? '#fff' : THEME.muted} 
+        />
+        <Text style={[styles.tabText, currentTab === 'journey' && styles.activeTabText]}>
+          Путь
         </Text>
       </TouchableOpacity>
       
@@ -259,25 +260,25 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: THEME.text,
+    color: '#333',
     marginTop: 10,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: THEME.text,
+    color: '#333',
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: THEME.muted,
+    color: '#666',
     textAlign: 'center',
     marginBottom: 20,
   },
   info: {
     fontSize: 14,
-    color: THEME.text,
+    color: '#333',
     textAlign: 'center',
     marginBottom: 5,
   },

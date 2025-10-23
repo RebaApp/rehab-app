@@ -8,7 +8,7 @@ class ApiService {
   private retries: number;
 
   constructor() {
-    this.baseURL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001/api';
+    this.baseURL = process.env.EXPO_PUBLIC_API_URL || 'https://reba-api.loca.lt/api';
     this.cache = new Map();
     this.cacheTimeout = 5 * 60 * 1000; // 5 минут
     this.retries = 3;

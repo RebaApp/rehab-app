@@ -42,9 +42,7 @@
     "updates": {
       "url": "https://u.expo.dev/cf9a68a6-63c7-40dc-bd3e-2be53f3193b9"
     },
-    "runtimeVersion": {
-      "policy": "sdkVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "plugins": [
       "expo-updates",
       [

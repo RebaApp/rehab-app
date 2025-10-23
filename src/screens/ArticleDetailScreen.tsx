@@ -39,7 +39,7 @@ const ArticleDetailScreen: React.FC<ArticleDetailScreenProps> = memo(({
       >
         <View style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={24} color={THEME.text} />
+            <Ionicons name="close" size={24} color={THEME.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Статья</Text>
           <View style={styles.placeholder} />
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: THEME.text,
+    color: THEME.textPrimary,
   },
   placeholder: {
     width: 40,
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: THEME.text,
+    color: THEME.textPrimary,
     lineHeight: 32,
     marginBottom: 15,
   },
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   excerpt: {
     fontSize: 16,
-    color: THEME.text,
+    color: THEME.textPrimary,
     lineHeight: 24,
     marginBottom: 20,
     fontStyle: 'italic',
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   },
   body: {
     fontSize: 16,
-    color: THEME.text,
+    color: THEME.textPrimary,
     lineHeight: 26,
     textAlign: 'justify',
   },
