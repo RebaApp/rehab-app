@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import useAppStore from './src/store/useAppStore';
 import HomeScreen from './src/screens/HomeScreen';
@@ -146,75 +147,89 @@ export default function App() {
 
   const renderTabBar = () => (
     <View style={styles.tabContainer}>
-      <TouchableOpacity
-        style={[styles.tab, currentTab === 'home' && styles.activeTab]}
-        onPress={() => setCurrentTab('home')}
-      >
-        <Ionicons 
-          name={currentTab === 'home' ? 'home' : 'home-outline'} 
-          size={20} 
-          color={currentTab === 'home' ? '#fff' : THEME.muted} 
-        />
-        <Text style={[styles.tabText, currentTab === 'home' && styles.activeTabText]}>
-          Главная
-        </Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity
-        style={[styles.tab, currentTab === 'search' && styles.activeTab]}
-        onPress={() => setCurrentTab('search')}
-      >
-        <Ionicons 
-          name={currentTab === 'search' ? 'search' : 'search-outline'} 
-          size={20} 
-          color={currentTab === 'search' ? '#fff' : THEME.muted} 
-        />
-        <Text style={[styles.tabText, currentTab === 'search' && styles.activeTabText]}>
-          Поиск
-        </Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity
-        style={[styles.tab, currentTab === 'journey' && styles.activeTab]}
-        onPress={() => setCurrentTab('journey')}
-      >
-        <Ionicons 
-          name="trending-up" 
-          size={20} 
-          color={currentTab === 'journey' ? '#fff' : THEME.muted} 
-        />
-        <Text style={[styles.tabText, currentTab === 'journey' && styles.activeTabText]}>
-          Путь
-        </Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity
-        style={[styles.tab, currentTab === 'favorites' && styles.activeTab]}
-        onPress={() => setCurrentTab('favorites')}
-      >
-        <Ionicons 
-          name={currentTab === 'favorites' ? 'heart' : 'heart-outline'} 
-          size={20} 
-          color={currentTab === 'favorites' ? '#fff' : THEME.muted} 
-        />
-        <Text style={[styles.tabText, currentTab === 'favorites' && styles.activeTabText]}>
-          Избранное
-        </Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity
-        style={[styles.tab, currentTab === 'profile' && styles.activeTab]}
-        onPress={() => setCurrentTab('profile')}
-      >
-        <Ionicons 
-          name={currentTab === 'profile' ? 'person' : 'person-outline'} 
-          size={20} 
-          color={currentTab === 'profile' ? '#fff' : THEME.muted} 
-        />
-        <Text style={[styles.tabText, currentTab === 'profile' && styles.activeTabText]}>
-          Профиль
-        </Text>
-      </TouchableOpacity>
+      <BlurView intensity={20} tint="light" style={styles.tabBarBlur}>
+        <LinearGradient
+          colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+          style={styles.tabBarGradient}
+        >
+          <TouchableOpacity
+            style={[styles.tab, currentTab === 'home' && styles.activeTab]}
+            onPress={() => setCurrentTab('home')}
+          >
+            <Ionicons 
+              name={currentTab === 'home' ? 'home' : 'home-outline'} 
+              size={22} 
+              color={currentTab === 'home' ? '#fff' : '#666'} 
+            />
+            <Text style={[styles.tabText, currentTab === 'home' && styles.activeTabText]}>
+              Главная
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.tab, currentTab === 'search' && styles.activeTab]}
+            onPress={() => setCurrentTab('search')}
+          >
+            <Ionicons 
+              name={currentTab === 'search' ? 'search' : 'search-outline'} 
+              size={22} 
+              color={currentTab === 'search' ? '#fff' : '#666'} 
+            />
+            <Text style={[styles.tabText, currentTab === 'search' && styles.activeTabText]}>
+              Поиск
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.tab, currentTab === 'journey' && styles.activeTab]}
+            onPress={() => setCurrentTab('journey')}
+          >
+            <View style={styles.journeyIconContainer}>
+              <LinearGradient
+                colors={currentTab === 'journey' ? ['#81D4FA', '#42A5F5'] : ['#E0E0E0', '#E0E0E0']}
+                style={styles.journeyIconGradient}
+              >
+                <Ionicons 
+                  name="trending-up" 
+                  size={22} 
+                  color={currentTab === 'journey' ? '#fff' : '#666'} 
+                />
+              </LinearGradient>
+            </View>
+            <Text style={[styles.tabText, currentTab === 'journey' && styles.activeTabText]}>
+              Путь
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.tab, currentTab === 'favorites' && styles.activeTab]}
+            onPress={() => setCurrentTab('favorites')}
+          >
+            <Ionicons 
+              name={currentTab === 'favorites' ? 'heart' : 'heart-outline'} 
+              size={22} 
+              color={currentTab === 'favorites' ? '#fff' : '#666'} 
+            />
+            <Text style={[styles.tabText, currentTab === 'favorites' && styles.activeTabText]}>
+              Избранное
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.tab, currentTab === 'profile' && styles.activeTab]}
+            onPress={() => setCurrentTab('profile')}
+          >
+            <Ionicons 
+              name={currentTab === 'profile' ? 'person' : 'person-outline'} 
+              size={22} 
+              color={currentTab === 'profile' ? '#fff' : '#666'} 
+            />
+            <Text style={[styles.tabText, currentTab === 'profile' && styles.activeTabText]}>
+              Профиль
+            </Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </BlurView>
     </View>
   );
 
@@ -283,31 +298,61 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   tabContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  tabBarBlur: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  tabBarGradient: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    borderTopWidth: 1,
-    borderTopColor: THEME.border,
+    justifyContent: 'space-around',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
   },
   tab: {
-    flex: 1,
     alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginHorizontal: 2,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    minWidth: 60,
   },
   activeTab: {
-    backgroundColor: THEME.primary,
+    backgroundColor: 'rgba(129, 212, 250, 0.2)',
+  },
+  journeyIconContainer: {
+    marginBottom: 6,
+  },
+  journeyIconGradient: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#81D4FA',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   tabText: {
     fontSize: 12,
-    color: THEME.muted,
+    color: '#666',
     fontWeight: '500',
     marginTop: 4,
   },
   activeTabText: {
-    color: '#fff',
+    color: '#81D4FA',
     fontWeight: '600',
   },
   button: {
