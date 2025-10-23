@@ -63,12 +63,12 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
     // Бесконечная плавная анимация вращения
     const startRotation = () => {
       if (rotateAnim) {
-        rotateAnim.setValue(0);
+      rotateAnim.setValue(0);
         Animated.loop(
-          Animated.timing(rotateAnim, {
-            toValue: 1,
+      Animated.timing(rotateAnim, {
+        toValue: 1,
             duration: 8000, // 8 секунд на полный оборот - очень медленно
-            useNativeDriver: true,
+        useNativeDriver: true,
           }),
           { iterations: -1 } // бесконечно
         ).start();
@@ -181,9 +181,9 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
                   returnKeyType="search"
                   clearButtonMode="while-editing"
                 />
-              </LinearGradient>
-            </BlurView>
-          </View>
+                </LinearGradient>
+              </BlurView>
+            </View>
 
           {/* Фильтрация по тегам */}
           <View style={styles.filtersSection}>
@@ -192,7 +192,7 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.filtersContainer}
             >
-              <TouchableOpacity
+              <TouchableOpacity 
                 style={[styles.filterTag, selectedTag === '' && styles.filterTagActive]}
                 onPress={() => handleTagFilter('')}
               >
@@ -236,15 +236,15 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
             ) : (
               filteredArticles && filteredArticles.length > 0 ? (
                 filteredArticles.map((article) => (
-                  <TouchableOpacity 
+              <TouchableOpacity 
                     key={article.id}
                     style={styles.articleCard}
                     onPress={() => onArticlePress(article)}
                     activeOpacity={0.8}
                   >
                     <BlurView intensity={20} tint="light" style={styles.articleBlur}>
-                      <LinearGradient
-                        colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
+                  <LinearGradient
+                    colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
                         style={styles.articleGradient}
                       >
                         {/* Горизонтальная обложка на всю ширину */}
@@ -267,7 +267,7 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
                           <Text style={styles.articleTitle}>{article.title}</Text>
                           <Text style={styles.articleExcerpt}>{article.excerpt}</Text>
                           <View style={styles.readMoreContainer}>
-                            <LinearGradient
+                  <LinearGradient
                               colors={['#81D4FA', '#42A5F5']}
                               style={styles.readMoreGradient}
                               start={{ x: 0, y: 0 }}
@@ -278,9 +278,9 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
                             </LinearGradient>
                           </View>
                         </View>
-                      </LinearGradient>
-                    </BlurView>
-                  </TouchableOpacity>
+                  </LinearGradient>
+                </BlurView>
+              </TouchableOpacity>
                 ))
               ) : null
             )}
@@ -303,17 +303,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: responsiveHeight(100),
-    paddingTop: responsiveHeight(180), // Отступ для баннера
+    paddingBottom: responsiveHeight(100), // Возвращено обратно
+    paddingTop: responsiveHeight(180), // Возвращено обратно
     alignItems: 'stretch', // Растягиваем элементы на всю ширину
   },
   content: {
-    paddingTop: responsivePadding(20),
+    paddingTop: responsivePadding(20), // Возвращено обратно
   },
 
   // Поисковая строка - НА ВСЮ ШИРИНУ ЭКРАНА
   searchSection: {
-    marginBottom: responsivePadding(16), // Минимальный отступ
+    marginBottom: responsivePadding(16), // Возвращено обратно
     paddingHorizontal: 0, // БЕЗ отступов - на всю ширину
     width: '100%', // Принудительно на всю ширину
     alignSelf: 'stretch', // Растягиваем на всю ширину
@@ -334,8 +334,8 @@ const styles = StyleSheet.create({
   searchGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: responsivePadding(16),
-    paddingVertical: responsivePadding(12),
+    paddingHorizontal: responsivePadding(8), // Сокращено с 16 до 8 (горизонтально)
+    paddingVertical: responsivePadding(12), // Возвращено обратно
     width: '100%', // Принудительно на всю ширину
     flex: 1, // Растягиваем на всю доступную ширину
   },
@@ -355,14 +355,14 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   filtersContainer: {
-    paddingHorizontal: responsivePadding(4),
+    paddingHorizontal: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
   },
   filterTag: {
-    paddingHorizontal: responsivePadding(12),
-    paddingVertical: responsivePadding(6),
+    paddingHorizontal: responsivePadding(6), // Сокращено с 12 до 6 (горизонтально)
+    paddingVertical: responsivePadding(6), // Оставляем как есть
     borderRadius: responsiveWidth(16),
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginRight: responsivePadding(8),
+    marginRight: responsivePadding(4), // Сокращено с 8 до 4 (горизонтально)
     borderWidth: 1,
     borderColor: 'rgba(129, 212, 250, 0.3)',
   },
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: responsivePadding(12),
-    paddingHorizontal: responsivePadding(4),
+    paddingHorizontal: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
   },
   sectionTitle: {
     fontSize: responsiveFontSize(16), // Уменьшен с 24 до 16
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
     marginBottom: responsivePadding(8),
     lineHeight: responsiveFontSize(24),
     textAlign: 'left', // Выравнивание по левой стороне
-    paddingHorizontal: responsivePadding(8), // Минимальные отступы только для текста
+    paddingHorizontal: responsivePadding(4), // Сокращено с 8 до 4 (горизонтально)
   },
   articleExcerpt: {
     fontSize: responsiveFontSize(14),
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     marginBottom: responsivePadding(16),
     lineHeight: responsiveFontSize(20),
     textAlign: 'left', // Выравнивание по левой стороне
-    paddingHorizontal: responsivePadding(8), // Минимальные отступы только для текста
+    paddingHorizontal: responsivePadding(4), // Сокращено с 8 до 4 (горизонтально)
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   tagGradient: {
-    paddingHorizontal: responsivePadding(8),
+    paddingHorizontal: responsivePadding(4), // Сокращено с 8 до 4 (горизонтально)
     paddingVertical: responsivePadding(4),
   },
   tagText: {
@@ -493,14 +493,14 @@ const styles = StyleSheet.create({
   },
   readMoreContainer: {
     justifyContent: 'flex-start', // Выравнивание по левой стороне
-    paddingHorizontal: responsivePadding(8), // Минимальные отступы только для навигации
+    paddingHorizontal: responsivePadding(4), // Сокращено с 8 до 4 (горизонтально)
     marginTop: responsivePadding(8),
   },
   readMoreGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: responsivePadding(12),
+    paddingHorizontal: responsivePadding(6), // Сокращено с 12 до 6 (горизонтально)
     paddingVertical: responsivePadding(6),
     borderRadius: responsiveWidth(16),
     alignSelf: 'flex-start', // Выравнивание по левой стороне
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: responsivePadding(40),
-    paddingHorizontal: responsivePadding(20),
+    paddingHorizontal: responsivePadding(10), // Сокращено с 20 до 10 (горизонтально)
   },
   noResultsTitle: {
     fontSize: responsiveFontSize(20),
