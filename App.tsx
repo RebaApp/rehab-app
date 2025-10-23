@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -33,6 +33,10 @@ export default function App() {
     isFavorite,
   } = useAppStore();
 
+  // Анимация для содержимого вкладок
+  const contentFadeAnim = useRef(new Animated.Value(1)).current;
+  const contentSlideAnim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     console.log('App mounted, loading centers...');
     try {
@@ -41,6 +45,36 @@ export default function App() {
       console.error('Failed to load centers:', error);
     }
   }, [loadCenters]);
+
+  // Анимация при смене вкладки
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(contentFadeAnim, {
+        toValue: 0.7,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(contentSlideAnim, {
+        toValue: 20,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      Animated.parallel([
+        Animated.timing(contentFadeAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.spring(contentSlideAnim, {
+          toValue: 0,
+          tension: 50,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  }, [currentTab]);
 
   const [selectedArticle, setSelectedArticle] = React.useState(null);
   const [selectedCenter, setSelectedCenter] = React.useState(null);
@@ -269,9 +303,15 @@ export default function App() {
           colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
           style={styles.gradient}
         >
-          <View style={styles.content}>
+          <Animated.View style={[
+            styles.content,
+            {
+              opacity: contentFadeAnim,
+              transform: [{ translateY: contentSlideAnim }]
+            }
+          ]}>
             {renderContent()}
-          </View>
+          </Animated.View>
             {!selectedArticle && !selectedCenter && renderTabBar()}
         </LinearGradient>
       </Animated.View>
