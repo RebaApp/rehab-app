@@ -71,19 +71,24 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
     setTimeout(startRotation, 1200);
   }, []);
 
-  // Функция поиска
+  // Функция поиска - улучшенная версия
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     if (query.trim() === '') {
+      // Показываем только основные статьи на главной странице
       setFilteredArticles(ARTICLES.filter(article => article.id.startsWith('main')));
     } else {
-      const filtered = ARTICLES.filter(article => 
-        article.id.startsWith('main') && (
-          article.title.toLowerCase().includes(query.toLowerCase()) ||
-          article.excerpt.toLowerCase().includes(query.toLowerCase()) ||
-          article.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
-        )
-      );
+      // Ищем по всем статьям, включая содержимое
+      const filtered = ARTICLES.filter(article => {
+        const searchTerm = query.toLowerCase();
+        return (
+          article.title.toLowerCase().includes(searchTerm) ||
+          article.excerpt.toLowerCase().includes(searchTerm) ||
+          article.body.toLowerCase().includes(searchTerm) ||
+          article.category.toLowerCase().includes(searchTerm) ||
+          (article.tags && article.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
+        );
+      });
       setFilteredArticles(filtered);
     }
   };
@@ -149,51 +154,67 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
           {/* Секция статей - ВО ВСЮ ШИРИНУ ЭКРАНА */}
           <View style={styles.articlesSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Полезное чтиво</Text>
-              <TouchableOpacity style={styles.allArticlesButton} onPress={onShowArticles}>
-                <LinearGradient
-                  colors={['#81D4FA', '#42A5F5']}
-                  style={styles.allArticlesGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Text style={styles.allArticlesText}>Все статьи</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-                </LinearGradient>
-              </TouchableOpacity>
+              <Text style={styles.sectionTitle}>
+                {searchQuery.trim() === '' 
+                  ? 'Полезное чтиво' 
+                  : `Результаты поиска (${filteredArticles.length})`
+                }
+              </Text>
+              {searchQuery.trim() === '' && (
+                <TouchableOpacity style={styles.allArticlesButton} onPress={onShowArticles}>
+                  <LinearGradient
+                    colors={['#81D4FA', '#42A5F5']}
+                    style={styles.allArticlesGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    <Text style={styles.allArticlesText}>Все статьи</Text>
+                    <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
             </View>
             
-            {filteredArticles.map((article) => (
-              <TouchableOpacity 
-                key={article.id}
-                style={styles.articleCard}
-                onPress={() => onArticlePress(article)}
-                activeOpacity={0.8}
-              >
-                <BlurView intensity={20} tint="light" style={styles.articleBlur}>
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
-                    style={styles.articleGradient}
-                  >
-                    {/* Горизонтальная обложка на всю ширину */}
-                    <View style={styles.articleImageContainer}>
-                      <Image source={{ uri: article.image }} style={styles.articleImage} />
-                      <View style={styles.imageOverlay}>
-                        <LinearGradient
-                          colors={['transparent', 'rgba(0, 0, 0, 0.3)']}
-                          style={styles.imageGradient}
-                        />
+            {filteredArticles.length === 0 && searchQuery.trim() !== '' ? (
+              <View style={styles.noResultsContainer}>
+                <Ionicons name="search" size={48} color="#81D4FA" />
+                <Text style={styles.noResultsTitle}>Ничего не найдено</Text>
+                <Text style={styles.noResultsText}>
+                  Попробуйте изменить поисковый запрос или поищите по другим ключевым словам
+                </Text>
+              </View>
+            ) : (
+              filteredArticles.map((article) => (
+                <TouchableOpacity 
+                  key={article.id}
+                  style={styles.articleCard}
+                  onPress={() => onArticlePress(article)}
+                  activeOpacity={0.8}
+                >
+                  <BlurView intensity={20} tint="light" style={styles.articleBlur}>
+                    <LinearGradient
+                      colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
+                      style={styles.articleGradient}
+                    >
+                      {/* Горизонтальная обложка на всю ширину */}
+                      <View style={styles.articleImageContainer}>
+                        <Image source={{ uri: article.image }} style={styles.articleImage} />
+                        <View style={styles.imageOverlay}>
+                          <LinearGradient
+                            colors={['transparent', 'rgba(0, 0, 0, 0.3)']}
+                            style={styles.imageGradient}
+                          />
+                        </View>
+                        {/* Теги внизу картинки */}
+                        <View style={styles.tagsOverlay}>
+                          {renderTags(article.tags)}
+                        </View>
                       </View>
-                      {/* Теги внизу картинки */}
-                      <View style={styles.tagsOverlay}>
-                        {renderTags(article.tags)}
-                      </View>
-                    </View>
-                    
-                    {/* Контент статьи */}
-                    <View style={styles.articleContent}>
-                      <Text style={styles.articleTitle}>{article.title}</Text>
-                      <Text style={styles.articleExcerpt}>{article.excerpt}</Text>
+                      
+                      {/* Контент статьи */}
+                      <View style={styles.articleContent}>
+                        <Text style={styles.articleTitle}>{article.title}</Text>
+                        <Text style={styles.articleExcerpt}>{article.excerpt}</Text>
                         <View style={styles.readMoreContainer}>
                           <LinearGradient
                             colors={['#81D4FA', '#42A5F5']}
@@ -205,11 +226,12 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
                             <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
                           </LinearGradient>
                         </View>
-                    </View>
-                  </LinearGradient>
-                </BlurView>
-              </TouchableOpacity>
-            ))}
+                      </View>
+                    </LinearGradient>
+                  </BlurView>
+                </TouchableOpacity>
+              ))
+            )}
             </View>
         </ScrollView>
       </LinearGradient>
@@ -251,6 +273,8 @@ const styles = StyleSheet.create({
     shadowRadius: responsiveWidth(12), // Больший радиус тени
     elevation: 8, // Большая высота
     marginHorizontal: responsivePadding(8), // Небольшие отступы для красоты
+    borderWidth: 2, // Добавляем границу
+    borderColor: 'rgba(129, 212, 250, 0.3)', // Светло-голубая граница
   },
   searchGradient: {
     flexDirection: 'row',
@@ -415,6 +439,28 @@ const styles = StyleSheet.create({
     color: '#FFFFFF', // Белый текст на градиенте
     fontWeight: '700',
     marginRight: responsivePadding(4),
+  },
+  
+  // Стили для сообщения "Ничего не найдено"
+  noResultsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: responsivePadding(40),
+    paddingHorizontal: responsivePadding(20),
+  },
+  noResultsTitle: {
+    fontSize: responsiveFontSize(20),
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginTop: responsivePadding(16),
+    marginBottom: responsivePadding(8),
+    textAlign: 'center',
+  },
+  noResultsText: {
+    fontSize: responsiveFontSize(14),
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: responsiveFontSize(20),
   },
 });
 
