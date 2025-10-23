@@ -98,3 +98,4 @@ export const getResponsiveStyle = (baseStyle: any) => {
 };
 
 export default responsiveSizes;
+

@@ -19,6 +19,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
 import CenterDetailScreen from './src/screens/CenterDetailScreen';
 import { THEME } from './src/utils/constants';
+import { responsiveWidth, responsiveHeight, responsivePadding, responsiveFontSize } from './src/utils/responsive';
 
 export default function App() {
   const {
@@ -147,20 +148,27 @@ export default function App() {
 
   const renderTabBar = () => (
     <View style={styles.tabContainer}>
-      <BlurView intensity={20} tint="light" style={styles.tabBarBlur}>
+      <BlurView intensity={25} tint="light" style={styles.tabBarBlur}>
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+          colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.15)']}
           style={styles.tabBarGradient}
         >
           <TouchableOpacity
             style={[styles.tab, currentTab === 'home' && styles.activeTab]}
             onPress={() => setCurrentTab('home')}
           >
-            <Ionicons 
-              name={currentTab === 'home' ? 'home' : 'home-outline'} 
-              size={20} 
-              color={currentTab === 'home' ? '#fff' : '#666'} 
-            />
+            <View style={styles.iconContainer}>
+              <LinearGradient
+                colors={currentTab === 'home' ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+                style={styles.iconGradient}
+              >
+                <Ionicons 
+                  name={currentTab === 'home' ? 'home' : 'home-outline'} 
+                  size={24} 
+                  color={currentTab === 'home' ? '#fff' : '#666'} 
+                />
+              </LinearGradient>
+            </View>
             <Text style={[styles.tabText, currentTab === 'home' && styles.activeTabText]}>
               Главная
             </Text>
@@ -170,11 +178,18 @@ export default function App() {
             style={[styles.tab, currentTab === 'search' && styles.activeTab]}
             onPress={() => setCurrentTab('search')}
           >
-            <Ionicons 
-              name={currentTab === 'search' ? 'search' : 'search-outline'} 
-              size={20} 
-              color={currentTab === 'search' ? '#fff' : '#666'} 
-            />
+            <View style={styles.iconContainer}>
+              <LinearGradient
+                colors={currentTab === 'search' ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+                style={styles.iconGradient}
+              >
+                <Ionicons 
+                  name={currentTab === 'search' ? 'search' : 'search-outline'} 
+                  size={24} 
+                  color={currentTab === 'search' ? '#fff' : '#666'} 
+                />
+              </LinearGradient>
+            </View>
             <Text style={[styles.tabText, currentTab === 'search' && styles.activeTabText]}>
               Поиск
             </Text>
@@ -184,14 +199,14 @@ export default function App() {
             style={[styles.tab, currentTab === 'journey' && styles.activeTab]}
             onPress={() => setCurrentTab('journey')}
           >
-            <View style={styles.journeyIconContainer}>
+            <View style={styles.iconContainer}>
               <LinearGradient
-                colors={currentTab === 'journey' ? ['#81D4FA', '#42A5F5'] : ['#E0E0E0', '#E0E0E0']}
-                style={styles.journeyIconGradient}
+                colors={currentTab === 'journey' ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+                style={styles.iconGradient}
               >
                 <Ionicons 
                   name="trending-up" 
-                  size={20} 
+                  size={24} 
                   color={currentTab === 'journey' ? '#fff' : '#666'} 
                 />
               </LinearGradient>
@@ -205,11 +220,18 @@ export default function App() {
             style={[styles.tab, currentTab === 'favorites' && styles.activeTab]}
             onPress={() => setCurrentTab('favorites')}
           >
-            <Ionicons 
-              name={currentTab === 'favorites' ? 'heart' : 'heart-outline'} 
-              size={20} 
-              color={currentTab === 'favorites' ? '#fff' : '#666'} 
-            />
+            <View style={styles.iconContainer}>
+              <LinearGradient
+                colors={currentTab === 'favorites' ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+                style={styles.iconGradient}
+              >
+                <Ionicons 
+                  name={currentTab === 'favorites' ? 'heart' : 'heart-outline'} 
+                  size={24} 
+                  color={currentTab === 'favorites' ? '#fff' : '#666'} 
+                />
+              </LinearGradient>
+            </View>
             <Text style={[styles.tabText, currentTab === 'favorites' && styles.activeTabText]}>
               Избранное
             </Text>
@@ -219,11 +241,18 @@ export default function App() {
             style={[styles.tab, currentTab === 'profile' && styles.activeTab]}
             onPress={() => setCurrentTab('profile')}
           >
-            <Ionicons 
-              name={currentTab === 'profile' ? 'person' : 'person-outline'} 
-              size={20} 
-              color={currentTab === 'profile' ? '#fff' : '#666'} 
-            />
+            <View style={styles.iconContainer}>
+              <LinearGradient
+                colors={currentTab === 'profile' ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+                style={styles.iconGradient}
+              >
+                <Ionicons 
+                  name={currentTab === 'profile' ? 'person' : 'person-outline'} 
+                  size={24} 
+                  color={currentTab === 'profile' ? '#fff' : '#666'} 
+                />
+              </LinearGradient>
+            </View>
             <Text style={[styles.tabText, currentTab === 'profile' && styles.activeTabText]}>
               Профиль
             </Text>
@@ -307,50 +336,65 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: responsiveHeight(-6) },
+    shadowOpacity: 0.15,
+    shadowRadius: responsiveWidth(20),
+    elevation: 12,
   },
   tabBarGradient: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 16,
-    paddingHorizontal: 0,
-    height: 80,
+    paddingVertical: responsivePadding(12),
+    paddingHorizontal: responsivePadding(8),
+    height: responsiveHeight(80),
+    paddingBottom: responsiveHeight(20),
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    height: 80,
+    justifyContent: 'flex-start',
+    paddingVertical: responsivePadding(8),
+    paddingHorizontal: responsivePadding(4),
+    height: responsiveHeight(80),
+    minHeight: responsiveHeight(80),
+    position: 'relative',
   },
   activeTab: {
-    backgroundColor: 'rgba(129, 212, 250, 0.2)',
+    backgroundColor: 'rgba(129, 212, 250, 0.15)',
+    borderRadius: responsiveWidth(16),
+    marginHorizontal: responsiveWidth(2),
   },
-  journeyIconContainer: {
-    marginBottom: 0,
-  },
-  journeyIconGradient: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  iconContainer: {
+    marginBottom: responsiveHeight(2),
+    height: responsiveWidth(36),
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#81D4FA',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    position: 'relative',
+    top: 0,
+  },
+  iconGradient: {
+    width: responsiveWidth(36),
+    height: responsiveWidth(36),
+    borderRadius: responsiveWidth(18),
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: responsiveHeight(2) },
+    shadowOpacity: 0.1,
+    shadowRadius: responsiveWidth(8),
     elevation: 4,
   },
   tabText: {
-    fontSize: 11,
+    fontSize: responsiveFontSize(11),
     color: '#666',
     fontWeight: '500',
-    marginTop: 4,
+    marginTop: responsiveHeight(2),
     textAlign: 'center',
+    letterSpacing: 0.1,
+    lineHeight: responsiveFontSize(13),
+    height: responsiveFontSize(13),
+    position: 'relative',
+    top: 0,
   },
   activeTabText: {
     color: '#81D4FA',
