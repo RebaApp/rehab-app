@@ -35,7 +35,6 @@ export default function App() {
 
   // Анимация для содержимого вкладок
   const contentFadeAnim = useRef(new Animated.Value(1)).current;
-  const contentSlideAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     console.log('App mounted, loading centers...');
@@ -46,33 +45,18 @@ export default function App() {
     }
   }, [loadCenters]);
 
-  // Анимация при смене вкладки
+  // Анимация при смене вкладки - только плавное fade
   useEffect(() => {
-    Animated.parallel([
+    Animated.timing(contentFadeAnim, {
+      toValue: 0.7,
+      duration: 150,
+      useNativeDriver: true,
+    }).start(() => {
       Animated.timing(contentFadeAnim, {
-        toValue: 0.7,
-        duration: 150,
+        toValue: 1,
+        duration: 200,
         useNativeDriver: true,
-      }),
-      Animated.timing(contentSlideAnim, {
-        toValue: 20,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      Animated.parallel([
-        Animated.timing(contentFadeAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.spring(contentSlideAnim, {
-          toValue: 0,
-          tension: 50,
-          friction: 8,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      }).start();
     });
   }, [currentTab]);
 
@@ -306,8 +290,7 @@ export default function App() {
           <Animated.View style={[
             styles.content,
             {
-              opacity: contentFadeAnim,
-              transform: [{ translateY: contentSlideAnim }]
+              opacity: contentFadeAnim
             }
           ]}>
             {renderContent()}
