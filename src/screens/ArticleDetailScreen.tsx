@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Image,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -24,6 +25,9 @@ const ArticleDetailScreen: React.FC<ArticleDetailScreenProps> = memo(({
   article,
   onClose
 }) => {
+  // Анимация для скроллинга
+  const scrollY = useRef(new Animated.Value(0)).current;
+
   const formattedDate = article.createdAt 
     ? new Date(article.createdAt).toLocaleDateString('ru-RU', {
         day: 'numeric',
@@ -38,8 +42,24 @@ const ArticleDetailScreen: React.FC<ArticleDetailScreenProps> = memo(({
         colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
         style={styles.gradient}
       >
-        {/* Заголовок с эффектом жидкого стекла */}
-        <View style={styles.header}>
+        {/* Заголовок с эффектом жидкого стекла и анимацией */}
+        <Animated.View style={[
+          styles.header,
+          {
+            transform: [{
+              translateY: scrollY.interpolate({
+                inputRange: [0, 100],
+                outputRange: [0, -100],
+                extrapolate: 'clamp',
+              })
+            }],
+            opacity: scrollY.interpolate({
+              inputRange: [0, 50, 100],
+              outputRange: [1, 0.5, 0],
+              extrapolate: 'clamp',
+            })
+          }
+        ]}>
           <BlurView intensity={25} tint="light" style={styles.headerBlur}>
             <LinearGradient
               colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
@@ -52,12 +72,20 @@ const ArticleDetailScreen: React.FC<ArticleDetailScreenProps> = memo(({
               <View style={styles.placeholder} />
             </LinearGradient>
           </BlurView>
-        </View>
+        </Animated.View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
+          scrollEventThrottle={16}
+        >
           {/* Изображение статьи */}
           <View style={styles.imageContainer}>
-            <Image source={{ uri: article.image }} style={styles.image} />
+            <Image source={article.image} style={styles.image} />
             <View style={styles.imageOverlay}>
               <LinearGradient
                 colors={['transparent', 'rgba(0, 0, 0, 0.3)']}
@@ -80,9 +108,16 @@ const ArticleDetailScreen: React.FC<ArticleDetailScreenProps> = memo(({
                 {article.tags && (
                   <View style={styles.tagsContainer}>
                     {article.tags.map((tag, index) => (
-                      <View key={index} style={styles.tag}>
-                        <Text style={styles.tagText}>{tag}</Text>
-                      </View>
+                      <TouchableOpacity key={index} style={styles.tag}>
+                        <LinearGradient
+                          colors={['#81D4FA', '#42A5F5']}
+                          style={styles.tagGradient}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                        >
+                          <Text style={styles.tagText}>{tag}</Text>
+                        </LinearGradient>
+                      </TouchableOpacity>
                     ))}
                   </View>
                 )}
@@ -108,8 +143,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: responsivePadding(20),
-    paddingVertical: responsivePadding(15),
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    paddingTop: responsiveHeight(8), // МИНИМАЛЬНЫЙ отступ от верха экрана
+    paddingHorizontal: responsivePadding(8),
   },
   headerBlur: {
     borderRadius: responsiveWidth(16),
@@ -123,8 +163,8 @@ const styles = StyleSheet.create({
   headerGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: responsivePadding(16),
+    justifyContent: 'flex-start', // Выравнивание по левой стороне
+    paddingHorizontal: responsivePadding(8), // Уменьшили отступы
     paddingVertical: responsivePadding(12),
   },
   backButton: {
@@ -136,17 +176,19 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(18),
     fontWeight: '600',
     color: '#1a1a1a',
+    marginLeft: responsivePadding(12), // Отступ от стрелки назад
   },
   placeholder: {
-    width: responsiveWidth(40),
+    flex: 1, // Занимает оставшееся пространство
   },
   content: {
     flex: 1,
+    paddingTop: responsiveHeight(80), // Уменьшили отступ для заголовка
   },
   imageContainer: {
     height: responsiveHeight(250),
-    marginHorizontal: responsivePadding(8), // Минимальные отступы
-    marginTop: responsivePadding(20),
+    marginHorizontal: responsivePadding(2),
+    marginTop: responsivePadding(8), // Уменьшили отступ сверху
     borderRadius: responsiveWidth(16),
     overflow: 'hidden',
     position: 'relative',
@@ -166,7 +208,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   textContainer: {
-    padding: responsivePadding(8), // Минимальные отступы
+    padding: responsivePadding(4),
   },
   contentBlur: {
     borderRadius: responsiveWidth(16),
@@ -178,26 +220,32 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   contentGradient: {
-    padding: responsivePadding(12), // Минимальные отступы
+    padding: responsivePadding(8),
   },
   title: {
-    fontSize: responsiveFontSize(24),
+    fontSize: responsiveFontSize(28),
     fontWeight: '700',
     color: '#1a1a1a',
-    lineHeight: responsiveFontSize(32),
-    marginBottom: responsivePadding(15),
+    lineHeight: responsiveFontSize(36),
+    marginBottom: responsivePadding(16),
   },
   excerpt: {
     fontSize: responsiveFontSize(16),
-    color: '#1a1a1a',
+    color: '#2c2c2c',
     lineHeight: responsiveFontSize(24),
     marginBottom: responsivePadding(20),
     fontStyle: 'italic',
-    backgroundColor: 'rgba(129, 212, 250, 0.1)',
-    padding: responsivePadding(15),
+    backgroundColor: 'rgba(129, 212, 250, 0.08)',
+    padding: responsivePadding(16),
     borderRadius: responsiveWidth(12),
     borderLeftWidth: 4,
     borderLeftColor: '#81D4FA',
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(129, 212, 250, 0.2)',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(129, 212, 250, 0.2)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(129, 212, 250, 0.2)',
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -205,23 +253,30 @@ const styles = StyleSheet.create({
     marginBottom: responsivePadding(20),
   },
   tag: {
-    backgroundColor: 'rgba(129, 212, 250, 0.2)',
-    paddingHorizontal: responsivePadding(12),
+    borderRadius: responsiveWidth(12),
+    marginRight: responsivePadding(6),
+    marginBottom: responsivePadding(4),
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: responsiveHeight(1) },
+    shadowOpacity: 0.1,
+    shadowRadius: responsiveWidth(2),
+    elevation: 2,
+  },
+  tagGradient: {
+    paddingHorizontal: responsivePadding(8),
     paddingVertical: responsivePadding(6),
-    borderRadius: responsiveWidth(16),
-    marginRight: responsivePadding(8),
-    marginBottom: responsivePadding(8),
   },
   tagText: {
-    fontSize: responsiveFontSize(12),
-    color: '#81D4FA',
-    fontWeight: '600',
+    fontSize: responsiveFontSize(11),
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   body: {
     fontSize: responsiveFontSize(16),
-    color: '#1a1a1a',
+    color: '#2c2c2c',
     lineHeight: responsiveFontSize(26),
-    textAlign: 'justify',
+    textAlign: 'left',
   },
 });
 

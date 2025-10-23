@@ -67,7 +67,8 @@ export interface Article {
   rubric?: string;
   articleType?: 'media' | 'integration';
   centerId?: string;
-  image: string;
+  image: any; // require() result for local images
+  tags?: string[];
   createdAt?: string;
   updatedAt?: string;
   views?: number;

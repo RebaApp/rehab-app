@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   TextInput,
   Image,
@@ -26,9 +25,11 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [filteredArticles, setFilteredArticles] = useState(() => {
-    return ARTICLES.filter(article => article.id.startsWith('main'));
+    const articles = ARTICLES.filter(article => article.id.startsWith('main'));
+    console.log('Загруженные статьи:', articles.map(a => ({ id: a.id, title: a.title, tags: a.tags })));
+    return articles;
   });
-  const [showBanner, setShowBanner] = useState(true);
+  const [showBanner] = useState(true);
 
   // Получаем все уникальные теги для фильтрации
   const allTags = Array.from(new Set(
@@ -118,7 +119,7 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
   };
 
   // Функция для отображения тегов
-  const renderTags = (tags: string[]) => {
+  const renderTags = (tags: string[] | undefined) => {
     if (!tags || !Array.isArray(tags) || tags.length === 0) {
       return null;
     }
@@ -142,7 +143,7 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient
         colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
         style={styles.gradient}
@@ -201,7 +202,7 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
                 </Text>
               </TouchableOpacity>
               {allTags.map((tag, index) => (
-                <TouchableOpacity
+              <TouchableOpacity 
                   key={index}
                   style={[styles.filterTag, selectedTag === tag && styles.filterTagActive]}
                   onPress={() => handleTagFilter(tag)}
@@ -209,7 +210,7 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
                   <Text style={[styles.filterTagText, selectedTag === tag && styles.filterTagTextActive]}>
                     {tag}
                   </Text>
-                </TouchableOpacity>
+              </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
@@ -249,7 +250,7 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
                       >
                         {/* Горизонтальная обложка на всю ширину */}
                         <View style={styles.articleImageContainer}>
-                          <Image source={{ uri: article.image }} style={styles.articleImage} />
+                          <Image source={article.image} style={styles.articleImage} />
                           <View style={styles.imageOverlay}>
                             <LinearGradient
                               colors={['transparent', 'rgba(0, 0, 0, 0.3)']}
@@ -266,17 +267,6 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
                         <View style={styles.articleContent}>
                           <Text style={styles.articleTitle}>{article.title}</Text>
                           <Text style={styles.articleExcerpt}>{article.excerpt}</Text>
-                          <View style={styles.readMoreContainer}>
-                  <LinearGradient
-                              colors={['#81D4FA', '#42A5F5']}
-                              style={styles.readMoreGradient}
-                              start={{ x: 0, y: 0 }}
-                              end={{ x: 1, y: 0 }}
-                            >
-                              <Text style={styles.readMoreText}>Читать</Text>
-                              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-                            </LinearGradient>
-                          </View>
                         </View>
                   </LinearGradient>
                 </BlurView>
@@ -287,7 +277,7 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
             </View>
         </ScrollView>
       </LinearGradient>
-    </SafeAreaView>
+    </View>
   );
 });
 
@@ -305,7 +295,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: responsiveHeight(100), // Возвращено обратно
     paddingTop: responsiveHeight(180), // Возвращено обратно
-    paddingHorizontal: responsivePadding(4), // Общий отступ слева и справа для всего экрана
+    paddingHorizontal: responsivePadding(0), // МИНИМАЛЬНЫЙ ОТСТУП ОТ КРАЕВ ЭКРАНА ДЛЯ ВСЕЙ СТРАНИЦЫ
     alignItems: 'stretch', // Растягиваем элементы на всю ширину
   },
   content: {
@@ -335,13 +325,12 @@ const styles = StyleSheet.create({
   searchGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
-    paddingVertical: responsivePadding(12), // Возвращено обратно
-    width: '100%', // Принудительно на всю ширину
-    flex: 1, // Растягиваем на всю доступную ширину
+    paddingVertical: responsivePadding(12),
+    width: '100%',
+    flex: 1,
   },
   searchIcon: {
-    marginRight: responsivePadding(12),
+    marginRight: responsivePadding(16), // Увеличили отступ от текста
   },
   searchInput: {
     flex: 1,
@@ -359,11 +348,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: responsivePadding(1), // Сокращено с 2 до 1 (горизонтально)
   },
   filterTag: {
-    paddingHorizontal: responsivePadding(3), // Сокращено с 6 до 3 (горизонтально)
-    paddingVertical: responsivePadding(6), // Оставляем как есть
+    paddingHorizontal: responsivePadding(8), // Увеличили пространство для текста
+    paddingVertical: responsivePadding(8), // Увеличили вертикальный отступ
     borderRadius: responsiveWidth(16),
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginRight: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
+    marginRight: responsivePadding(2),
     borderWidth: 1,
     borderColor: 'rgba(129, 212, 250, 0.3)',
   },
@@ -484,33 +473,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   tagGradient: {
-    paddingHorizontal: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
-    paddingVertical: responsivePadding(4),
+    paddingHorizontal: responsivePadding(8), // Увеличили пространство для текста
+    paddingVertical: responsivePadding(6), // Увеличили вертикальный отступ
   },
   tagText: {
     fontSize: responsiveFontSize(11),
     color: '#FFFFFF', // Белый текст на градиенте
     fontWeight: '700',
-  },
-  readMoreContainer: {
-    justifyContent: 'flex-start', // Выравнивание по левой стороне
-    paddingHorizontal: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
-    marginTop: responsivePadding(8),
-  },
-  readMoreGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: responsivePadding(3), // Сокращено с 6 до 3 (горизонтально)
-    paddingVertical: responsivePadding(6),
-    borderRadius: responsiveWidth(16),
-    alignSelf: 'flex-start', // Выравнивание по левой стороне
-  },
-  readMoreText: {
-    fontSize: responsiveFontSize(14),
-    color: '#FFFFFF', // Белый текст на градиенте
-    fontWeight: '700',
-    marginRight: responsivePadding(4),
   },
   
   // Стили для сообщения "Ничего не найдено"
