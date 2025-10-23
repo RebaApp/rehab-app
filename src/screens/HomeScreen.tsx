@@ -26,9 +26,7 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
   // Состояние для поиска
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredArticles, setFilteredArticles] = useState(() => {
-    const mainArticles = ARTICLES.filter(article => article.id.startsWith('main'));
-    console.log('Initial main articles:', mainArticles.length);
-    return mainArticles;
+    return ARTICLES.filter(article => article.id.startsWith('main'));
   });
   const [showBanner, setShowBanner] = useState(true);
   
@@ -58,15 +56,17 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
 
     // Бесконечная плавная анимация вращения
     const startRotation = () => {
-      rotateAnim.setValue(0);
-      Animated.loop(
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-          duration: 8000, // 8 секунд на полный оборот - очень медленно
-        useNativeDriver: true,
-        }),
-        { iterations: -1 } // бесконечно
-      ).start();
+      if (rotateAnim) {
+        rotateAnim.setValue(0);
+        Animated.loop(
+          Animated.timing(rotateAnim, {
+            toValue: 1,
+            duration: 8000, // 8 секунд на полный оборот - очень медленно
+            useNativeDriver: true,
+          }),
+          { iterations: -1 } // бесконечно
+        ).start();
+      }
     };
 
     // Запускаем вращение с небольшой задержкой после появления
@@ -75,51 +75,50 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
 
   // Функция поиска - улучшенная версия
   const handleSearch = (query: string) => {
-    console.log('Search query:', query);
     setSearchQuery(query);
     if (query.trim() === '') {
       // Показываем только основные статьи на главной странице
       const mainArticles = ARTICLES.filter(article => article.id.startsWith('main'));
-      console.log('Main articles found:', mainArticles.length);
       setFilteredArticles(mainArticles);
     } else {
       // Ищем по всем статьям, включая содержимое
       const filtered = ARTICLES.filter(article => {
         const searchTerm = query.toLowerCase();
-        const matches = (
+        return (
           article.title.toLowerCase().includes(searchTerm) ||
           article.excerpt.toLowerCase().includes(searchTerm) ||
           (article.body && article.body.toLowerCase().includes(searchTerm)) ||
           (article.category && article.category.toLowerCase().includes(searchTerm)) ||
           (article.tags && article.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
         );
-        if (matches) {
-          console.log('Found match:', article.title);
-        }
-        return matches;
       });
-      console.log('Filtered articles:', filtered.length);
       setFilteredArticles(filtered);
     }
   };
 
   // Функция для отображения тегов
-  const renderTags = (tags: string[]) => (
-    <View style={styles.tagsContainer}>
-      {tags.map((tag, index) => (
-        <View key={index} style={styles.tag}>
-          <LinearGradient
-            colors={['#81D4FA', '#42A5F5']}
-            style={styles.tagGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Text style={styles.tagText}>{tag}</Text>
-          </LinearGradient>
-        </View>
-      ))}
-    </View>
-  );
+  const renderTags = (tags: string[]) => {
+    if (!tags || !Array.isArray(tags) || tags.length === 0) {
+      return null;
+    }
+    
+    return (
+      <View style={styles.tagsContainer}>
+        {tags.map((tag, index) => (
+          <View key={index} style={styles.tag}>
+            <LinearGradient
+              colors={['#81D4FA', '#42A5F5']}
+              style={styles.tagGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={styles.tagText}>{tag}</Text>
+            </LinearGradient>
+          </View>
+        ))}
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -198,53 +197,55 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
                 </Text>
               </View>
             ) : (
-              filteredArticles.map((article) => (
-                <TouchableOpacity 
-                  key={article.id}
-                  style={styles.articleCard}
-                  onPress={() => onArticlePress(article)}
-                  activeOpacity={0.8}
-                >
-                  <BlurView intensity={20} tint="light" style={styles.articleBlur}>
-                    <LinearGradient
-                      colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
-                      style={styles.articleGradient}
-                    >
-                      {/* Горизонтальная обложка на всю ширину */}
-                      <View style={styles.articleImageContainer}>
-                        <Image source={{ uri: article.image }} style={styles.articleImage} />
-                        <View style={styles.imageOverlay}>
-                          <LinearGradient
-                            colors={['transparent', 'rgba(0, 0, 0, 0.3)']}
-                            style={styles.imageGradient}
-                          />
+              filteredArticles && filteredArticles.length > 0 ? (
+                filteredArticles.map((article) => (
+                  <TouchableOpacity 
+                    key={article.id}
+                    style={styles.articleCard}
+                    onPress={() => onArticlePress(article)}
+                    activeOpacity={0.8}
+                  >
+                    <BlurView intensity={20} tint="light" style={styles.articleBlur}>
+                      <LinearGradient
+                        colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
+                        style={styles.articleGradient}
+                      >
+                        {/* Горизонтальная обложка на всю ширину */}
+                        <View style={styles.articleImageContainer}>
+                          <Image source={{ uri: article.image }} style={styles.articleImage} />
+                          <View style={styles.imageOverlay}>
+                            <LinearGradient
+                              colors={['transparent', 'rgba(0, 0, 0, 0.3)']}
+                              style={styles.imageGradient}
+                            />
+                          </View>
+                          {/* Теги внизу картинки */}
+                          <View style={styles.tagsOverlay}>
+                            {renderTags(article.tags)}
+                          </View>
                         </View>
-                        {/* Теги внизу картинки */}
-                        <View style={styles.tagsOverlay}>
-                          {renderTags(article.tags)}
+                        
+                        {/* Контент статьи */}
+                        <View style={styles.articleContent}>
+                          <Text style={styles.articleTitle}>{article.title}</Text>
+                          <Text style={styles.articleExcerpt}>{article.excerpt}</Text>
+                          <View style={styles.readMoreContainer}>
+                            <LinearGradient
+                              colors={['#81D4FA', '#42A5F5']}
+                              style={styles.readMoreGradient}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 0 }}
+                            >
+                              <Text style={styles.readMoreText}>Читать</Text>
+                              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+                            </LinearGradient>
+                          </View>
                         </View>
-                      </View>
-                      
-                      {/* Контент статьи */}
-                      <View style={styles.articleContent}>
-                        <Text style={styles.articleTitle}>{article.title}</Text>
-                        <Text style={styles.articleExcerpt}>{article.excerpt}</Text>
-                        <View style={styles.readMoreContainer}>
-                          <LinearGradient
-                            colors={['#81D4FA', '#42A5F5']}
-                            style={styles.readMoreGradient}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                          >
-                            <Text style={styles.readMoreText}>Читать</Text>
-                            <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-                          </LinearGradient>
-                        </View>
-                      </View>
-                    </LinearGradient>
-                  </BlurView>
-                </TouchableOpacity>
-              ))
+                      </LinearGradient>
+                    </BlurView>
+                  </TouchableOpacity>
+                ))
+              ) : null
             )}
             </View>
         </ScrollView>
@@ -288,7 +289,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2, // Более заметная тень
     shadowRadius: responsiveWidth(12), // Больший радиус тени
     elevation: 8, // Большая высота
-    marginHorizontal: responsivePadding(4), // Минимальные отступы для полной ширины
     borderWidth: 2, // Добавляем границу
     borderColor: 'rgba(129, 212, 250, 0.3)', // Светло-голубая граница
     width: '100%', // Принудительно на всю ширину
