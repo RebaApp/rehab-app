@@ -25,9 +25,11 @@ interface HomeScreenProps {
 const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArticles }) => {
   // Состояние для поиска
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredArticles, setFilteredArticles] = useState(ARTICLES.filter(article => 
-    article.id.startsWith('main')
-  ));
+  const [filteredArticles, setFilteredArticles] = useState(() => {
+    const mainArticles = ARTICLES.filter(article => article.id.startsWith('main'));
+    console.log('Initial main articles:', mainArticles.length);
+    return mainArticles;
+  });
   const [showBanner, setShowBanner] = useState(true);
   
   // Анимация для скроллинга
@@ -73,22 +75,30 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
 
   // Функция поиска - улучшенная версия
   const handleSearch = (query: string) => {
+    console.log('Search query:', query);
     setSearchQuery(query);
     if (query.trim() === '') {
       // Показываем только основные статьи на главной странице
-      setFilteredArticles(ARTICLES.filter(article => article.id.startsWith('main')));
+      const mainArticles = ARTICLES.filter(article => article.id.startsWith('main'));
+      console.log('Main articles found:', mainArticles.length);
+      setFilteredArticles(mainArticles);
     } else {
       // Ищем по всем статьям, включая содержимое
       const filtered = ARTICLES.filter(article => {
         const searchTerm = query.toLowerCase();
-        return (
+        const matches = (
           article.title.toLowerCase().includes(searchTerm) ||
           article.excerpt.toLowerCase().includes(searchTerm) ||
-          article.body.toLowerCase().includes(searchTerm) ||
-          article.category.toLowerCase().includes(searchTerm) ||
+          (article.body && article.body.toLowerCase().includes(searchTerm)) ||
+          (article.category && article.category.toLowerCase().includes(searchTerm)) ||
           (article.tags && article.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
         );
+        if (matches) {
+          console.log('Found match:', article.title);
+        }
+        return matches;
       });
+      console.log('Filtered articles:', filtered.length);
       setFilteredArticles(filtered);
     }
   };
@@ -146,6 +156,10 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
                   placeholderTextColor="#999"
                   value={searchQuery}
                   onChangeText={handleSearch}
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  returnKeyType="search"
+                  clearButtonMode="while-editing"
                 />
               </LinearGradient>
             </BlurView>
@@ -272,7 +286,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2, // Более заметная тень
     shadowRadius: responsiveWidth(12), // Больший радиус тени
     elevation: 8, // Большая высота
-    marginHorizontal: responsivePadding(8), // Небольшие отступы для красоты
+    marginHorizontal: responsivePadding(4), // Минимальные отступы для полной ширины
     borderWidth: 2, // Добавляем границу
     borderColor: 'rgba(129, 212, 250, 0.3)', // Светло-голубая граница
   },
