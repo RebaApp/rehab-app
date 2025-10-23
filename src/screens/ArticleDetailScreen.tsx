@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     height: responsiveHeight(250),
-    marginHorizontal: responsivePadding(20),
+    marginHorizontal: responsivePadding(8), // Минимальные отступы
     marginTop: responsivePadding(20),
     borderRadius: responsiveWidth(16),
     overflow: 'hidden',
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   textContainer: {
-    padding: responsivePadding(20),
+    padding: responsivePadding(8), // Минимальные отступы
   },
   contentBlur: {
     borderRadius: responsiveWidth(16),
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   contentGradient: {
-    padding: responsivePadding(24),
+    padding: responsivePadding(12), // Минимальные отступы
   },
   title: {
     fontSize: responsiveFontSize(24),

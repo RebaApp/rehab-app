@@ -27,10 +27,17 @@ const ArticlesScreen: React.FC<ArticlesScreenProps> = memo(({
   onBackPress
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState('');
   const [filteredArticles, setFilteredArticles] = useState(ARTICLES.filter(article => 
     article.id.startsWith('main')
   ));
   const [selectedArticle, setSelectedArticle] = useState(null);
+
+  // Получаем все уникальные теги для фильтрации
+  const allTags = Array.from(new Set(
+    ARTICLES.filter(article => article.id.startsWith('main'))
+      .flatMap(article => article.tags || [])
+  ));
 
   // Анимации в стиле JourneyScreen
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -70,25 +77,41 @@ const ArticlesScreen: React.FC<ArticlesScreenProps> = memo(({
     setTimeout(startRotation, 1200);
   }, []);
 
-  // Функция поиска (точно как в HomeScreen)
+  // Функция поиска и фильтрации
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim() === '') {
-      setFilteredArticles(ARTICLES.filter(article => article.id.startsWith('main')));
-    } else {
-      const filtered = ARTICLES.filter(article => 
-        article.id.startsWith('main') && (
-          article.title.toLowerCase().includes(query.toLowerCase()) ||
-          article.excerpt.toLowerCase().includes(query.toLowerCase()) ||
-          (article.body && article.body.toLowerCase().includes(query.toLowerCase())) ||
-          (article.category && article.category.toLowerCase().includes(query.toLowerCase())) ||
-          (article.tags && article.tags.some((tag: string) => 
-            tag.toLowerCase().includes(query.toLowerCase())
-          ))
-        )
+    applyFilters(query, selectedTag);
+  };
+
+  const handleTagFilter = (tag: string) => {
+    setSelectedTag(tag);
+    applyFilters(searchQuery, tag);
+  };
+
+  const applyFilters = (query: string, tag: string) => {
+    let filtered = ARTICLES.filter(article => article.id.startsWith('main'));
+
+    // Фильтр по поисковому запросу
+    if (query.trim() !== '') {
+      filtered = filtered.filter(article => 
+        article.title.toLowerCase().includes(query.toLowerCase()) ||
+        article.excerpt.toLowerCase().includes(query.toLowerCase()) ||
+        (article.body && article.body.toLowerCase().includes(query.toLowerCase())) ||
+        (article.category && article.category.toLowerCase().includes(query.toLowerCase())) ||
+        (article.tags && article.tags.some((tag: string) => 
+          tag.toLowerCase().includes(query.toLowerCase())
+        ))
       );
-      setFilteredArticles(filtered);
     }
+
+    // Фильтр по тегу
+    if (tag !== '') {
+      filtered = filtered.filter(article => 
+        article.tags && article.tags.includes(tag)
+      );
+    }
+
+    setFilteredArticles(filtered);
   };
 
   // Обработчики для статей
@@ -156,7 +179,7 @@ const ArticlesScreen: React.FC<ArticlesScreenProps> = memo(({
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Поисковая строка (точно как в HomeScreen) */}
+          {/* Поисковая строка с фильтрацией */}
           <View style={styles.searchSection}>
             <BlurView intensity={20} tint="light" style={styles.searchBlur}>
               <LinearGradient
@@ -179,6 +202,35 @@ const ArticlesScreen: React.FC<ArticlesScreenProps> = memo(({
                 />
               </LinearGradient>
             </BlurView>
+          </View>
+
+          {/* Фильтрация по тегам */}
+          <View style={styles.filtersSection}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filtersContainer}
+            >
+              <TouchableOpacity
+                style={[styles.filterTag, selectedTag === '' && styles.filterTagActive]}
+                onPress={() => handleTagFilter('')}
+              >
+                <Text style={[styles.filterTagText, selectedTag === '' && styles.filterTagTextActive]}>
+                  Все темы
+                </Text>
+              </TouchableOpacity>
+              {allTags.map((tag, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.filterTag, selectedTag === tag && styles.filterTagActive]}
+                  onPress={() => handleTagFilter(tag)}
+                >
+                  <Text style={[styles.filterTagText, selectedTag === tag && styles.filterTagTextActive]}>
+                    {tag}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
 
           {/* Секция статей - ВО ВСЮ ШИРИНУ ЭКРАНА */}
@@ -269,6 +321,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: responsiveHeight(100),
+    paddingHorizontal: responsivePadding(8), // Минимальные отступы по краям
     alignItems: 'stretch', // Растягиваем на всю ширину как в HomeScreen
   },
 
@@ -300,10 +353,9 @@ const styles = StyleSheet.create({
     width: responsiveWidth(40),
   },
 
-  // Поисковая строка - НА ВСЮ ШИРИНУ ЭКРАНА (точно как в HomeScreen)
+  // Поисковая строка - с минимальными отступами
   searchSection: {
     marginBottom: responsivePadding(16), // Минимальный отступ
-    paddingHorizontal: 0, // БЕЗ отступов - на всю ширину
     width: '100%', // Принудительно на всю ширину
     alignSelf: 'stretch', // Растягиваем на всю ширину
   },
@@ -335,6 +387,37 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     width: '100%', // Принудительно на всю ширину
     alignSelf: 'stretch', // Растягиваем на всю ширину
+  },
+
+  // Фильтрация по тегам
+  filtersSection: {
+    marginBottom: responsivePadding(16),
+    width: '100%',
+  },
+  filtersContainer: {
+    paddingHorizontal: responsivePadding(4),
+  },
+  filterTag: {
+    paddingHorizontal: responsivePadding(12),
+    paddingVertical: responsivePadding(6),
+    borderRadius: responsiveWidth(16),
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    marginRight: responsivePadding(8),
+    borderWidth: 1,
+    borderColor: 'rgba(129, 212, 250, 0.3)',
+  },
+  filterTagActive: {
+    backgroundColor: 'rgba(129, 212, 250, 0.2)',
+    borderColor: '#81D4FA',
+  },
+  filterTagText: {
+    fontSize: responsiveFontSize(12),
+    color: '#666',
+    fontWeight: '600',
+  },
+  filterTagTextActive: {
+    color: '#42A5F5',
+    fontWeight: '700',
   },
 
   // Секция статей - БЕЗ ОТСТУПОВ, ВО ВСЮ ШИРИНУ ЭКРАНА
