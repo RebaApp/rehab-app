@@ -24,12 +24,12 @@ export const BANNER_CONFIG = {
   decorativeElements: {
     enabled: true,
     circle1: {
-      colors: ['#42A5F5', '#1976D2'], // Более синие цвета
+      colors: ['#81D4FA', '#42A5F5'], // Градиент как у кнопок
       size: 40,
       position: { top: 10, right: 20 },
     },
     circle2: {
-      colors: ['#42A5F5', '#1976D2'], // Более синие цвета
+      colors: ['#81D4FA', '#42A5F5'], // Градиент как у кнопок
       size: 30,
       position: { bottom: 10, left: 20 },
     },
@@ -37,7 +37,7 @@ export const BANNER_CONFIG = {
     randomCircles: {
       enabled: true,
       count: 2,
-      colors: ['#42A5F5', '#1976D2'], // Более синие цвета
+      colors: ['#81D4FA', '#42A5F5'], // Градиент как у кнопок
       sizeRange: { min: 15, max: 25 }, // Размеры от 15 до 25
       animationDuration: { min: 2000, max: 4000 }, // Длительность анимации 2-4 сек
       fadeDuration: { min: 500, max: 1000 }, // Длительность появления/исчезновения

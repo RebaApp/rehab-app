@@ -39,12 +39,12 @@ sloganStyle: {
 decorativeElements: {
   enabled: true,         // ← Включить/выключить декорации
   circle1: {
-    colors: ['#81D4FA', '#42A5F5'], // ← Цвета первого кружка (голубой)
+    colors: ['#81D4FA', '#42A5F5'], // ← Градиент как у кнопок
     size: 40,           // ← Размер кружка
     position: { top: 10, right: 20 }, // ← Позиция
   },
   circle2: {
-    colors: ['#81D4FA', '#42A5F5'], // ← Цвета второго кружка (голубой)
+    colors: ['#81D4FA', '#42A5F5'], // ← Градиент как у кнопок
     size: 30,           // ← Размер кружка
     position: { bottom: 10, left: 20 }, // ← Позиция
   },
@@ -52,7 +52,7 @@ decorativeElements: {
   randomCircles: {
     enabled: true,      // ← Включить/выключить рандомные кружки
     count: 2,           // ← Количество кружков
-    colors: ['#81D4FA', '#42A5F5'], // ← Цвета (голубой)
+    colors: ['#81D4FA', '#42A5F5'], // ← Градиент как у кнопок
     sizeRange: { min: 15, max: 25 }, // ← Размеры от 15 до 25
     animationDuration: { min: 2000, max: 4000 }, // ← Длительность 2-4 сек
     fadeDuration: { min: 500, max: 1000 }, // ← Длительность появления/исчезновения
