@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: responsiveHeight(100),
     paddingTop: responsiveHeight(180), // Отступ для баннера
-    alignItems: 'flex-start', // Выравнивание по левой стороне
+    alignItems: 'stretch', // Растягиваем элементы на всю ширину
   },
   content: {
     paddingTop: responsivePadding(20),
@@ -277,6 +277,8 @@ const styles = StyleSheet.create({
   searchSection: {
     marginBottom: responsivePadding(16), // Минимальный отступ
     paddingHorizontal: 0, // БЕЗ отступов - на всю ширину
+    width: '100%', // Принудительно на всю ширину
+    alignSelf: 'stretch', // Растягиваем на всю ширину
   },
   searchBlur: {
     borderRadius: responsiveWidth(20), // Более округлые углы
@@ -289,12 +291,16 @@ const styles = StyleSheet.create({
     marginHorizontal: responsivePadding(4), // Минимальные отступы для полной ширины
     borderWidth: 2, // Добавляем границу
     borderColor: 'rgba(129, 212, 250, 0.3)', // Светло-голубая граница
+    width: '100%', // Принудительно на всю ширину
+    alignSelf: 'stretch', // Растягиваем на всю ширину
   },
   searchGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: responsivePadding(16),
     paddingVertical: responsivePadding(12),
+    width: '100%', // Принудительно на всю ширину
+    flex: 1, // Растягиваем на всю доступную ширину
   },
   searchIcon: {
     marginRight: responsivePadding(12),
@@ -303,6 +309,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: responsiveFontSize(16),
     color: '#1a1a1a',
+    width: '100%', // Принудительно на всю ширину
   },
 
   // Секция статей - БЕЗ ОТСТУПОВ, ВО ВСЮ ШИРИНУ ЭКРАНА
