@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: responsiveFontSize(11),
-    color: '#81D4FA',
+    color: '#42A5F5', // Изменен на цвет кнопки Перейти в поиск
     fontWeight: '600',
   },
   readMoreContainer: {

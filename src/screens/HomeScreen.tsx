@@ -145,7 +145,7 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
               <Text style={styles.sectionTitle}>Полезное чтиво</Text>
               <TouchableOpacity style={styles.allArticlesButton} onPress={onShowArticles}>
                 <Text style={styles.allArticlesText}>Все статьи</Text>
-                <Ionicons name="arrow-forward" size={16} color="#81D4FA" />
+                <Ionicons name="arrow-forward" size={16} color="#42A5F5" />
               </TouchableOpacity>
             </View>
             
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: responsivePadding(4),
   },
   sectionTitle: {
-    fontSize: responsiveFontSize(24),
+    fontSize: responsiveFontSize(16), // Уменьшен с 24 до 16
     fontWeight: '700',
     color: '#1a1a1a',
     flex: 1,
@@ -269,14 +269,14 @@ const styles = StyleSheet.create({
   allArticlesButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(129, 212, 250, 0.1)',
+    backgroundColor: 'rgba(66, 165, 245, 0.1)', // Изменен на цвет кнопки Перейти в поиск
     paddingHorizontal: responsivePadding(12),
     paddingVertical: responsivePadding(6),
     borderRadius: responsiveWidth(16),
   },
   allArticlesText: {
     fontSize: responsiveFontSize(14),
-    color: '#81D4FA',
+    color: '#42A5F5', // Изменен на цвет кнопки Перейти в поиск
     fontWeight: '600',
     marginRight: responsivePadding(4),
   },
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: responsiveFontSize(11),
-    color: '#81D4FA',
+    color: '#42A5F5', // Изменен на цвет кнопки Перейти в поиск
     fontWeight: '600',
   },
   readMoreContainer: {
