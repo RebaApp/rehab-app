@@ -173,7 +173,7 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
                 <Ionicons name="search" size={20} color="#81D4FA" style={styles.searchIcon} />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder="Поиск статей..."
+                  placeholder="Давайте вместе поищем..."
                   placeholderTextColor="#999"
                   value={searchQuery}
                   onChangeText={handleSearch}
@@ -330,6 +330,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchIcon: {
+    marginLeft: responsivePadding(12), // Отступ от левого края
     marginRight: responsivePadding(16), // Увеличили отступ от текста
   },
   searchInput: {
