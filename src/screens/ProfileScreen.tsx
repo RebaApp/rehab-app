@@ -32,22 +32,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = memo(({
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
 
   useEffect(() => {
-    // Начальные анимации
+    // Начальные анимации (fade, slide, scale) - только один раз
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 1000,
         useNativeDriver: true,
       }),
-      Animated.timing(slideAnim, {
+      Animated.spring(slideAnim, {
         toValue: 0,
-        duration: 800,
+        tension: 40,
+        friction: 8,
         useNativeDriver: true,
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
         tension: 50,
-        friction: 8,
+        friction: 7,
         useNativeDriver: true,
       }),
     ]).start();

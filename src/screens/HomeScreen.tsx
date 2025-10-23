@@ -196,7 +196,6 @@ const styles = StyleSheet.create({
     paddingBottom: responsiveHeight(100),
   },
   content: {
-    paddingHorizontal: responsivePadding(20),
     paddingTop: responsivePadding(20),
   },
 
@@ -204,6 +203,7 @@ const styles = StyleSheet.create({
   headerSection: {
     alignItems: 'center',
     marginBottom: responsivePadding(32),
+    paddingHorizontal: responsivePadding(20),
   },
   title: {
     fontSize: responsiveFontSize(48),
@@ -224,6 +224,7 @@ const styles = StyleSheet.create({
   // Поисковая строка
   searchSection: {
     marginBottom: responsivePadding(32),
+    paddingHorizontal: responsivePadding(20),
   },
   searchBlur: {
     borderRadius: responsiveWidth(16),
