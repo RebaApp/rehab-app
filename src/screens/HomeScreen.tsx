@@ -93,7 +93,14 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
     <View style={styles.tagsContainer}>
       {tags.map((tag, index) => (
         <View key={index} style={styles.tag}>
-          <Text style={styles.tagText}>{tag}</Text>
+          <LinearGradient
+            colors={['#81D4FA', '#42A5F5']}
+            style={styles.tagGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text style={styles.tagText}>{tag}</Text>
+          </LinearGradient>
         </View>
       ))}
     </View>
@@ -144,8 +151,15 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Полезное чтиво</Text>
               <TouchableOpacity style={styles.allArticlesButton} onPress={onShowArticles}>
-                <Text style={styles.allArticlesText}>Все статьи</Text>
-                <Ionicons name="arrow-forward" size={16} color="#42A5F5" />
+                <LinearGradient
+                  colors={['#81D4FA', '#42A5F5']}
+                  style={styles.allArticlesGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Text style={styles.allArticlesText}>Все статьи</Text>
+                  <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+                </LinearGradient>
               </TouchableOpacity>
             </View>
             
@@ -180,10 +194,17 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
                     <View style={styles.articleContent}>
                       <Text style={styles.articleTitle}>{article.title}</Text>
                       <Text style={styles.articleExcerpt}>{article.excerpt}</Text>
-                      <View style={styles.readMoreContainer}>
-                        <Text style={styles.readMoreText}>Читать</Text>
-                        <Ionicons name="arrow-forward" size={16} color="#81D4FA" />
-                      </View>
+                        <View style={styles.readMoreContainer}>
+                          <LinearGradient
+                            colors={['#81D4FA', '#42A5F5']}
+                            style={styles.readMoreGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                          >
+                            <Text style={styles.readMoreText}>Читать</Text>
+                            <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+                          </LinearGradient>
+                        </View>
                     </View>
                   </LinearGradient>
                 </BlurView>
@@ -267,17 +288,20 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   allArticlesButton: {
+    borderRadius: responsiveWidth(16),
+    overflow: 'hidden',
+  },
+  allArticlesGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(66, 165, 245, 0.1)', // Изменен на цвет кнопки Перейти в поиск
-    paddingHorizontal: responsivePadding(12),
-    paddingVertical: responsivePadding(6),
-    borderRadius: responsiveWidth(16),
+    justifyContent: 'center',
+    paddingHorizontal: responsivePadding(16),
+    paddingVertical: responsivePadding(8),
   },
   allArticlesText: {
     fontSize: responsiveFontSize(14),
-    color: '#42A5F5', // Изменен на цвет кнопки Перейти в поиск
-    fontWeight: '600',
+    color: '#FFFFFF', // Белый текст на градиенте
+    fontWeight: '700',
     marginRight: responsivePadding(4),
   },
 
@@ -353,33 +377,43 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   tag: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    paddingHorizontal: responsivePadding(8),
-    paddingVertical: responsivePadding(4),
     borderRadius: responsiveWidth(12),
     marginRight: responsivePadding(6),
     marginBottom: responsivePadding(4),
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: responsiveHeight(1) },
     shadowOpacity: 0.1,
     shadowRadius: responsiveWidth(2),
     elevation: 2,
   },
+  tagGradient: {
+    paddingHorizontal: responsivePadding(8),
+    paddingVertical: responsivePadding(4),
+  },
   tagText: {
     fontSize: responsiveFontSize(11),
-    color: '#42A5F5', // Изменен на цвет кнопки Перейти в поиск
-    fontWeight: '600',
+    color: '#FFFFFF', // Белый текст на градиенте
+    fontWeight: '700',
   },
   readMoreContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'flex-start', // Выравнивание по левой стороне
     paddingHorizontal: responsivePadding(8), // Минимальные отступы только для навигации
+    marginTop: responsivePadding(8),
+  },
+  readMoreGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: responsivePadding(12),
+    paddingVertical: responsivePadding(6),
+    borderRadius: responsiveWidth(16),
+    alignSelf: 'flex-start', // Выравнивание по левой стороне
   },
   readMoreText: {
     fontSize: responsiveFontSize(14),
-    color: '#81D4FA',
-    fontWeight: '600',
+    color: '#FFFFFF', // Белый текст на градиенте
+    fontWeight: '700',
     marginRight: responsivePadding(4),
   },
 });
