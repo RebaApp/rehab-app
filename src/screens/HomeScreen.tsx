@@ -1,4 +1,4 @@
-import React, { memo, useRef, useEffect } from 'react';
+import React, { memo, useRef, useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,23 +6,32 @@ import {
   TouchableOpacity,
   Animated,
   SafeAreaView,
+  ScrollView,
+  TextInput,
+  Image,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { THEME } from '../utils/constants';
-import { responsiveWidth, responsiveHeight, responsivePadding } from '../utils/responsive';
+import { THEME, ARTICLES } from '../utils/constants';
+import { responsiveWidth, responsiveHeight, responsivePadding, responsiveFontSize } from '../utils/responsive';
 
 interface HomeScreenProps {
   onArticlePress: (article: any) => void;
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = memo(() => {
+const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
+  // Состояние для поиска
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredArticles, setFilteredArticles] = useState(ARTICLES.filter(article => 
+    article.id.startsWith('main')
+  ));
+
   // Анимации
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Начальные анимации
@@ -44,18 +53,35 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(() => {
         useNativeDriver: true,
       }),
     ]).start();
-
-    // Непрерывное вращение значка
-    const startRotation = () => {
-      rotateAnim.setValue(0);
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 20000, // 20 секунд на полный оборот (медленнее)
-        useNativeDriver: true,
-      }).start(() => startRotation()); // Зацикливаем
-    };
-    startRotation();
   }, []);
+
+  // Функция поиска
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim() === '') {
+      setFilteredArticles(ARTICLES.filter(article => article.id.startsWith('main')));
+    } else {
+      const filtered = ARTICLES.filter(article => 
+        article.id.startsWith('main') && (
+          article.title.toLowerCase().includes(query.toLowerCase()) ||
+          article.excerpt.toLowerCase().includes(query.toLowerCase()) ||
+          article.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
+        )
+      );
+      setFilteredArticles(filtered);
+    }
+  };
+
+  // Функция для отображения тегов
+  const renderTags = (tags: string[]) => (
+    <View style={styles.tagsContainer}>
+      {tags.map((tag, index) => (
+        <View key={index} style={styles.tag}>
+          <Text style={styles.tagText}>{tag}</Text>
+        </View>
+      ))}
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,9 +89,13 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(() => {
         colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
         style={styles.gradient}
       >
-        <View style={styles.content}>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           <Animated.View style={[
-            styles.mainSection,
+            styles.content,
             {
               opacity: fadeAnim,
               transform: [
@@ -74,106 +104,64 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(() => {
               ]
             }
           ]}>
-            {/* Крутящийся значок */}
-            <View style={styles.iconSection}>
-              <BlurView intensity={25} tint="light" style={styles.iconBlur}>
-                <LinearGradient
-                  colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
-                  style={styles.iconGradient}
-                >
-                  <Animated.View style={[styles.iconContainer, {
-                    transform: [{
-                      rotate: rotateAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: ['0deg', '360deg']
-                      })
-                    }]
-                  }]}>
-                    <LinearGradient
-                      colors={['#81D4FA', '#42A5F5', '#81D4FA', '#B0E0E6', '#E0F6FF']}
-                      style={styles.iconGradientInner}
-                    >
-                      <Text style={styles.iconText}>*</Text>
-                    </LinearGradient>
-                  </Animated.View>
-                </LinearGradient>
-              </BlurView>
-            </View>
-
-            {/* Название и слоган */}
-            <View style={styles.textSection}>
+            {/* Заголовок и слоган */}
+            <View style={styles.headerSection}>
               <Text style={styles.title}>РЕБА</Text>
               <Text style={styles.slogan}>помощь ближе чем кажется</Text>
             </View>
 
-            {/* Быстрые действия */}
-            <View style={styles.actionsSection}>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => console.log('Найти центр')}
-                activeOpacity={0.7}
-              >
-                <BlurView intensity={20} tint="light" style={styles.actionBlur}>
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
-                    style={styles.actionGradient}
-                  >
-                    <Ionicons name="search" size={24} color="#81D4FA" />
-                    <Text style={styles.actionText}>Найти центр</Text>
-                  </LinearGradient>
-                </BlurView>
-              </TouchableOpacity>
+            {/* Поисковая строка */}
+            <View style={styles.searchSection}>
+              <BlurView intensity={20} tint="light" style={styles.searchBlur}>
+                <LinearGradient
+                  colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
+                  style={styles.searchGradient}
+                >
+                  <Ionicons name="search" size={20} color="#81D4FA" style={styles.searchIcon} />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Поиск статей..."
+                    placeholderTextColor="#999"
+                    value={searchQuery}
+                    onChangeText={handleSearch}
+                  />
+                </LinearGradient>
+              </BlurView>
+            </View>
 
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => console.log('Консультация')}
-                activeOpacity={0.7}
-              >
-                <BlurView intensity={20} tint="light" style={styles.actionBlur}>
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
-                    style={styles.actionGradient}
-                  >
-                    <Ionicons name="call" size={24} color="#81D4FA" />
-                    <Text style={styles.actionText}>Консультация</Text>
-                  </LinearGradient>
-                </BlurView>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => console.log('Статьи')}
-                activeOpacity={0.7}
-              >
-                <BlurView intensity={20} tint="light" style={styles.actionBlur}>
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
-                    style={styles.actionGradient}
-                  >
-                    <Ionicons name="book" size={24} color="#81D4FA" />
-                    <Text style={styles.actionText}>Статьи</Text>
-                  </LinearGradient>
-                </BlurView>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => console.log('Поддержка')}
-                activeOpacity={0.7}
-              >
-                <BlurView intensity={20} tint="light" style={styles.actionBlur}>
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
-                    style={styles.actionGradient}
-                  >
-                    <Ionicons name="heart" size={24} color="#81D4FA" />
-                    <Text style={styles.actionText}>Поддержка</Text>
-                  </LinearGradient>
-                </BlurView>
-              </TouchableOpacity>
+            {/* Секция статей */}
+            <View style={styles.articlesSection}>
+              <Text style={styles.sectionTitle}>Статьи о реабилитации</Text>
+              
+              {filteredArticles.map((article) => (
+                <TouchableOpacity
+                  key={article.id}
+                  style={styles.articleCard}
+                  onPress={() => onArticlePress(article)}
+                  activeOpacity={0.8}
+                >
+                  <BlurView intensity={20} tint="light" style={styles.articleBlur}>
+                    <LinearGradient
+                      colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
+                      style={styles.articleGradient}
+                    >
+                      <Image source={{ uri: article.image }} style={styles.articleImage} />
+                      <View style={styles.articleContent}>
+                        <Text style={styles.articleTitle}>{article.title}</Text>
+                        <Text style={styles.articleExcerpt}>{article.excerpt}</Text>
+                        {renderTags(article.tags)}
+                        <View style={styles.readMoreContainer}>
+                          <Text style={styles.readMoreText}>Читать</Text>
+                          <Ionicons name="arrow-forward" size={16} color="#81D4FA" />
+                        </View>
+                      </View>
+                    </LinearGradient>
+                  </BlurView>
+                </TouchableOpacity>
+              ))}
             </View>
           </Animated.View>
-        </View>
+        </ScrollView>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -187,92 +175,43 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  content: {
+  scrollView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  },
+  scrollContent: {
+    paddingBottom: responsiveHeight(100),
+  },
+  content: {
     paddingHorizontal: responsivePadding(20),
-  },
-  mainSection: {
-    alignItems: 'center',
-    width: '100%',
-  },
-  
-  // Секция значка
-  iconSection: {
-    marginBottom: responsivePadding(40),
-  },
-  iconBlur: {
-    borderRadius: responsiveWidth(24),
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: responsiveHeight(4) },
-    shadowOpacity: 0.15,
-    shadowRadius: responsiveWidth(16),
-    elevation: 8,
-  },
-  iconGradient: {
-    padding: responsivePadding(32),
-    alignItems: 'center',
-  },
-  iconContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconGradientInner: {
-    width: responsiveWidth(120),
-    height: responsiveWidth(120),
-    borderRadius: responsiveWidth(60),
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#81D4FA',
-    shadowOffset: { width: 0, height: responsiveHeight(4) },
-    shadowOpacity: 0.3,
-    shadowRadius: responsiveWidth(12),
-    elevation: 6,
-  },
-  iconText: {
-    fontSize: responsiveWidth(80),
-    fontWeight: '900',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    paddingTop: responsivePadding(20),
   },
 
-  // Секция текста
-  textSection: {
+  // Заголовок и слоган
+  headerSection: {
     alignItems: 'center',
-    marginBottom: responsivePadding(48),
+    marginBottom: responsivePadding(32),
   },
   title: {
-    fontSize: responsiveWidth(48),
+    fontSize: responsiveFontSize(48),
     fontWeight: '900',
     color: '#1a1a1a',
     textAlign: 'center',
-    marginBottom: responsivePadding(12),
+    marginBottom: responsivePadding(8),
     letterSpacing: responsiveWidth(-1),
   },
   slogan: {
-    fontSize: responsiveWidth(18),
+    fontSize: responsiveFontSize(18),
     fontWeight: '500',
     color: '#666',
     textAlign: 'center',
     letterSpacing: responsiveWidth(0.5),
   },
 
-  // Секция действий
-  actionsSection: {
-    width: '100%',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  // Поисковая строка
+  searchSection: {
+    marginBottom: responsivePadding(32),
   },
-  actionButton: {
-    width: '48%',
-    marginBottom: responsivePadding(16),
-    borderRadius: responsiveWidth(16),
-    overflow: 'hidden',
-  },
-  actionBlur: {
+  searchBlur: {
     borderRadius: responsiveWidth(16),
     overflow: 'hidden',
     shadowColor: '#000',
@@ -281,18 +220,102 @@ const styles = StyleSheet.create({
     shadowRadius: responsiveWidth(8),
     elevation: 4,
   },
-  actionGradient: {
+  searchGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: responsivePadding(16),
-    paddingHorizontal: responsivePadding(12),
+    paddingHorizontal: responsivePadding(16),
+    paddingVertical: responsivePadding(12),
   },
-  actionText: {
+  searchIcon: {
+    marginRight: responsivePadding(12),
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: responsiveFontSize(16),
     color: '#1a1a1a',
-    fontSize: responsiveWidth(16),
+  },
+
+  // Секция статей
+  articlesSection: {
+    marginBottom: responsivePadding(32),
+  },
+  sectionTitle: {
+    fontSize: responsiveFontSize(24),
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: responsivePadding(20),
+    textAlign: 'center',
+  },
+
+  // Карточка статьи
+  articleCard: {
+    marginBottom: responsivePadding(20),
+    borderRadius: responsiveWidth(16),
+    overflow: 'hidden',
+  },
+  articleBlur: {
+    borderRadius: responsiveWidth(16),
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: responsiveHeight(4) },
+    shadowOpacity: 0.15,
+    shadowRadius: responsiveWidth(12),
+    elevation: 6,
+  },
+  articleGradient: {
+    flexDirection: 'row',
+    padding: responsivePadding(16),
+  },
+  articleImage: {
+    width: responsiveWidth(120),
+    height: responsiveWidth(80),
+    borderRadius: responsiveWidth(12),
+    marginRight: responsivePadding(16),
+  },
+  articleContent: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  articleTitle: {
+    fontSize: responsiveFontSize(16),
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: responsivePadding(8),
+    lineHeight: responsiveFontSize(22),
+  },
+  articleExcerpt: {
+    fontSize: responsiveFontSize(14),
+    color: '#666',
+    marginBottom: responsivePadding(12),
+    lineHeight: responsiveFontSize(20),
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: responsivePadding(12),
+  },
+  tag: {
+    backgroundColor: 'rgba(129, 212, 250, 0.2)',
+    paddingHorizontal: responsivePadding(8),
+    paddingVertical: responsivePadding(4),
+    borderRadius: responsiveWidth(12),
+    marginRight: responsivePadding(6),
+    marginBottom: responsivePadding(4),
+  },
+  tagText: {
+    fontSize: responsiveFontSize(12),
+    color: '#81D4FA',
     fontWeight: '600',
-    marginLeft: responsivePadding(8),
+  },
+  readMoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  readMoreText: {
+    fontSize: responsiveFontSize(14),
+    color: '#81D4FA',
+    fontWeight: '600',
+    marginRight: responsivePadding(4),
   },
 });
 
