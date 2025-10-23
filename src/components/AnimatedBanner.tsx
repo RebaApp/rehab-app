@@ -85,38 +85,42 @@ const AnimatedBanner: React.FC<AnimatedBannerProps> = memo(({ scrollY, isVisible
           useNativeDriver: true,
         }),
       ]).start(() => {
-        // Удаляем кружок и создаем новый
-        setRandomCircles(prev => prev.filter(c => c.id !== circle.id));
-        if (BANNER_CONFIG.decorativeElements.randomCircles.enabled) {
-          const newCircle = createRandomCircle();
-          setRandomCircles(prev => [...prev, newCircle]);
-          animateRandomCircle(newCircle);
-        }
+        // Удаляем кружок и создаем новый (асинхронно)
+        setTimeout(() => {
+          setRandomCircles(prev => prev.filter(c => c.id !== circle.id));
+          if (BANNER_CONFIG.decorativeElements.randomCircles.enabled) {
+            const newCircle = createRandomCircle();
+            setRandomCircles(prev => [...prev, newCircle]);
+            animateRandomCircle(newCircle);
+          }
+        }, 0);
       });
     }, duration);
   };
 
   useEffect(() => {
-    // Начальные анимации
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: BANNER_CONFIG.animations.fadeInDuration,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: BANNER_CONFIG.animations.scaleTension,
-        friction: BANNER_CONFIG.animations.scaleFriction,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        tension: 40,
-        friction: 8,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    // Начальные анимации - с задержкой для избежания конфликтов
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: BANNER_CONFIG.animations.fadeInDuration,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: BANNER_CONFIG.animations.scaleTension,
+          friction: BANNER_CONFIG.animations.scaleFriction,
+          useNativeDriver: true,
+        }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          tension: 40,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 0);
 
     // Бесконечная анимация вращения для декоративных элементов
     const startRotation = () => {
@@ -130,7 +134,7 @@ const AnimatedBanner: React.FC<AnimatedBannerProps> = memo(({ scrollY, isVisible
         { iterations: -1 }
       ).start();
     };
-    startRotation();
+    setTimeout(startRotation, 100);
 
     // Инициализация рандомных кружков - с задержкой для избежания конфликтов
     if (BANNER_CONFIG.decorativeElements.randomCircles.enabled) {
