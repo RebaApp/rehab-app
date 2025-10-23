@@ -54,20 +54,22 @@ const AnimatedBanner: React.FC<AnimatedBannerProps> = memo(({ scrollY, isVisible
     const duration = Math.random() * (animationDuration.max - animationDuration.min) + animationDuration.min;
     const fadeTime = Math.random() * (fadeDuration.max - fadeDuration.min) + fadeDuration.min;
 
-    // Появление
-    Animated.parallel([
-      Animated.timing(circle.opacity, {
-        toValue: 0.6,
-        duration: fadeTime,
-        useNativeDriver: true,
-      }),
-      Animated.spring(circle.scale, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    // Появление - с задержкой для избежания конфликтов с useInsertionEffect
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(circle.opacity, {
+          toValue: 0.6,
+          duration: fadeTime,
+          useNativeDriver: true,
+        }),
+        Animated.spring(circle.scale, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 0);
 
     // Исчезновение через случайное время
     setTimeout(() => {
@@ -130,15 +132,25 @@ const AnimatedBanner: React.FC<AnimatedBannerProps> = memo(({ scrollY, isVisible
     };
     startRotation();
 
-    // Инициализация рандомных кружков
+    // Инициализация рандомных кружков - с задержкой для избежания конфликтов
     if (BANNER_CONFIG.decorativeElements.randomCircles.enabled) {
-      const initialCircles = Array.from({ length: BANNER_CONFIG.decorativeElements.randomCircles.count }, () => {
-        const circle = createRandomCircle();
-        setTimeout(() => animateRandomCircle(circle), Math.random() * 2000);
-        return circle;
-      });
-      setRandomCircles(initialCircles);
+      setTimeout(() => {
+        const initialCircles = Array.from({ length: BANNER_CONFIG.decorativeElements.randomCircles.count }, () => {
+          const circle = createRandomCircle();
+          setTimeout(() => animateRandomCircle(circle), Math.random() * 2000);
+          return circle;
+        });
+        setRandomCircles(initialCircles);
+      }, 100); // Небольшая задержка для избежания конфликтов с useInsertionEffect
     }
+
+    // Cleanup функция для остановки анимаций при размонтировании
+    return () => {
+      fadeAnim.stopAnimation();
+      scaleAnim.stopAnimation();
+      slideAnim.stopAnimation();
+      rotateAnim.stopAnimation();
+    };
   }, []);
 
   // Анимация исчезновения при скроллинге
