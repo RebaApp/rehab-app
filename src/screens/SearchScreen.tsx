@@ -19,43 +19,42 @@ interface SearchScreenProps {
 }
 
 const SearchScreen: React.FC<SearchScreenProps> = memo(() => {
-  // Анимации
+  // Анимации в стиле JourneyScreen
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Начальные анимации
+    // Начальные анимации в стиле JourneyScreen (без slideAnim)
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 1000,
         useNativeDriver: true,
       }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
       Animated.spring(scaleAnim, {
         toValue: 1,
         tension: 50,
-        friction: 8,
+        friction: 7,
         useNativeDriver: true,
       }),
     ]).start();
 
-    // Непрерывное вращение значка
+    // Бесконечная плавная анимация вращения в стиле JourneyScreen
     const startRotation = () => {
       rotateAnim.setValue(0);
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 10000, // 10 секунд на полный оборот
-        useNativeDriver: true,
-      }).start(() => startRotation()); // Зацикливаем
+      Animated.loop(
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 8000, // 8 секунд на полный оборот - очень медленно
+          useNativeDriver: true,
+        }),
+        { iterations: -1 } // бесконечно
+      ).start();
     };
-    startRotation();
+
+    // Запускаем вращение с небольшой задержкой после появления
+    setTimeout(startRotation, 1200);
   }, []);
 
   return (
@@ -69,10 +68,7 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(() => {
             styles.mainSection,
             {
               opacity: fadeAnim,
-              transform: [
-                { translateY: slideAnim },
-                { scale: scaleAnim }
-              ]
+              transform: [{ scale: scaleAnim }]
             }
           ]}>
             {/* Крутящийся значок поиска */}

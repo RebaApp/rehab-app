@@ -85,14 +85,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = memo(({
                     style={styles.userGradient}
                   >
                     <View style={styles.userInfo}>
-                      <View style={styles.avatarContainer}>
-                        <LinearGradient
-                          colors={['#81D4FA', '#42A5F5']}
-                          style={styles.avatarGradient}
-                        >
-                          <Ionicons name="person" size={32} color="#FFFFFF" />
-                        </LinearGradient>
-                      </View>
                       <View style={styles.userDetails}>
                         <Text style={styles.userName}>{user.name}</Text>
                         <Text style={styles.userEmail}>{user.email}</Text>
@@ -242,27 +234,11 @@ const styles = StyleSheet.create({
     padding: responsivePadding(32),
   },
   userInfo: {
-    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: responsivePadding(24),
   },
-  avatarContainer: {
-    marginRight: responsivePadding(16),
-  },
-  avatarGradient: {
-    width: responsiveWidth(60),
-    height: responsiveWidth(60),
-    borderRadius: responsiveWidth(30),
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: responsiveHeight(2) },
-    shadowOpacity: 0.2,
-    shadowRadius: responsiveWidth(8),
-    elevation: 4,
-  },
   userDetails: {
-    flex: 1,
+    alignItems: 'center',
   },
   userName: {
     fontSize: responsiveWidth(20),

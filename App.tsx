@@ -16,6 +16,7 @@ import SearchScreen from './src/screens/SearchScreen';
 import JourneyScreen from './src/screens/JourneyScreen';
 import FavoritesScreen from './src/screens/FavoritesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import ArticlesScreen from './src/screens/ArticlesScreen';
 import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
 import CenterDetailScreen from './src/screens/CenterDetailScreen';
 import { THEME } from './src/utils/constants';
@@ -35,6 +36,11 @@ export default function App() {
 
   // Анимация для содержимого вкладок
   const contentFadeAnim = useRef(new Animated.Value(1)).current;
+  
+  // Анимации для загрузки
+  const loadingFadeAnim = useRef(new Animated.Value(0)).current;
+  const loadingScaleAnim = useRef(new Animated.Value(0.9)).current;
+  const loadingRotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     console.log('App mounted, loading centers...');
@@ -60,8 +66,48 @@ export default function App() {
     });
   }, [currentTab]);
 
+  // Анимация загрузки
+  useEffect(() => {
+    if (centersLoading) {
+      // Начальные анимации загрузки
+      Animated.parallel([
+        Animated.timing(loadingFadeAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.spring(loadingScaleAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // Бесконечная анимация вращения
+      const startRotation = () => {
+        loadingRotateAnim.setValue(0);
+        Animated.loop(
+          Animated.timing(loadingRotateAnim, {
+            toValue: 1,
+            duration: 3000, // 3 секунды на полный оборот
+            useNativeDriver: true,
+          }),
+          { iterations: -1 }
+        ).start();
+      };
+      startRotation();
+    } else {
+      // Сброс анимаций при завершении загрузки
+      loadingFadeAnim.setValue(0);
+      loadingScaleAnim.setValue(0.9);
+      loadingRotateAnim.setValue(0);
+    }
+  }, [centersLoading]);
+
   const [selectedArticle, setSelectedArticle] = React.useState(null);
   const [selectedCenter, setSelectedCenter] = React.useState(null);
+  const [showArticlesScreen, setShowArticlesScreen] = React.useState(false);
 
   const handleArticlePress = useCallback((article: any) => {
     console.log('Article pressed:', article.title);
@@ -71,6 +117,14 @@ export default function App() {
   const handleCenterPress = useCallback((center: any) => {
     console.log('Center pressed:', center.name);
     setSelectedCenter(center);
+  }, []);
+
+  const handleShowArticles = useCallback(() => {
+    setShowArticlesScreen(true);
+  }, []);
+
+  const handleBackFromArticles = useCallback(() => {
+    setShowArticlesScreen(false);
   }, []);
 
   const handleCloseArticle = useCallback(() => {
@@ -106,10 +160,61 @@ export default function App() {
 
     if (centersLoading) {
       return (
-        <View style={styles.loadingContainer}>
-          <Ionicons name="hourglass-outline" size={50} color={THEME.primary} />
-          <Text style={styles.loadingText}>Загрузка данных...</Text>
-        </View>
+        <SafeAreaView style={styles.loadingContainer}>
+          <LinearGradient
+            colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
+            style={styles.loadingGradient}
+          >
+            <Animated.View style={styles.loadingContent}>
+              {/* Анимированная иконка с градиентом */}
+              <Animated.View style={[styles.loadingIconContainer, {
+                transform: [{
+                  rotate: loadingRotateAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '360deg']
+                  })
+                }]
+              }]}>
+                <BlurView intensity={20} tint="light" style={styles.loadingIconBlur}>
+                  <LinearGradient
+                    colors={['#45B7D1', '#4ECDC4', '#96CEB4', '#FFEAA7', '#FF6B6B']}
+                    style={styles.loadingIconGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="heart" size={32} color="#FFFFFF" />
+                  </LinearGradient>
+                </BlurView>
+              </Animated.View>
+              
+              {/* Анимированный текст */}
+              <Animated.Text style={[styles.loadingText, {
+                opacity: loadingFadeAnim,
+                transform: [{ scale: loadingScaleAnim }]
+              }]}>
+                Загрузка данных...
+              </Animated.Text>
+              
+              {/* Анимированные точки */}
+              <Animated.View style={styles.loadingDots}>
+                {[0, 1, 2].map((index) => (
+                  <Animated.View
+                    key={index}
+                    style={[styles.loadingDot, {
+                      opacity: loadingFadeAnim,
+                      transform: [{
+                        scale: loadingFadeAnim.interpolate({
+                          inputRange: [0, 0.5, 1],
+                          outputRange: [0.5, 1.2, 0.5]
+                        })
+                      }]
+                    }]}
+                  />
+                ))}
+              </Animated.View>
+            </Animated.View>
+          </LinearGradient>
+        </SafeAreaView>
       );
     }
 
@@ -118,6 +223,7 @@ export default function App() {
         return (
           <HomeScreen
             onArticlePress={handleArticlePress}
+            onShowArticles={handleShowArticles}
           />
         );
       case 'search':
@@ -280,6 +386,16 @@ export default function App() {
     </View>
   );
 
+  // Если открыт экран статей
+  if (showArticlesScreen) {
+    return (
+      <ArticlesScreen
+        onArticlePress={handleArticlePress}
+        onBackPress={handleBackFromArticles}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Animated.View style={styles.animatedContainer}>
@@ -295,7 +411,7 @@ export default function App() {
           ]}>
             {renderContent()}
           </Animated.View>
-            {!selectedArticle && !selectedCenter && renderTabBar()}
+            {!selectedArticle && !selectedCenter && !showArticlesScreen && renderTabBar()}
         </LinearGradient>
       </Animated.View>
     </SafeAreaView>
@@ -321,14 +437,59 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
+  },
+  loadingGradient: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: THEME.bgTop,
+  },
+  loadingContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingIconContainer: {
+    marginBottom: responsivePadding(24),
+  },
+  loadingIconBlur: {
+    borderRadius: responsiveWidth(24),
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: responsiveHeight(4) },
+    shadowOpacity: 0.15,
+    shadowRadius: responsiveWidth(16),
+    elevation: 8,
+  },
+  loadingIconGradient: {
+    width: responsiveWidth(80),
+    height: responsiveWidth(80),
+    borderRadius: responsiveWidth(40),
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: responsiveHeight(2) },
+    shadowOpacity: 0.2,
+    shadowRadius: responsiveWidth(8),
+    elevation: 4,
   },
   loadingText: {
-    fontSize: 16,
-    color: '#333',
-    marginTop: 10,
+    fontSize: responsiveFontSize(18),
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: responsivePadding(16),
+    textAlign: 'center',
+    letterSpacing: responsiveWidth(0.5),
+  },
+  loadingDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingDot: {
+    width: responsiveWidth(8),
+    height: responsiveWidth(8),
+    borderRadius: responsiveWidth(4),
+    backgroundColor: '#81D4FA',
+    marginHorizontal: responsiveWidth(4),
   },
   title: {
     fontSize: 24,
