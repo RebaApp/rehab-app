@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-    paddingTop: responsiveHeight(50), // Отступ от верха экрана
+    paddingTop: responsiveHeight(25), // Отступ от верха экрана (сокращен на 50%)
     paddingHorizontal: responsivePadding(16),
   },
   bannerBlur: {
