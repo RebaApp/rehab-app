@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: responsiveHeight(100), // Возвращено обратно
-    paddingTop: responsiveHeight(90), // Сокращен на 50% для приближения к баннеру
+    paddingTop: responsiveHeight(140), // Скорректирован отступ для оптимального расположения
     paddingHorizontal: responsivePadding(0), // МИНИМАЛЬНЫЙ ОТСТУП ОТ КРАЕВ ЭКРАНА ДЛЯ ВСЕЙ СТРАНИЦЫ
     alignItems: 'stretch', // Растягиваем элементы на всю ширину
   },
