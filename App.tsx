@@ -223,7 +223,6 @@ export default function App() {
         return (
           <HomeScreen
             onArticlePress={handleArticlePress}
-            onShowArticles={handleShowArticles}
           />
         );
       case 'search':

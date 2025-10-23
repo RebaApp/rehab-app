@@ -19,16 +19,22 @@ import AnimatedBanner from '../components/AnimatedBanner';
 
 interface HomeScreenProps {
   onArticlePress: (article: any) => void;
-  onShowArticles: () => void;
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArticles }) => {
-  // Состояние для поиска
+const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
+  // Состояние для поиска и фильтрации
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState('');
   const [filteredArticles, setFilteredArticles] = useState(() => {
     return ARTICLES.filter(article => article.id.startsWith('main'));
   });
   const [showBanner, setShowBanner] = useState(true);
+
+  // Получаем все уникальные теги для фильтрации
+  const allTags = Array.from(new Set(
+    ARTICLES.filter(article => article.id.startsWith('main'))
+      .flatMap(article => article.tags || [])
+  ));
   
   // Анимация для скроллинга
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -73,16 +79,23 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
     setTimeout(startRotation, 1200);
   }, []);
 
-  // Функция поиска - улучшенная версия
+  // Функция поиска и фильтрации
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim() === '') {
-      // Показываем только основные статьи на главной странице
-      const mainArticles = ARTICLES.filter(article => article.id.startsWith('main'));
-      setFilteredArticles(mainArticles);
-    } else {
-      // Ищем по всем статьям, включая содержимое
-      const filtered = ARTICLES.filter(article => {
+    applyFilters(query, selectedTag);
+  };
+
+  const handleTagFilter = (tag: string) => {
+    setSelectedTag(tag);
+    applyFilters(searchQuery, tag);
+  };
+
+  const applyFilters = (query: string, tag: string) => {
+    let filtered = ARTICLES.filter(article => article.id.startsWith('main'));
+
+    // Фильтр по поисковому запросу
+    if (query.trim() !== '') {
+      filtered = filtered.filter(article => {
         const searchTerm = query.toLowerCase();
         return (
           article.title.toLowerCase().includes(searchTerm) ||
@@ -92,8 +105,16 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
           (article.tags && article.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
         );
       });
-      setFilteredArticles(filtered);
     }
+
+    // Фильтр по тегу
+    if (tag !== '') {
+      filtered = filtered.filter(article => 
+        article.tags && article.tags.includes(tag)
+      );
+    }
+
+    setFilteredArticles(filtered);
   };
 
   // Функция для отображения тегов
@@ -139,7 +160,7 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
           )}
           scrollEventThrottle={16}
         >
-          {/* Поисковая строка */}
+          {/* Поисковая строка с фильтрацией */}
           <View style={styles.searchSection}>
             <BlurView intensity={20} tint="light" style={styles.searchBlur}>
                 <LinearGradient
@@ -164,36 +185,52 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress, onShowArti
             </BlurView>
           </View>
 
+          {/* Фильтрация по тегам */}
+          <View style={styles.filtersSection}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filtersContainer}
+            >
+              <TouchableOpacity
+                style={[styles.filterTag, selectedTag === '' && styles.filterTagActive]}
+                onPress={() => handleTagFilter('')}
+              >
+                <Text style={[styles.filterTagText, selectedTag === '' && styles.filterTagTextActive]}>
+                  Все темы
+                </Text>
+              </TouchableOpacity>
+              {allTags.map((tag, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.filterTag, selectedTag === tag && styles.filterTagActive]}
+                  onPress={() => handleTagFilter(tag)}
+                >
+                  <Text style={[styles.filterTagText, selectedTag === tag && styles.filterTagTextActive]}>
+                    {tag}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
           {/* Секция статей - ВО ВСЮ ШИРИНУ ЭКРАНА */}
           <View style={styles.articlesSection}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>
-                {searchQuery.trim() === '' 
+                {searchQuery.trim() === '' && selectedTag === ''
                   ? 'Полезное чтиво' 
                   : `Результаты поиска (${filteredArticles.length})`
                 }
               </Text>
-              {searchQuery.trim() === '' && (
-                <TouchableOpacity style={styles.allArticlesButton} onPress={onShowArticles}>
-                  <LinearGradient
-                    colors={['#81D4FA', '#42A5F5']}
-                    style={styles.allArticlesGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                  >
-                    <Text style={styles.allArticlesText}>Все статьи</Text>
-                    <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-                  </LinearGradient>
-                </TouchableOpacity>
-              )}
             </View>
             
-            {filteredArticles.length === 0 && searchQuery.trim() !== '' ? (
+            {filteredArticles.length === 0 && (searchQuery.trim() !== '' || selectedTag !== '') ? (
               <View style={styles.noResultsContainer}>
                 <Ionicons name="search" size={48} color="#81D4FA" />
                 <Text style={styles.noResultsTitle}>Ничего не найдено</Text>
                 <Text style={styles.noResultsText}>
-                  Попробуйте изменить поисковый запрос или поищите по другим ключевым словам
+                  Попробуйте изменить поисковый запрос или выбрать другую тему
                 </Text>
               </View>
             ) : (
@@ -312,6 +349,37 @@ const styles = StyleSheet.create({
     width: '100%', // Принудительно на всю ширину
   },
 
+  // Фильтрация по тегам
+  filtersSection: {
+    marginBottom: responsivePadding(16),
+    width: '100%',
+  },
+  filtersContainer: {
+    paddingHorizontal: responsivePadding(4),
+  },
+  filterTag: {
+    paddingHorizontal: responsivePadding(12),
+    paddingVertical: responsivePadding(6),
+    borderRadius: responsiveWidth(16),
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    marginRight: responsivePadding(8),
+    borderWidth: 1,
+    borderColor: 'rgba(129, 212, 250, 0.3)',
+  },
+  filterTagActive: {
+    backgroundColor: 'rgba(129, 212, 250, 0.2)',
+    borderColor: '#81D4FA',
+  },
+  filterTagText: {
+    fontSize: responsiveFontSize(12),
+    color: '#666',
+    fontWeight: '600',
+  },
+  filterTagTextActive: {
+    color: '#42A5F5',
+    fontWeight: '700',
+  },
+
   // Секция статей - БЕЗ ОТСТУПОВ, ВО ВСЮ ШИРИНУ ЭКРАНА
   articlesSection: {
     marginBottom: responsivePadding(16), // Минимальный отступ
@@ -332,24 +400,6 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'left',
   },
-  allArticlesButton: {
-    borderRadius: responsiveWidth(16),
-    overflow: 'hidden',
-  },
-  allArticlesGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: responsivePadding(16),
-    paddingVertical: responsivePadding(8),
-  },
-  allArticlesText: {
-    fontSize: responsiveFontSize(14),
-    color: '#FFFFFF', // Белый текст на градиенте
-    fontWeight: '700',
-    marginRight: responsivePadding(4),
-  },
-
   // Карточка статьи - БЕЗ ОТСТУПОВ
   articleCard: {
     marginBottom: responsivePadding(12), // Минимальный отступ
