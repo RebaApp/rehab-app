@@ -305,6 +305,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: responsiveHeight(100), // Возвращено обратно
     paddingTop: responsiveHeight(180), // Возвращено обратно
+    paddingHorizontal: responsivePadding(4), // Общий отступ слева и справа для всего экрана
     alignItems: 'stretch', // Растягиваем элементы на всю ширину
   },
   content: {
@@ -334,7 +335,7 @@ const styles = StyleSheet.create({
   searchGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: responsivePadding(8), // Сокращено с 16 до 8 (горизонтально)
+    paddingHorizontal: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
     paddingVertical: responsivePadding(12), // Возвращено обратно
     width: '100%', // Принудительно на всю ширину
     flex: 1, // Растягиваем на всю доступную ширину
@@ -355,14 +356,14 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   filtersContainer: {
-    paddingHorizontal: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
+    paddingHorizontal: responsivePadding(1), // Сокращено с 2 до 1 (горизонтально)
   },
   filterTag: {
-    paddingHorizontal: responsivePadding(6), // Сокращено с 12 до 6 (горизонтально)
+    paddingHorizontal: responsivePadding(3), // Сокращено с 6 до 3 (горизонтально)
     paddingVertical: responsivePadding(6), // Оставляем как есть
     borderRadius: responsiveWidth(16),
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginRight: responsivePadding(4), // Сокращено с 8 до 4 (горизонтально)
+    marginRight: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
     borderWidth: 1,
     borderColor: 'rgba(129, 212, 250, 0.3)',
   },
@@ -391,7 +392,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: responsivePadding(12),
-    paddingHorizontal: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
+    paddingHorizontal: responsivePadding(1), // Сокращено с 2 до 1 (горизонтально)
   },
   sectionTitle: {
     fontSize: responsiveFontSize(16), // Уменьшен с 24 до 16
@@ -457,7 +458,7 @@ const styles = StyleSheet.create({
     marginBottom: responsivePadding(8),
     lineHeight: responsiveFontSize(24),
     textAlign: 'left', // Выравнивание по левой стороне
-    paddingHorizontal: responsivePadding(4), // Сокращено с 8 до 4 (горизонтально)
+    paddingHorizontal: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
   },
   articleExcerpt: {
     fontSize: responsiveFontSize(14),
@@ -465,7 +466,7 @@ const styles = StyleSheet.create({
     marginBottom: responsivePadding(16),
     lineHeight: responsiveFontSize(20),
     textAlign: 'left', // Выравнивание по левой стороне
-    paddingHorizontal: responsivePadding(4), // Сокращено с 8 до 4 (горизонтально)
+    paddingHorizontal: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -483,7 +484,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   tagGradient: {
-    paddingHorizontal: responsivePadding(4), // Сокращено с 8 до 4 (горизонтально)
+    paddingHorizontal: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
     paddingVertical: responsivePadding(4),
   },
   tagText: {
@@ -493,14 +494,14 @@ const styles = StyleSheet.create({
   },
   readMoreContainer: {
     justifyContent: 'flex-start', // Выравнивание по левой стороне
-    paddingHorizontal: responsivePadding(4), // Сокращено с 8 до 4 (горизонтально)
+    paddingHorizontal: responsivePadding(2), // Сокращено с 4 до 2 (горизонтально)
     marginTop: responsivePadding(8),
   },
   readMoreGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: responsivePadding(6), // Сокращено с 12 до 6 (горизонтально)
+    paddingHorizontal: responsivePadding(3), // Сокращено с 6 до 3 (горизонтально)
     paddingVertical: responsivePadding(6),
     borderRadius: responsiveWidth(16),
     alignSelf: 'flex-start', // Выравнивание по левой стороне
@@ -517,7 +518,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: responsivePadding(40),
-    paddingHorizontal: responsivePadding(10), // Сокращено с 20 до 10 (горизонтально)
+    paddingHorizontal: responsivePadding(5), // Сокращено с 10 до 5 (горизонтально)
   },
   noResultsTitle: {
     fontSize: responsiveFontSize(20),
