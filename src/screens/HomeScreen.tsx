@@ -145,11 +145,25 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
                       colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
                       style={styles.articleGradient}
                     >
-                      <Image source={{ uri: article.image }} style={styles.articleImage} />
+                      {/* Горизонтальная обложка на всю ширину */}
+                      <View style={styles.articleImageContainer}>
+                        <Image source={{ uri: article.image }} style={styles.articleImage} />
+                        <View style={styles.imageOverlay}>
+                          <LinearGradient
+                            colors={['transparent', 'rgba(0, 0, 0, 0.3)']}
+                            style={styles.imageGradient}
+                          />
+                        </View>
+                        {/* Теги внизу картинки */}
+                        <View style={styles.tagsOverlay}>
+                          {renderTags(article.tags)}
+                        </View>
+                      </View>
+                      
+                      {/* Контент статьи */}
                       <View style={styles.articleContent}>
                         <Text style={styles.articleTitle}>{article.title}</Text>
                         <Text style={styles.articleExcerpt}>{article.excerpt}</Text>
-                        {renderTags(article.tags)}
                         <View style={styles.readMoreContainer}>
                           <Text style={styles.readMoreText}>Читать</Text>
                           <Ionicons name="arrow-forward" size={16} color="#81D4FA" />
@@ -263,47 +277,68 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   articleGradient: {
-    flexDirection: 'row',
-    padding: responsivePadding(16),
+    padding: 0,
+  },
+  articleImageContainer: {
+    position: 'relative',
+    height: responsiveHeight(180),
+    width: '100%',
   },
   articleImage: {
-    width: responsiveWidth(120),
-    height: responsiveWidth(80),
-    borderRadius: responsiveWidth(12),
-    marginRight: responsivePadding(16),
+    width: '100%',
+    height: '100%',
+  },
+  imageOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: responsiveHeight(60),
+  },
+  imageGradient: {
+    flex: 1,
+  },
+  tagsOverlay: {
+    position: 'absolute',
+    bottom: responsivePadding(12),
+    left: responsivePadding(16),
+    right: responsivePadding(16),
   },
   articleContent: {
-    flex: 1,
-    justifyContent: 'space-between',
+    padding: responsivePadding(20),
   },
   articleTitle: {
-    fontSize: responsiveFontSize(16),
+    fontSize: responsiveFontSize(18),
     fontWeight: '700',
     color: '#1a1a1a',
     marginBottom: responsivePadding(8),
-    lineHeight: responsiveFontSize(22),
+    lineHeight: responsiveFontSize(24),
   },
   articleExcerpt: {
     fontSize: responsiveFontSize(14),
     color: '#666',
-    marginBottom: responsivePadding(12),
+    marginBottom: responsivePadding(16),
     lineHeight: responsiveFontSize(20),
   },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: responsivePadding(12),
   },
   tag: {
-    backgroundColor: 'rgba(129, 212, 250, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     paddingHorizontal: responsivePadding(8),
     paddingVertical: responsivePadding(4),
     borderRadius: responsiveWidth(12),
     marginRight: responsivePadding(6),
     marginBottom: responsivePadding(4),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: responsiveHeight(1) },
+    shadowOpacity: 0.1,
+    shadowRadius: responsiveWidth(2),
+    elevation: 2,
   },
   tagText: {
-    fontSize: responsiveFontSize(12),
+    fontSize: responsiveFontSize(11),
     color: '#81D4FA',
     fontWeight: '600',
   },

@@ -74,20 +74,6 @@ const ArticleDetailScreen: React.FC<ArticleDetailScreenProps> = memo(({
                 style={styles.contentGradient}
               >
                 <Text style={styles.title}>{article.title}</Text>
-                
-                <View style={styles.metaContainer}>
-                  <View style={styles.metaItem}>
-                    <Ionicons name="calendar-outline" size={16} color="#666" />
-                    <Text style={styles.metaText}>{formattedDate}</Text>
-                  </View>
-                  {article.author && (
-                    <View style={styles.metaItem}>
-                      <Ionicons name="person-outline" size={16} color="#666" />
-                      <Text style={styles.metaText}>{article.author}</Text>
-                    </View>
-                  )}
-                </View>
-
                 <Text style={styles.excerpt}>{article.excerpt}</Text>
                 
                 {/* Теги статьи */}
@@ -200,22 +186,6 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     lineHeight: responsiveFontSize(32),
     marginBottom: responsivePadding(15),
-  },
-  metaContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: responsivePadding(15),
-    gap: responsivePadding(20),
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: responsivePadding(6),
-  },
-  metaText: {
-    fontSize: responsiveFontSize(14),
-    color: '#666',
-    fontWeight: '500',
   },
   excerpt: {
     fontSize: responsiveFontSize(16),
