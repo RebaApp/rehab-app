@@ -158,7 +158,7 @@ export default function App() {
           >
             <Ionicons 
               name={currentTab === 'home' ? 'home' : 'home-outline'} 
-              size={22} 
+              size={20} 
               color={currentTab === 'home' ? '#fff' : '#666'} 
             />
             <Text style={[styles.tabText, currentTab === 'home' && styles.activeTabText]}>
@@ -172,7 +172,7 @@ export default function App() {
           >
             <Ionicons 
               name={currentTab === 'search' ? 'search' : 'search-outline'} 
-              size={22} 
+              size={20} 
               color={currentTab === 'search' ? '#fff' : '#666'} 
             />
             <Text style={[styles.tabText, currentTab === 'search' && styles.activeTabText]}>
@@ -191,7 +191,7 @@ export default function App() {
               >
                 <Ionicons 
                   name="trending-up" 
-                  size={22} 
+                  size={20} 
                   color={currentTab === 'journey' ? '#fff' : '#666'} 
                 />
               </LinearGradient>
@@ -207,7 +207,7 @@ export default function App() {
           >
             <Ionicons 
               name={currentTab === 'favorites' ? 'heart' : 'heart-outline'} 
-              size={22} 
+              size={20} 
               color={currentTab === 'favorites' ? '#fff' : '#666'} 
             />
             <Text style={[styles.tabText, currentTab === 'favorites' && styles.activeTabText]}>
@@ -221,7 +221,7 @@ export default function App() {
           >
             <Ionicons 
               name={currentTab === 'profile' ? 'person' : 'person-outline'} 
-              size={22} 
+              size={20} 
               color={currentTab === 'profile' ? '#fff' : '#666'} 
             />
             <Text style={[styles.tabText, currentTab === 'profile' && styles.activeTabText]}>
@@ -302,14 +302,12 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 16,
-    paddingBottom: 20,
   },
   tabBarBlur: {
-    borderRadius: 20,
+    borderRadius: 0,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 16,
     elevation: 8,
@@ -317,26 +315,28 @@ const styles = StyleSheet.create({
   tabBarGradient: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 0,
+    height: 80,
   },
   tab: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    minWidth: 60,
+    paddingHorizontal: 4,
+    height: 80,
   },
   activeTab: {
     backgroundColor: 'rgba(129, 212, 250, 0.2)',
   },
   journeyIconContainer: {
-    marginBottom: 6,
+    marginBottom: 0,
   },
   journeyIconGradient: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#81D4FA',
@@ -346,10 +346,11 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   tabText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#666',
     fontWeight: '500',
     marginTop: 4,
+    textAlign: 'center',
   },
   activeTabText: {
     color: '#81D4FA',

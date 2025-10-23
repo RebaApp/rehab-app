@@ -1,153 +1,298 @@
-import React, { memo } from 'react';
+import React, { memo, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
+  Animated,
+  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { THEME } from '../utils/constants';
+import { responsiveWidth, responsiveHeight, responsivePadding } from '../utils/responsive';
 
 interface HomeScreenProps {
   onArticlePress: (article: any) => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = memo(() => {
+  // Анимации
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Начальные анимации
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 50,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Непрерывное вращение значка
+    const startRotation = () => {
+      rotateAnim.setValue(0);
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 20000, // 20 секунд на полный оборот (медленнее)
+        useNativeDriver: true,
+      }).start(() => startRotation()); // Зацикливаем
+    };
+    startRotation();
+  }, []);
+
   return (
-    <LinearGradient
-      colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
-      style={styles.container}
-    >
-      <View style={styles.content}>
-        {/* Заголовок */}
-        <View style={styles.header}>
-          <Text style={styles.title}>РЕБА</Text>
-          <Text style={styles.subtitle}>Реабилитационные центры</Text>
-          <Text style={styles.description}>
-            Находим подходящие центры для лечения зависимостей
-          </Text>
+    <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={[THEME.bgTop, THEME.bgMid, THEME.bgBottom]}
+        style={styles.gradient}
+      >
+        <View style={styles.content}>
+          <Animated.View style={[
+            styles.mainSection,
+            {
+              opacity: fadeAnim,
+              transform: [
+                { translateY: slideAnim },
+                { scale: scaleAnim }
+              ]
+            }
+          ]}>
+            {/* Крутящийся значок */}
+            <View style={styles.iconSection}>
+              <BlurView intensity={25} tint="light" style={styles.iconBlur}>
+                <LinearGradient
+                  colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
+                  style={styles.iconGradient}
+                >
+                  <Animated.View style={[styles.iconContainer, {
+                    transform: [{
+                      rotate: rotateAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['0deg', '360deg']
+                      })
+                    }]
+                  }]}>
+                    <LinearGradient
+                      colors={['#81D4FA', '#42A5F5', '#81D4FA', '#B0E0E6', '#E0F6FF']}
+                      style={styles.iconGradientInner}
+                    >
+                      <Text style={styles.iconText}>*</Text>
+                    </LinearGradient>
+                  </Animated.View>
+                </LinearGradient>
+              </BlurView>
+            </View>
+
+            {/* Название и слоган */}
+            <View style={styles.textSection}>
+              <Text style={styles.title}>РЕБА</Text>
+              <Text style={styles.slogan}>помощь ближе чем кажется</Text>
+            </View>
+
+            {/* Быстрые действия */}
+            <View style={styles.actionsSection}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => console.log('Найти центр')}
+                activeOpacity={0.7}
+              >
+                <BlurView intensity={20} tint="light" style={styles.actionBlur}>
+                  <LinearGradient
+                    colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
+                    style={styles.actionGradient}
+                  >
+                    <Ionicons name="search" size={24} color="#81D4FA" />
+                    <Text style={styles.actionText}>Найти центр</Text>
+                  </LinearGradient>
+                </BlurView>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => console.log('Консультация')}
+                activeOpacity={0.7}
+              >
+                <BlurView intensity={20} tint="light" style={styles.actionBlur}>
+                  <LinearGradient
+                    colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
+                    style={styles.actionGradient}
+                  >
+                    <Ionicons name="call" size={24} color="#81D4FA" />
+                    <Text style={styles.actionText}>Консультация</Text>
+                  </LinearGradient>
+                </BlurView>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => console.log('Статьи')}
+                activeOpacity={0.7}
+              >
+                <BlurView intensity={20} tint="light" style={styles.actionBlur}>
+                  <LinearGradient
+                    colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
+                    style={styles.actionGradient}
+                  >
+                    <Ionicons name="book" size={24} color="#81D4FA" />
+                    <Text style={styles.actionText}>Статьи</Text>
+                  </LinearGradient>
+                </BlurView>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => console.log('Поддержка')}
+                activeOpacity={0.7}
+              >
+                <BlurView intensity={20} tint="light" style={styles.actionBlur}>
+                  <LinearGradient
+                    colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
+                    style={styles.actionGradient}
+                  >
+                    <Ionicons name="heart" size={24} color="#81D4FA" />
+                    <Text style={styles.actionText}>Поддержка</Text>
+                  </LinearGradient>
+                </BlurView>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
         </View>
-
-        {/* Быстрые окна */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity 
-            style={styles.quickActionCard}
-            onPress={() => console.log('Найти центр')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="search" size={32} color={THEME.primary} />
-            <Text style={styles.quickActionTitle}>Найти центр</Text>
-            <Text style={styles.quickActionDescription}>
-              Поиск по городу и типу лечения
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.quickActionCard}
-            onPress={() => console.log('Консультация')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="call" size={32} color={THEME.primary} />
-            <Text style={styles.quickActionTitle}>Консультация</Text>
-            <Text style={styles.quickActionDescription}>
-              Бесплатная консультация специалиста
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.quickActionCard}
-            onPress={() => console.log('Статьи')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="book" size={32} color={THEME.primary} />
-            <Text style={styles.quickActionTitle}>Статьи</Text>
-            <Text style={styles.quickActionDescription}>
-              Полезная информация о лечении
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.quickActionCard}
-            onPress={() => console.log('Поддержка')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="heart" size={32} color={THEME.primary} />
-            <Text style={styles.quickActionTitle}>Поддержка</Text>
-            <Text style={styles.quickActionDescription}>
-              Группы поддержки и сообщество
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </LinearGradient>
+      </LinearGradient>
+    </SafeAreaView>
   );
 });
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F0F8FF',
+  },
+  gradient: {
+    flex: 1,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 40,
-  },
-  header: {
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 40,
+    paddingHorizontal: responsivePadding(20),
+  },
+  mainSection: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  
+  // Секция значка
+  iconSection: {
+    marginBottom: responsivePadding(40),
+  },
+  iconBlur: {
+    borderRadius: responsiveWidth(24),
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: responsiveHeight(4) },
+    shadowOpacity: 0.15,
+    shadowRadius: responsiveWidth(16),
+    elevation: 8,
+  },
+  iconGradient: {
+    padding: responsivePadding(32),
+    alignItems: 'center',
+  },
+  iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconGradientInner: {
+    width: responsiveWidth(120),
+    height: responsiveWidth(120),
+    borderRadius: responsiveWidth(60),
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#81D4FA',
+    shadowOffset: { width: 0, height: responsiveHeight(4) },
+    shadowOpacity: 0.3,
+    shadowRadius: responsiveWidth(12),
+    elevation: 6,
+  },
+  iconText: {
+    fontSize: responsiveWidth(80),
+    fontWeight: '900',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+
+  // Секция текста
+  textSection: {
+    alignItems: 'center',
+    marginBottom: responsivePadding(48),
   },
   title: {
-    fontSize: 48,
+    fontSize: responsiveWidth(48),
     fontWeight: '900',
-    color: THEME.textPrimary,
+    color: '#1a1a1a',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: responsivePadding(12),
+    letterSpacing: responsiveWidth(-1),
   },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: THEME.textSecondary,
+  slogan: {
+    fontSize: responsiveWidth(18),
+    fontWeight: '500',
+    color: '#666',
     textAlign: 'center',
-    marginBottom: 12,
+    letterSpacing: responsiveWidth(0.5),
   },
-  description: {
-    fontSize: 16,
-    color: THEME.muted,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  quickActions: {
+
+  // Секция действий
+  actionsSection: {
+    width: '100%',
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-  quickActionCard: {
+  actionButton: {
     width: '48%',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: responsivePadding(16),
+    borderRadius: responsiveWidth(16),
+    overflow: 'hidden',
+  },
+  actionBlur: {
+    borderRadius: responsiveWidth(16),
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: responsiveHeight(2) },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowRadius: responsiveWidth(8),
+    elevation: 4,
   },
-  quickActionTitle: {
-    fontSize: 16,
+  actionGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: responsivePadding(16),
+    paddingHorizontal: responsivePadding(12),
+  },
+  actionText: {
+    color: '#1a1a1a',
+    fontSize: responsiveWidth(16),
     fontWeight: '600',
-    color: THEME.textPrimary,
-    textAlign: 'center',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  quickActionDescription: {
-    fontSize: 14,
-    color: THEME.muted,
-    textAlign: 'center',
-    lineHeight: 18,
+    marginLeft: responsivePadding(8),
   },
 });
 
