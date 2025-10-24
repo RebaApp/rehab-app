@@ -27,6 +27,7 @@ export interface Center {
   services: string[];
   description: string;
   price: string;
+  priceRange?: string; // Добавляем priceRange для фильтрации
   duration?: string;
   coordinates: {
     latitude: number;
@@ -38,6 +39,8 @@ export interface Center {
   license: string;
   descriptionFull: string;
   methods: string[];
+  specializations?: string[]; // Добавляем specializations
+  amenities?: string[]; // Добавляем amenities
   reviews: Review[];
   distance?: number;
   image?: string;

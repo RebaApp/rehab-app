@@ -16,7 +16,7 @@ import { responsiveWidth, responsiveHeight, responsivePadding } from '../utils/r
 import useAppStore from '../store/useAppStore';
 
 interface FavoritesScreenProps {
-  onCenterPress: (center: Center) => void;
+  onCenterPress: (center: RehabCenter) => void;
   onToggleFavorite: (centerId: string) => void;
   isFavorite: (centerId: string) => boolean;
   onSearchPress: () => void;
@@ -103,17 +103,17 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = memo(({
       image: imageUrl,
       logo: imageUrl, // используем то же изображение как логотип
       shortDescription: item.description,
-      priceFrom: parseInt(item.price?.replace(/\D/g, '')) || parseInt(item.priceRange?.replace(/\D/g, '')) || 0,
+      priceFrom: parseInt(item.price?.replace(/\D/g, '')) || 0,
       duration: item.duration || '30 дней', // Используем duration из данных
       license: !!item.license,
       rating: item.rating,
       reviewsCount: item.reviewsCount,
-      tags: item.services || item.specializations || [],
+      tags: item.services || [],
       verification_status: item.verified ? 'verified' : 'pending',
       phone: item.phone,
       address: item.address,
-      services: item.services || item.specializations || [],
-      methods: item.methods || item.amenities || [],
+      services: item.services || [],
+      methods: item.methods || [],
       capacity: item.capacity || 50,
       yearFounded: item.yearFounded || 2020,
       workingHours: item.workingHours,
@@ -126,7 +126,7 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = memo(({
     return (
       <ExpandedCardRehabCenter
         center={rehabCenter}
-        onOpen={() => onCenterPress(item)}
+        onOpen={onCenterPress}
         onToggleFavorite={onToggleFavorite}
         isFavorite={isFavorite(item.id)}
       />
@@ -231,6 +231,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F0F8FF',
+    marginHorizontal: 5, // Горизонтальные отступы по 5px слева и справа
   },
   // Пустое состояние - центрированное
   emptyContentContainer: {

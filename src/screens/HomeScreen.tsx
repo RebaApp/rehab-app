@@ -285,6 +285,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F0F8FF',
+    marginHorizontal: 5, // Горизонтальные отступы по 5px слева и справа
   },
   gradient: {
     flex: 1,

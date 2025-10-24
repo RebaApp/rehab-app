@@ -16,7 +16,7 @@ import { responsiveWidth, responsiveHeight, responsivePadding } from '../../util
 
 interface ExpandedCardRehabCenterProps {
   center: RehabCenter;
-  onOpen: (centerId: string) => void;
+  onOpen: (center: RehabCenter) => void;
   onToggleFavorite?: (centerId: string) => void;
   isFavorite?: boolean;
   showDistance?: boolean;
@@ -30,8 +30,8 @@ const ExpandedCardRehabCenter: React.FC<ExpandedCardRehabCenterProps> = memo(({
   showDistance = false
 }) => {
   const handlePress = useCallback(() => {
-    onOpen(center.id);
-  }, [center.id, onOpen]);
+    onOpen(center);
+  }, [center, onOpen]);
 
 
   const handleFavoritePress = useCallback(() => {
@@ -115,16 +115,16 @@ const ExpandedCardRehabCenter: React.FC<ExpandedCardRehabCenterProps> = memo(({
                 )}
               </View>
 
-              {/* Rating Badge - правый угол */}
+              {/* Rating Badge - современный дизайн */}
               {center.rating !== undefined && (
                 <View style={styles.ratingBadgeOnImage}>
                   <LinearGradient
-                    colors={['#81D4FA', '#42A5F5']} // Голубой цвет как у тегов
+                    colors={['#81D4FA', '#42A5F5']} // Синий градиент как у тегов
                     style={styles.ratingBadgeGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                   >
-                    <Ionicons name="star" size={responsiveWidth(12)} color="#FFFFFF" />
+                    <Ionicons name="star" size={responsiveWidth(10)} color="#FFFFFF" />
                     <Text style={styles.ratingBadgeTextOnImage}>
                       {center.rating.toFixed(1)}
                     </Text>
@@ -133,7 +133,7 @@ const ExpandedCardRehabCenter: React.FC<ExpandedCardRehabCenterProps> = memo(({
               )}
             </View>
 
-            {/* Favorite Button */}
+            {/* Favorite Button - современный дизайн */}
             {onToggleFavorite && (
               <TouchableOpacity
                 style={styles.favoriteButton}
@@ -141,18 +141,18 @@ const ExpandedCardRehabCenter: React.FC<ExpandedCardRehabCenterProps> = memo(({
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 accessibilityLabel={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
               >
-                <BlurView intensity={15} tint="light" style={styles.favoriteBlur}>
+                <View style={styles.favoriteButtonContainer}>
                   <LinearGradient
-                    colors={isFavorite ? ['#ff6b6b', '#ff5252'] : ['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)']}
+                    colors={isFavorite ? ['#ff6b6b', '#ff5252'] : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
                     style={styles.favoriteGradient}
                   >
                     <Ionicons
                       name={isFavorite ? "heart" : "heart-outline"}
-                      size={responsiveWidth(20)}
+                      size={responsiveWidth(18)}
                       color={isFavorite ? "#FFFFFF" : "#ff6b6b"}
                     />
                   </LinearGradient>
-                </BlurView>
+                </View>
               </TouchableOpacity>
             )}
           </View>
@@ -322,25 +322,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: responsivePadding(12),
     right: responsivePadding(12),
-    width: responsiveWidth(40),
-    height: responsiveWidth(40),
-    borderRadius: responsiveWidth(20),
+    width: responsiveWidth(36),
+    height: responsiveWidth(36),
+    borderRadius: responsiveWidth(18),
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: responsiveHeight(2) },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: responsiveWidth(4),
-    elevation: 5,
+    elevation: 4,
   },
-  favoriteBlur: {
-    borderRadius: responsiveWidth(20),
+  favoriteButtonContainer: {
+    flex: 1,
+    borderRadius: responsiveWidth(18),
     overflow: 'hidden',
   },
   favoriteGradient: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: responsiveWidth(18),
   },
   content: {
     padding: responsivePadding(16),
@@ -360,25 +361,28 @@ const styles = StyleSheet.create({
     lineHeight: responsiveWidth(22),
   },
   ratingBadgeOnImage: {
-    borderRadius: responsiveWidth(12),
+    borderRadius: responsiveWidth(10),
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: responsiveHeight(1) },
-    shadowOpacity: 0.1,
-    shadowRadius: responsiveWidth(2),
-    elevation: 2,
+    shadowColor: '#42A5F5',
+    shadowOffset: { width: 0, height: responsiveHeight(2) },
+    shadowOpacity: 0.3,
+    shadowRadius: responsiveWidth(3),
+    elevation: 3,
   },
   ratingBadgeGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: responsivePadding(8),
-    paddingVertical: responsivePadding(6),
-    gap: responsivePadding(4),
+    paddingHorizontal: responsivePadding(6),
+    paddingVertical: responsivePadding(4),
+    gap: responsivePadding(2),
   },
   ratingBadgeTextOnImage: {
-    fontSize: responsiveWidth(10),
-    fontWeight: '600',
+    fontSize: responsiveWidth(9),
+    fontWeight: '700',
     color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   locationContainer: {
     flexDirection: 'row',

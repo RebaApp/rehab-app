@@ -7,13 +7,12 @@ import {
   FlatList,
   TextInput,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import ExpandedCardRehabCenter from '../components/common/ExpandedCardRehabCenter';
-import { mockRehabCenters } from '../data/mockCenters';
+import AdvancedFilters, { FilterOptions } from '../components/common/AdvancedFilters';
 import { RehabCenter } from '../types';
 import { THEME } from '../utils/constants';
 import { responsiveWidth, responsiveHeight, responsivePadding, responsiveFontSize } from '../utils/responsive';
@@ -25,13 +24,24 @@ interface SearchScreenProps {
   isFavorite: (centerId: string) => boolean;
 }
 
-const SearchScreen: React.FC<SearchScreenProps> = memo(() => {
+const SearchScreen: React.FC<SearchScreenProps> = memo(({ onCenterPress, onToggleFavorite, isFavorite }) => {
   // Состояние для поиска и фильтров
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'verified' | 'licensed'>('all');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState<FilterOptions>({
+    cities: [],
+    programs: [],
+    priceRange: { min: 0, max: 1000000 },
+    rating: { min: 0, max: 5 },
+    reviews: { min: 0, max: 1000 },
+    specializations: [],
+    amenities: [],
+    distance: 50,
+    location: null
+  });
 
-  // Используем глобальное состояние избранного и центров
-  const { toggleFavorite, isFavorite, centers } = useAppStore();
+  // Используем глобальное состояние центров
+  const { centers } = useAppStore();
   
   // Отладка данных
   console.log('SearchScreen centers:', centers.length, centers[0]);
@@ -125,17 +135,52 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(() => {
   const filteredCenters = useMemo(() => {
     let filteredCenters = centers;
 
-    // Фильтр по статусу
-    switch (selectedFilter) {
-      case 'verified':
-        filteredCenters = centers.filter(center => center.verified);
-        break;
-      case 'licensed':
-        filteredCenters = centers.filter(center => center.verified);
-        break;
-      default:
-        filteredCenters = centers;
+    // Расширенные фильтры
+    if (advancedFilters.cities.length > 0) {
+      filteredCenters = filteredCenters.filter(center => 
+        advancedFilters.cities.includes(center.city)
+      );
     }
+
+    if (advancedFilters.programs.length > 0) {
+      filteredCenters = filteredCenters.filter(center => 
+        advancedFilters.programs.some(program => 
+          (center as any).specializations?.includes(program) || (center as any).amenities?.includes(program)
+        )
+      );
+    }
+
+    if (advancedFilters.specializations.length > 0) {
+      filteredCenters = filteredCenters.filter(center => 
+        advancedFilters.specializations.some(spec => 
+          (center as any).specializations?.includes(spec)
+        )
+      );
+    }
+
+    if (advancedFilters.amenities.length > 0) {
+      filteredCenters = filteredCenters.filter(center => 
+        advancedFilters.amenities.some(amenity => 
+          (center as any).amenities?.includes(amenity)
+        )
+      );
+    }
+
+    // Фильтр по цене
+    filteredCenters = filteredCenters.filter(center => {
+      const price = parseInt((center as any).priceRange?.replace(/\D/g, '')) || 0;
+      return price >= advancedFilters.priceRange.min && price <= advancedFilters.priceRange.max;
+    });
+
+    // Фильтр по рейтингу
+    filteredCenters = filteredCenters.filter(center => 
+      center.rating >= advancedFilters.rating.min && center.rating <= advancedFilters.rating.max
+    );
+
+    // Фильтр по отзывам
+    filteredCenters = filteredCenters.filter(center => 
+      center.reviewsCount >= advancedFilters.reviews.min && center.reviewsCount <= advancedFilters.reviews.max
+    );
 
     // Поиск по тексту
     if (searchQuery.trim()) {
@@ -148,16 +193,24 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(() => {
 
     // Преобразуем в RehabCenter
     return filteredCenters.map(convertToRehabCenter);
-  }, [searchQuery, selectedFilter, centers, convertToRehabCenter]);
+  }, [searchQuery, advancedFilters, centers, convertToRehabCenter]);
 
   // Обработчики событий
-  const handleCenterOpen = useCallback((centerId: string) => {
-    console.log('Открыть центр:', centerId);
-    Alert.alert(
-      'Открыть центр',
-      `Переход к детальной информации о центре ${centerId}`,
-      [{ text: 'OK' }]
-    );
+  const handleCenterOpen = useCallback((center: RehabCenter) => {
+    console.log('Открыть центр:', center.name);
+    onCenterPress(center);
+  }, [onCenterPress]);
+
+  const handleAdvancedFiltersApply = useCallback((filters: FilterOptions) => {
+    setAdvancedFilters(filters);
+  }, []);
+
+  const handleAdvancedFiltersClose = useCallback(() => {
+    setShowAdvancedFilters(false);
+  }, []);
+
+  const handleFilterButtonPress = useCallback(() => {
+    setShowAdvancedFilters(true);
   }, []);
 
 
@@ -166,11 +219,11 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(() => {
     <ExpandedCardRehabCenter
       center={item}
       onOpen={handleCenterOpen}
-      onToggleFavorite={toggleFavorite}
+      onToggleFavorite={onToggleFavorite}
       isFavorite={isFavorite(item.id)}
       showDistance={true}
     />
-  ), [handleCenterOpen, toggleFavorite, isFavorite]);
+  ), [handleCenterOpen, onToggleFavorite, isFavorite]);
 
   // Рендер заголовка списка
   const renderListHeader = useCallback(() => (
@@ -207,18 +260,11 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(() => {
             <View style={styles.filterDropdown}>
               <TouchableOpacity
                 style={styles.filterButton}
-                onPress={() => {
-                  // Здесь можно добавить модальное окно с фильтрами
-                  Alert.alert('Фильтры', 'Выберите фильтры', [
-                    { text: 'Все', onPress: () => setSelectedFilter('all') },
-                    { text: 'Проверенные', onPress: () => setSelectedFilter('verified') },
-                    { text: 'С лицензией', onPress: () => setSelectedFilter('licensed') },
-                  ]);
-                }}
-                accessibilityLabel="Открыть фильтры"
+                onPress={handleFilterButtonPress}
+                accessibilityLabel="Открыть расширенные фильтры"
               >
-                <Ionicons name="filter" size={18} color="#81D4FA" />
-                <Text style={styles.filterButtonText}>Фильтр</Text>
+                <Ionicons name="options-outline" size={18} color="#81D4FA" />
+                <Text style={styles.filterButtonText}>Фильтры</Text>
               </TouchableOpacity>
             </View>
           </LinearGradient>
@@ -226,7 +272,7 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(() => {
       </View>
 
       {/* Статистика - показываем только при использовании фильтров */}
-      {(searchQuery.trim() !== '' || selectedFilter !== 'all') && (
+      {(searchQuery.trim() !== '' || advancedFilters.cities.length > 0 || advancedFilters.programs.length > 0 || advancedFilters.specializations.length > 0) && (
         <View style={styles.statsContainer}>
           <Text style={styles.statsText}>
             Найдено {filteredCenters.length} центров
@@ -234,21 +280,61 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(() => {
         </View>
       )}
     </View>
-  ), [searchQuery, selectedFilter, filteredCenters.length]);
+  ), [searchQuery, advancedFilters, filteredCenters.length]);
 
   // Рендер пустого состояния
   const renderEmptyState = useCallback(() => (
     <View style={styles.emptyContainer}>
-      <BlurView intensity={15} tint="light" style={styles.emptyBlur}>
+      <BlurView intensity={20} tint="light" style={styles.emptyBlur}>
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.8)']}
+          colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)', 'rgba(255, 255, 255, 0.75)']}
           style={styles.emptyGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
         >
-          <Ionicons name="search-outline" size={64} color="#81D4FA" />
+          <View style={styles.emptyIconContainer}>
+            <LinearGradient
+              colors={['#81D4FA', '#42A5F5']}
+              style={styles.emptyIconGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Ionicons name="search-outline" size={responsiveWidth(48)} color="#FFFFFF" />
+            </LinearGradient>
+          </View>
           <Text style={styles.emptyTitle}>Центры не найдены</Text>
           <Text style={styles.emptyDescription}>
-            Попробуйте изменить поисковый запрос или фильтры
+            Попробуйте изменить поисковый запрос{'\n'}или настройки фильтров
           </Text>
+          <TouchableOpacity 
+            style={styles.emptyButton}
+            onPress={() => {
+              setSearchQuery('');
+              setAdvancedFilters({
+                cities: [],
+                programs: [],
+                priceRange: { min: 0, max: 1000000 },
+                rating: { min: 0, max: 5 },
+                reviews: { min: 0, max: 1000 },
+                specializations: [],
+                amenities: [],
+                distance: 50,
+                location: null
+              });
+            }}
+          >
+            <BlurView intensity={15} tint="light" style={styles.emptyButtonBlur}>
+              <LinearGradient
+                colors={['#81D4FA', '#42A5F5']}
+                style={styles.emptyButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Ionicons name="refresh" size={responsiveWidth(18)} color="#FFFFFF" />
+                <Text style={styles.emptyButtonText}>Сбросить фильтры</Text>
+              </LinearGradient>
+            </BlurView>
+          </TouchableOpacity>
         </LinearGradient>
       </BlurView>
     </View>
@@ -313,6 +399,14 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(() => {
           />
         </View>
       </LinearGradient>
+
+      {/* Расширенные фильтры */}
+      <AdvancedFilters
+        isVisible={showAdvancedFilters}
+        onClose={handleAdvancedFiltersClose}
+        onApplyFilters={handleAdvancedFiltersApply}
+        currentFilters={advancedFilters}
+      />
     </View>
   );
 
@@ -321,6 +415,7 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(() => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginHorizontal: 5, // Горизонтальные отступы по 5px слева и справа
     // backgroundColor убран - градиент покрывает весь экран
   },
   gradient: {
@@ -553,33 +648,81 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: responsivePadding(40),
+    paddingHorizontal: responsivePadding(20),
     paddingVertical: responsivePadding(60),
   },
   emptyBlur: {
-    borderRadius: responsiveWidth(20),
+    borderRadius: responsiveWidth(24),
     overflow: 'hidden',
-    ...THEME.shadowMedium,
+    shadowColor: '#42A5F5',
+    shadowOffset: { width: 0, height: responsiveHeight(8) },
+    shadowOpacity: 0.15,
+    shadowRadius: responsiveWidth(16),
+    elevation: 8,
   },
   emptyGradient: {
-    paddingVertical: responsivePadding(40),
-    paddingHorizontal: responsivePadding(32),
+    paddingVertical: responsivePadding(48),
+    paddingHorizontal: responsivePadding(40),
     alignItems: 'center',
   },
+  emptyIconContainer: {
+    width: responsiveWidth(80),
+    height: responsiveWidth(80),
+    borderRadius: responsiveWidth(40),
+    overflow: 'hidden',
+    marginBottom: responsivePadding(24),
+    shadowColor: '#42A5F5',
+    shadowOffset: { width: 0, height: responsiveHeight(4) },
+    shadowOpacity: 0.3,
+    shadowRadius: responsiveWidth(8),
+    elevation: 4,
+  },
+  emptyIconGradient: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: responsiveWidth(40),
+  },
   emptyTitle: {
-    fontSize: responsiveWidth(20),
+    fontSize: responsiveWidth(24),
     fontWeight: '700',
-    color: THEME.textPrimary,
+    color: '#1a1a1a',
     textAlign: 'center',
-    marginTop: responsivePadding(16),
-    marginBottom: responsivePadding(8),
+    marginBottom: responsivePadding(12),
   },
   emptyDescription: {
     fontSize: responsiveWidth(16),
     fontWeight: '500',
-    color: THEME.textSecondary,
+    color: '#666',
     textAlign: 'center',
-    lineHeight: responsiveWidth(22),
+    lineHeight: responsiveWidth(24),
+    marginBottom: responsivePadding(32),
+  },
+  emptyButton: {
+    borderRadius: responsiveWidth(16),
+    overflow: 'hidden',
+    shadowColor: '#42A5F5',
+    shadowOffset: { width: 0, height: responsiveHeight(4) },
+    shadowOpacity: 0.2,
+    shadowRadius: responsiveWidth(8),
+    elevation: 4,
+  },
+  emptyButtonBlur: {
+    borderRadius: responsiveWidth(16),
+    overflow: 'hidden',
+  },
+  emptyButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: responsivePadding(16),
+    paddingHorizontal: responsivePadding(24),
+    gap: responsivePadding(8),
+  },
+  emptyButtonText: {
+    fontSize: responsiveWidth(16),
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 
   // Новые стили для расширенных фильтров
