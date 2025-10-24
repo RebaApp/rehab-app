@@ -56,6 +56,7 @@ export interface RehabCenter {
   location: string; // "Москва, МО"
   image?: string; // hero image URL
   logo?: string;
+  photos?: string[]; // галерея изображений
   shortDescription?: string;
   priceFrom?: number; // в рублях
   duration?: string; // "30 дней"

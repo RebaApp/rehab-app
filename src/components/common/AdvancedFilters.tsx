@@ -42,7 +42,10 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
   onApplyFilters,
   currentFilters
 }) => {
-  const [filters, setFilters] = useState<FilterOptions>(currentFilters);
+  const [filters, setFilters] = useState<FilterOptions>({
+    ...currentFilters,
+    location: null, // По умолчанию "Любые"
+  });
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationPermission, setLocationPermission] = useState<boolean>(false);
 
@@ -58,13 +61,8 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
             latitude: location.coords.latitude,
             longitude: location.coords.longitude
           });
-          setFilters(prev => ({
-            ...prev,
-            location: {
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude
-            }
-          }));
+          // Убираем автоматическую установку геолокации в фильтры
+          // Пользователь сам выберет "Ближайшие" если захочет
         } else {
           setLocationPermission(false);
         }
@@ -155,8 +153,9 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
     onClose();
   }, [filters, onApplyFilters, onClose]);
 
+
   const handleReset = useCallback(() => {
-    setFilters({
+    const resetFilters: FilterOptions = {
       cities: [],
       programs: [],
       priceRange: { min: 0, max: 1000000 },
@@ -165,9 +164,12 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
       specializations: [],
       amenities: [],
       distance: 50,
-      location: userLocation
-    });
-  }, [userLocation]);
+      location: null,
+    };
+    setFilters(resetFilters);
+    onApplyFilters(resetFilters);
+    onClose();
+  }, [onApplyFilters, onClose]);
 
   const handleCancel = useCallback(() => {
     onClose();
@@ -209,41 +211,76 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
           style={[styles.priceOption, filters.priceRange.min === 0 && filters.priceRange.max === 1000000 && styles.priceOptionSelected]}
           onPress={() => handlePriceRangeChange(0, 1000000)}
         >
-          <Text style={[styles.priceOptionText, filters.priceRange.min === 0 && filters.priceRange.max === 1000000 && styles.priceOptionTextSelected]}>
-            Любая
-          </Text>
+          <BlurView intensity={10} tint="light" style={styles.priceBlur}>
+            <LinearGradient
+              colors={filters.priceRange.min === 0 && filters.priceRange.max === 1000000 ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
+              style={styles.priceGradient}
+            >
+              <Text style={[styles.priceOptionText, filters.priceRange.min === 0 && filters.priceRange.max === 1000000 && styles.priceOptionTextSelected]}>
+                Любая
+              </Text>
+            </LinearGradient>
+          </BlurView>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.priceOption, filters.priceRange.min === 0 && filters.priceRange.max === 50000 && styles.priceOptionSelected]}
           onPress={() => handlePriceRangeChange(0, 50000)}
         >
-          <Text style={[styles.priceOptionText, filters.priceRange.min === 0 && filters.priceRange.max === 50000 && styles.priceOptionTextSelected]}>
-            До 50,000 ₽
-          </Text>
+          <BlurView intensity={10} tint="light" style={styles.priceBlur}>
+            <LinearGradient
+              colors={filters.priceRange.min === 0 && filters.priceRange.max === 50000 ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
+              style={styles.priceGradient}
+            >
+              <Text style={[styles.priceOptionText, filters.priceRange.min === 0 && filters.priceRange.max === 50000 && styles.priceOptionTextSelected]}>
+                До 50,000 ₽
+              </Text>
+            </LinearGradient>
+          </BlurView>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.priceOption, filters.priceRange.min === 50000 && filters.priceRange.max === 100000 && styles.priceOptionSelected]}
           onPress={() => handlePriceRangeChange(50000, 100000)}
         >
-          <Text style={[styles.priceOptionText, filters.priceRange.min === 50000 && filters.priceRange.max === 100000 && styles.priceOptionTextSelected]}>
-            50,000 - 100,000 ₽
-          </Text>
+          <BlurView intensity={10} tint="light" style={styles.priceBlur}>
+            <LinearGradient
+              colors={filters.priceRange.min === 50000 && filters.priceRange.max === 100000 ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
+              style={styles.priceGradient}
+            >
+              <Text style={[styles.priceOptionText, filters.priceRange.min === 50000 && filters.priceRange.max === 100000 && styles.priceOptionTextSelected]}>
+                50,000 - 100,000 ₽
+              </Text>
+            </LinearGradient>
+          </BlurView>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.priceOption, filters.priceRange.min === 100000 && filters.priceRange.max === 200000 && styles.priceOptionSelected]}
           onPress={() => handlePriceRangeChange(100000, 200000)}
         >
-          <Text style={[styles.priceOptionText, filters.priceRange.min === 100000 && filters.priceRange.max === 200000 && styles.priceOptionTextSelected]}>
-            100,000 - 200,000 ₽
-          </Text>
+          <BlurView intensity={10} tint="light" style={styles.priceBlur}>
+            <LinearGradient
+              colors={filters.priceRange.min === 100000 && filters.priceRange.max === 200000 ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
+              style={styles.priceGradient}
+            >
+              <Text style={[styles.priceOptionText, filters.priceRange.min === 100000 && filters.priceRange.max === 200000 && styles.priceOptionTextSelected]}>
+                100,000 - 200,000 ₽
+              </Text>
+            </LinearGradient>
+          </BlurView>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.priceOption, filters.priceRange.min === 200000 && filters.priceRange.max === 1000000 && styles.priceOptionSelected]}
           onPress={() => handlePriceRangeChange(200000, 1000000)}
         >
-          <Text style={[styles.priceOptionText, filters.priceRange.min === 200000 && filters.priceRange.max === 1000000 && styles.priceOptionTextSelected]}>
-            200,000 ₽ и выше
-          </Text>
+          <BlurView intensity={10} tint="light" style={styles.priceBlur}>
+            <LinearGradient
+              colors={filters.priceRange.min === 200000 && filters.priceRange.max === 1000000 ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
+              style={styles.priceGradient}
+            >
+              <Text style={[styles.priceOptionText, filters.priceRange.min === 200000 && filters.priceRange.max === 1000000 && styles.priceOptionTextSelected]}>
+                200,000 ₽ и выше
+              </Text>
+            </LinearGradient>
+          </BlurView>
         </TouchableOpacity>
       </View>
     </View>
@@ -257,9 +294,16 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
           style={[styles.locationOption, !filters.location && styles.locationOptionSelected]}
           onPress={() => setFilters(prev => ({ ...prev, location: null }))}
         >
-          <Text style={[styles.locationOptionText, !filters.location && styles.locationOptionTextSelected]}>
-            Любые
-          </Text>
+          <BlurView intensity={10} tint="light" style={styles.locationBlur}>
+            <LinearGradient
+              colors={!filters.location ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
+              style={styles.locationGradient}
+            >
+              <Text style={[styles.locationOptionText, !filters.location && styles.locationOptionTextSelected]}>
+                Любые
+              </Text>
+            </LinearGradient>
+          </BlurView>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.locationOption, filters.location && styles.locationOptionSelected]}
@@ -269,9 +313,16 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
             }
           }}
         >
-          <Text style={[styles.locationOptionText, filters.location && styles.locationOptionTextSelected]}>
-            Ближайшие
-          </Text>
+          <BlurView intensity={10} tint="light" style={styles.locationBlur}>
+            <LinearGradient
+              colors={filters.location ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
+              style={styles.locationGradient}
+            >
+              <Text style={[styles.locationOptionText, filters.location && styles.locationOptionTextSelected]}>
+                Ближайшие
+              </Text>
+            </LinearGradient>
+          </BlurView>
         </TouchableOpacity>
       </View>
     </View>
@@ -339,13 +390,14 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
 
           {/* Footer */}
           <View style={styles.footer}>
-            <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-              <BlurView intensity={15} tint="light" style={styles.cancelBlur}>
+            <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+              <BlurView intensity={20} tint="light" style={styles.resetBlur}>
                 <LinearGradient
-                  colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
-                  style={styles.cancelGradient}
+                  colors={['#81D4FA', '#42A5F5']}
+                  style={styles.resetGradient}
                 >
-                  <Text style={styles.cancelButtonText}>Отмена</Text>
+                  <Ionicons name="refresh" size={18} color="#FFFFFF" />
+                  <Text style={styles.resetButtonText}>Сбросить</Text>
                 </LinearGradient>
               </BlurView>
             </TouchableOpacity>
@@ -631,10 +683,18 @@ const styles = StyleSheet.create({
     marginBottom: responsivePadding(16),
   },
   priceOption: {
+    borderRadius: responsiveWidth(12),
+    overflow: 'hidden',
+  },
+  priceBlur: {
+    borderRadius: responsiveWidth(12),
+    overflow: 'hidden',
+  },
+  priceGradient: {
     paddingHorizontal: responsivePadding(12),
     paddingVertical: responsivePadding(8),
-    borderRadius: responsiveWidth(12),
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   priceOptionSelected: {
     backgroundColor: '#42A5F5',
@@ -706,11 +766,18 @@ const styles = StyleSheet.create({
   },
   locationOption: {
     flex: 1,
+    borderRadius: responsiveWidth(12),
+    overflow: 'hidden',
+  },
+  locationBlur: {
+    borderRadius: responsiveWidth(12),
+    overflow: 'hidden',
+  },
+  locationGradient: {
     paddingVertical: responsivePadding(12),
     paddingHorizontal: responsivePadding(16),
-    borderRadius: responsiveWidth(12),
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   locationOptionSelected: {
     backgroundColor: '#42A5F5',
@@ -732,24 +799,28 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(66, 165, 245, 0.1)',
   },
-  cancelButton: {
+  resetButton: {
     flex: 1,
+    marginRight: responsivePadding(8),
     borderRadius: responsiveWidth(16),
     overflow: 'hidden',
   },
-  cancelBlur: {
+  resetBlur: {
     borderRadius: responsiveWidth(16),
     overflow: 'hidden',
   },
-  cancelGradient: {
-    paddingVertical: responsivePadding(16),
+  resetGradient: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: responsivePadding(16),
+    paddingHorizontal: responsivePadding(20),
+    gap: responsivePadding(8),
   },
-  cancelButtonText: {
+  resetButtonText: {
     fontSize: responsiveWidth(16),
-    fontWeight: '600',
-    color: '#42A5F5',
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   applyButton: {
     flex: 1,

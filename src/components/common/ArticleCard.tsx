@@ -105,6 +105,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4, // Увеличиваем с 0.25 до 0.4 для более заметного эффекта
+    shadowRadius: 12,
+    elevation: 6,
   },
   gradient: {
     borderRadius: 16,

@@ -243,9 +243,9 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
                     onPress={() => onArticlePress(article)}
                     activeOpacity={0.8}
                   >
-                    <BlurView intensity={20} tint="light" style={styles.articleBlur}>
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.2)']}
+                    <BlurView intensity={15} tint="light" style={styles.articleBlur}>
+                      <LinearGradient
+                        colors={['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.8)']}
                         style={styles.articleGradient}
                       >
                         {/* Горизонтальная обложка на всю ширину */}
@@ -268,8 +268,8 @@ const HomeScreen: React.FC<HomeScreenProps> = memo(({ onArticlePress }) => {
                           <Text style={styles.articleTitle}>{article.title}</Text>
                           <Text style={styles.articleExcerpt}>{article.excerpt}</Text>
                         </View>
-                  </LinearGradient>
-                </BlurView>
+                      </LinearGradient>
+                    </BlurView>
               </TouchableOpacity>
                 ))
               ) : null
@@ -396,20 +396,18 @@ const styles = StyleSheet.create({
   articleCard: {
     marginBottom: responsivePadding(12), // Минимальный отступ
     borderRadius: responsiveWidth(8), // Минимальный радиус
-    overflow: 'hidden',
     alignItems: 'flex-start', // Выравнивание по левой стороне
+    // Убираем тени совсем
   },
   articleBlur: {
     borderRadius: responsiveWidth(8), // Минимальный радиус
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: responsiveHeight(2) }, // Минимальная тень
-    shadowOpacity: 0.1, // Минимальная прозрачность
-    shadowRadius: responsiveWidth(4), // Минимальный радиус тени
-    elevation: 2, // Минимальная высота
+    // Тени теперь на articleCard
   },
   articleGradient: {
     padding: 0,
+    borderRadius: responsiveWidth(8), // Добавляем borderRadius для чистого вида
+    overflow: 'hidden', // Добавляем overflow для чистых краев
   },
   articleImageContainer: {
     position: 'relative',
@@ -438,8 +436,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start', // Выравнивание тегов по левой стороне
   },
   articleContent: {
-    paddingHorizontal: 0, // БЕЗ отступов
-    paddingVertical: responsivePadding(8), // Минимальные отступы
+    paddingHorizontal: responsivePadding(2), // Добавляем отступы по бокам
+    paddingVertical: responsivePadding(10), // Увеличиваем отступы сверху/снизу с 8 до 10
     alignItems: 'flex-start', // Выравнивание по левой стороне
   },
   articleTitle: {

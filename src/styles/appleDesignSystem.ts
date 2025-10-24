@@ -182,7 +182,7 @@ export const AppleShadows = {
       width: 0,
       height: 1,
     },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.4, // Увеличиваем с 0.25 до 0.4 для более заметного эффекта
     shadowRadius: 2,
     elevation: 1,
   },

@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.4, // Увеличиваем с 0.25 до 0.4 для более заметного эффекта
     shadowRadius: 12,
     elevation: 6,
   },

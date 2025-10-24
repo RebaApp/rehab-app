@@ -83,13 +83,8 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = memo(({
     // Определяем изображение: приоритет image, затем photos[0], затем fallback
     let imageUrl = item.image;
     if (!imageUrl && item.photos && item.photos.length > 0) {
-      // Если photos содержит строку (URL), используем её
-      if (typeof item.photos[0] === 'string') {
-        imageUrl = item.photos[0];
-      } else {
-        // Для чисел и объектов (require() результат) используем как есть
-        imageUrl = item.photos[0];
-      }
+      // Для локальных изображений (require()) и URL строк используем как есть
+      imageUrl = item.photos[0];
     }
     if (!imageUrl) {
       imageUrl = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop';
@@ -99,9 +94,10 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = memo(({
     const rehabCenter: RehabCenter = {
       id: item.id,
       name: item.name,
-      location: `${item.city}, ${item.address}`,
+      location: item.city,
       image: imageUrl,
       logo: imageUrl, // используем то же изображение как логотип
+      photos: item.photos || [], // Добавляем галерею изображений
       shortDescription: item.description,
       priceFrom: parseInt(item.price?.replace(/\D/g, '')) || 0,
       duration: item.duration || '30 дней', // Используем duration из данных

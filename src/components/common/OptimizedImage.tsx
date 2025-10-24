@@ -4,7 +4,7 @@ import { View, StyleSheet, Platform, Image as RNImage } from 'react-native';
 import { THEME } from '../../utils/constants';
 
 interface OptimizedImageProps {
-  uri: string;
+  uri: string | any; // Может быть строка URL или объект require()
   style?: object;
   placeholder?: string;
   fallback?: string;
@@ -24,12 +24,21 @@ const OptimizedImage: React.FC<OptimizedImageProps> = memo(({
   contentFit = 'cover',
   transition = 200
 }) => {
-  const imageSource = useMemo(() => ({
-    uri: uri || fallback,
-    headers: {
-      'Cache-Control': 'max-age=31536000', // 1 год кэширования
+  // Определяем, является ли uri строкой URL или объектом require()
+  const isUrl = typeof uri === 'string';
+  const imageSource = useMemo(() => {
+    if (isUrl) {
+      return {
+        uri: uri || fallback,
+        headers: {
+          'Cache-Control': 'max-age=31536000', // 1 год кэширования
+        }
+      };
+    } else {
+      // Для объектов require() используем как есть
+      return uri;
     }
-  }), [uri, fallback]);
+  }, [uri, fallback, isUrl]);
 
   const placeholderSource = useMemo(() => ({
     uri: placeholder
@@ -39,7 +48,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = memo(({
     <View style={[styles.container, style]}>
       {Platform.OS === 'web' ? (
         <RNImage
-          source={{ uri: uri || fallback }}
+          source={isUrl ? { uri: uri || fallback } : uri}
           style={StyleSheet.absoluteFillObject}
           resizeMode="cover"
           onError={() => {
@@ -50,12 +59,12 @@ const OptimizedImage: React.FC<OptimizedImageProps> = memo(({
       ) : (
         <Image
           source={imageSource}
-          placeholder={placeholderSource}
+          placeholder={isUrl ? placeholderSource : undefined}
           contentFit={contentFit}
           transition={transition}
           priority={priority ? 'high' : 'normal'}
           cachePolicy={cachePolicy}
-          recyclingKey={uri}
+          recyclingKey={isUrl ? uri : undefined}
           style={StyleSheet.absoluteFillObject}
           onError={() => {
             // В production можно логировать ошибки загрузки изображений

@@ -133,6 +133,7 @@ const useAppStore = create<AppStore>((set, get) => ({
       setCentersError: (error) => set({ centersError: error }),
 
       loadCenters: async () => {
+        console.log('🔄 loadCenters вызван - начинаем загрузку...');
         set({ centersLoading: true, centersError: null });
         try {
       // Mock API call with realistic delay
@@ -149,7 +150,11 @@ const useAppStore = create<AppStore>((set, get) => ({
           email: 'info@newlife.ru',
           description: 'Современный центр реабилитации с комплексным подходом к лечению зависимостей.',
           services: ['Детокс', 'Психотерапия', 'Групповая терапия'],
-          photos: [require("../../assets/images/centers/center1.jpg")],
+          photos: [
+            require("../../assets/images/centers/center1.jpg"),
+            require("../../assets/images/centers/center2.jpg"),
+            require("../../assets/images/centers/center3.jpg")
+          ],
               rating: 4.5,
           reviewsCount: 120,
           price: 'от 50,000 ₽/месяц',
@@ -172,7 +177,11 @@ const useAppStore = create<AppStore>((set, get) => ({
           email: 'info@vozrozhdenie.ru',
           description: 'Профессиональная помощь в преодолении зависимостей с индивидуальным подходом.',
           services: ['Медикаментозное лечение', 'Психотерапия', 'Семейная терапия'],
-          photos: [require("../../assets/images/centers/center2.jpg")],
+          photos: [
+            require("../../assets/images/centers/center2.jpg"),
+            require("../../assets/images/centers/center3.jpg"),
+            require("../../assets/images/centers/center4.jpg")
+          ],
           rating: 4.8,
           reviewsCount: 89,
           price: 'от 45,000 ₽/месяц',
@@ -195,7 +204,11 @@ const useAppStore = create<AppStore>((set, get) => ({
           email: 'info@putksvobode.ru',
           description: 'Специализированный центр для лечения алкогольной зависимости.',
           services: ['Детокс', 'Психотерапия', 'Трудовая терапия'],
-          photos: [require("../../assets/images/centers/center3.jpg")],
+          photos: [
+            require("../../assets/images/centers/center3.jpg"),
+            require("../../assets/images/centers/center4.jpg"),
+            require("../../assets/images/centers/center5.jpg")
+          ],
           rating: 4.3,
           reviewsCount: 67,
           price: 'от 40,000 ₽/месяц',
@@ -218,7 +231,11 @@ const useAppStore = create<AppStore>((set, get) => ({
           email: 'info@garmoniya.ru',
           description: 'Комплексная реабилитация с использованием современных методов лечения.',
           services: ['Детокс', 'Психотерапия', 'Арт-терапия'],
-          photos: [require("../../assets/images/centers/center4.jpg")],
+          photos: [
+            require("../../assets/images/centers/center4.jpg"),
+            require("../../assets/images/centers/center5.jpg"),
+            require("../../assets/images/centers/center6.jpg")
+          ],
           rating: 4.7,
           reviewsCount: 95,
           price: 'от 55,000 ₽/месяц',
@@ -241,7 +258,11 @@ const useAppStore = create<AppStore>((set, get) => ({
           email: 'info@spasenie.ru',
           description: 'Профессиональная помощь в борьбе с наркозависимостью.',
           services: ['Детокс', 'Психотерапия', 'Семейная терапия'],
-          photos: [require("../../assets/images/centers/center5.jpg")],
+          photos: [
+            require("../../assets/images/centers/center5.jpg"),
+            require("../../assets/images/centers/center6.jpg"),
+            require("../../assets/images/centers/center1.jpg")
+          ],
           rating: 4.6,
           reviewsCount: 78,
           price: 'от 48,000 ₽/месяц',
@@ -264,7 +285,11 @@ const useAppStore = create<AppStore>((set, get) => ({
           email: 'info@nadezhda.ru',
           description: 'Современный подход к лечению зависимостей с индивидуальными программами.',
           services: ['Детокс', 'Психотерапия', 'Групповая терапия'],
-          photos: ["https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center"],
+          photos: [
+            require("../../assets/images/centers/center6.jpg"),
+            require("../../assets/images/centers/center1.jpg"),
+            require("../../assets/images/centers/center2.jpg")
+          ],
           rating: 4.4,
           reviewsCount: 56,
           price: 'от 42,000 ₽/месяц',
@@ -287,7 +312,11 @@ const useAppStore = create<AppStore>((set, get) => ({
           email: 'info@vosstanovlenie.ru',
           description: 'Комплексная реабилитация с использованием проверенных методов.',
           services: ['Детокс', 'Психотерапия', 'Трудовая терапия'],
-          photos: ["https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&crop=center"],
+          photos: [
+            require("../../assets/images/centers/center1.jpg"),
+            require("../../assets/images/centers/center2.jpg"),
+            require("../../assets/images/centers/center3.jpg")
+          ],
           rating: 4.2,
           reviewsCount: 43,
           price: 'от 38,000 ₽/месяц',
@@ -310,7 +339,11 @@ const useAppStore = create<AppStore>((set, get) => ({
           email: 'info@istselenie.ru',
           description: 'Специализированный центр для лечения различных видов зависимостей.',
           services: ['Детокс', 'Психотерапия', 'Арт-терапия'],
-          photos: ["https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop&crop=center"],
+          photos: [
+            require("../../assets/images/centers/center4.jpg"),
+            require("../../assets/images/centers/center5.jpg"),
+            require("../../assets/images/centers/center6.jpg")
+          ],
           rating: 4.5,
           reviewsCount: 72,
           price: 'от 46,000 ₽/месяц',
@@ -333,7 +366,11 @@ const useAppStore = create<AppStore>((set, get) => ({
           email: 'info@obnovlenie.ru',
           description: 'Современные методы лечения зависимостей в комфортных условиях.',
           services: ['Детокс', 'Психотерапия', 'Семейная терапия'],
-          photos: ["https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop&crop=center"],
+          photos: [
+            require("../../assets/images/centers/center6.jpg"),
+            require("../../assets/images/centers/center1.jpg"),
+            require("../../assets/images/centers/center2.jpg")
+          ],
           rating: 4.6,
           reviewsCount: 84,
           price: 'от 52,000 ₽/месяц',
@@ -356,7 +393,11 @@ const useAppStore = create<AppStore>((set, get) => ({
           email: 'info@zdorovie.ru',
           description: 'Профессиональная помощь в преодолении зависимостей с индивидуальным подходом.',
           services: ['Детокс', 'Психотерапия', 'Групповая терапия'],
-          photos: ["https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=300&fit=crop&crop=center"],
+          photos: [
+            require("../../assets/images/centers/center3.jpg"),
+            require("../../assets/images/centers/center4.jpg"),
+            require("../../assets/images/centers/center5.jpg")
+          ],
           rating: 4.3,
           reviewsCount: 61,
           price: 'от 44,000 ₽/месяц',
@@ -371,6 +412,9 @@ const useAppStore = create<AppStore>((set, get) => ({
           reviews: [],
         },
           ];
+          
+          console.log('✅ Центры загружены:', mockCenters.length, 'центров');
+          console.log('📸 Первый центр photos:', mockCenters[0]?.photos);
           
           set({ 
             centers: mockCenters, 

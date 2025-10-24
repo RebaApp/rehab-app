@@ -477,10 +477,10 @@ const styles = StyleSheet.create({
     borderRadius: responsiveWidth(8), // Минимальный радиус
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: responsiveHeight(2) }, // Минимальная тень
-    shadowOpacity: 0.1, // Минимальная прозрачность
-    shadowRadius: responsiveWidth(4), // Минимальный радиус тени
-    elevation: 2, // Минимальная высота
+    shadowOffset: { width: 0, height: responsiveHeight(4) }, // Увеличиваем тень
+    shadowOpacity: 0.4, // Увеличиваем с 0.1 до 0.4 для более заметного эффекта
+    shadowRadius: responsiveWidth(12), // Увеличиваем радиус тени
+    elevation: 6, // Увеличиваем высоту
     width: '100%', // Во всю ширину
   },
   articleGradient: {

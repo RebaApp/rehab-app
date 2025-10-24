@@ -91,13 +91,8 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(({ onCenterPress, onToggl
     // Определяем изображение: приоритет image, затем photos[0], затем fallback
     let imageUrl = center.image;
     if (!imageUrl && center.photos && center.photos.length > 0) {
-      // Если photos содержит строку (URL), используем её
-      if (typeof center.photos[0] === 'string') {
-        imageUrl = center.photos[0];
-      } else {
-        // Для чисел и объектов (require() результат) используем как есть
-        imageUrl = center.photos[0];
-      }
+      // Для локальных изображений (require()) и URL строк используем как есть
+      imageUrl = center.photos[0];
     }
     if (!imageUrl) {
       imageUrl = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop';
@@ -106,9 +101,10 @@ const SearchScreen: React.FC<SearchScreenProps> = memo(({ onCenterPress, onToggl
     return {
       id: center.id,
       name: center.name,
-      location: `${center.city}, ${center.address}`,
+      location: center.city,
       image: imageUrl,
       logo: imageUrl, // Используем то же изображение как логотип
+      photos: center.photos || [], // Добавляем галерею изображений
       shortDescription: center.description,
       priceFrom: parseInt(center.price?.replace(/\D/g, '')) || parseInt(center.priceRange?.replace(/\D/g, '')) || 0,
       duration: center.duration || '30 дней', // Используем duration из данных

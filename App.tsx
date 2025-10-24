@@ -148,9 +148,52 @@ export default function App() {
 
     // Если открыт центр, показываем его детальную страницу
     if (selectedCenter) {
+      // Преобразуем Center в RehabCenter
+      const convertToRehabCenter = (center: any) => {
+        console.log('Converting center in App.tsx:', center);
+        // Определяем изображение: приоритет image, затем photos[0], затем fallback
+        let imageUrl = center.image;
+        if (!imageUrl && center.photos && center.photos.length > 0) {
+          // Для локальных изображений (require()) используем как есть
+          // Для URL строк используем как есть
+          imageUrl = center.photos[0];
+        }
+        if (!imageUrl) {
+          imageUrl = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop';
+        }
+        
+        return {
+          id: center.id,
+          name: center.name,
+          location: center.city, // Только город, без адреса
+          image: imageUrl,
+          logo: imageUrl,
+          photos: center.photos || [],
+          shortDescription: center.description,
+          priceFrom: parseInt(center.priceRange?.replace(/\D/g, '')) || parseInt(center.price?.replace(/\D/g, '')) || 0,
+          duration: center.duration || '30 дней',
+          license: center.verified,
+          rating: center.rating,
+          reviewsCount: center.reviewsCount,
+          tags: center.specializations || center.services || [],
+          verification_status: center.verified ? 'verified' as const : 'pending' as const,
+          phone: center.phone,
+          address: center.address,
+          services: center.specializations || center.services || [],
+          methods: center.amenities || center.methods || [],
+          capacity: center.capacity || 50,
+          yearFounded: center.yearFounded || 2020,
+          workingHours: center.workingHours,
+          website: center.website,
+          email: center.email,
+          coordinates: center.coordinates || { latitude: 55.7558, longitude: 37.6176 },
+          distance: center.distance || 0,
+        };
+      };
+
       return (
         <CenterDetailScreen
-          center={selectedCenter}
+          center={convertToRehabCenter(selectedCenter)}
           onClose={handleCloseCenter}
           onToggleFavorite={toggleFavorite}
           isFavorite={selectedCenter ? isFavorite((selectedCenter as any).id) : false}
@@ -263,6 +306,15 @@ export default function App() {
             <Text style={styles.subtitle}>Приложение работает!</Text>
             <Text style={styles.info}>Текущая вкладка: {currentTab}</Text>
             <Text style={styles.info}>Центров загружено: {centersLoading ? 'Загрузка...' : 'Готово'}</Text>
+            <TouchableOpacity 
+              style={styles.reloadButton} 
+              onPress={() => {
+                console.log('Принудительная перезагрузка данных...');
+                loadCenters();
+              }}
+            >
+              <Text style={styles.reloadButtonText}>🔄 Перезагрузить данные</Text>
+            </TouchableOpacity>
             <Ionicons name="checkmark-circle" size={50} color={THEME.primary} />
           </View>
         );
@@ -527,10 +579,10 @@ const styles = StyleSheet.create({
   tabBarGradient: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: responsivePadding(12),
+    paddingVertical: responsivePadding(8), // Уменьшаем с 12 до 8
     paddingHorizontal: responsivePadding(8),
-    height: responsiveHeight(80),
-    paddingBottom: responsiveHeight(20),
+    height: responsiveHeight(70), // Уменьшаем с 80 до 70
+    paddingBottom: responsiveHeight(15), // Уменьшаем с 20 до 15
   },
   tab: {
     flex: 1,
@@ -556,16 +608,12 @@ const styles = StyleSheet.create({
     top: 0,
   },
   iconGradient: {
-    width: responsiveWidth(36),
-    height: responsiveWidth(36),
-    borderRadius: responsiveWidth(18),
+    width: responsiveWidth(40), // Увеличиваем с 36 до 40
+    height: responsiveWidth(40), // Увеличиваем с 36 до 40
+    borderRadius: responsiveWidth(20), // Увеличиваем с 18 до 20
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: responsiveHeight(2) },
-    shadowOpacity: 0.1,
-    shadowRadius: responsiveWidth(8),
-    elevation: 4,
+    // Убираем тени
   },
   tabText: {
     fontSize: responsiveFontSize(11),
@@ -592,6 +640,19 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  reloadButton: {
+    backgroundColor: '#0A84FF',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  reloadButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',

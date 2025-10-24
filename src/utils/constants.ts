@@ -49,7 +49,7 @@ export const THEME = {
   },
   shadowMedium: {
     shadowColor: "#000000",
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.4, // Увеличиваем с 0.25 до 0.4 для более заметного эффекта
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 8 },
     elevation: 8,
@@ -213,7 +213,12 @@ export const CENTERS = [
     rating: 4.8,
     reviewsCount: 156,
     verified: true,
-    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center",
+    image: require("../../assets/images/centers/center1.jpg"),
+    photos: [
+      require("../../assets/images/centers/center1.jpg"),
+      require("../../assets/images/centers/center2.jpg"),
+      require("../../assets/images/centers/center3.jpg")
+    ],
     phone: "+7 (495) 123-45-67",
     email: "info@newlife-center.ru",
     website: "https://newlife-center.ru",
@@ -233,7 +238,12 @@ export const CENTERS = [
     rating: 4.6,
     reviewsCount: 89,
     verified: true,
-    image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&crop=center",
+    image: require("../../assets/images/centers/center2.jpg"),
+    photos: [
+      require("../../assets/images/centers/center2.jpg"),
+      require("../../assets/images/centers/center3.jpg"),
+      require("../../assets/images/centers/center4.jpg")
+    ],
     phone: "+7 (812) 234-56-78",
     email: "contact@vozrozhdenie-clinic.ru",
     website: "https://vozrozhdenie-clinic.ru",
@@ -253,7 +263,12 @@ export const CENTERS = [
     rating: 4.4,
     reviewsCount: 67,
     verified: false,
-    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop&crop=center",
+    image: require("../../assets/images/centers/center3.jpg"),
+    photos: [
+      require("../../assets/images/centers/center3.jpg"),
+      require("../../assets/images/centers/center4.jpg"),
+      require("../../assets/images/centers/center5.jpg")
+    ],
     phone: "+7 (343) 345-67-89",
     email: "info@nadezhda-center.ru",
     website: "https://nadezhda-center.ru",
@@ -273,7 +288,12 @@ export const CENTERS = [
     rating: 4.7,
     reviewsCount: 134,
     verified: true,
-    image: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop&crop=center",
+    image: require("../../assets/images/centers/center4.jpg"),
+    photos: [
+      require("../../assets/images/centers/center4.jpg"),
+      require("../../assets/images/centers/center5.jpg"),
+      require("../../assets/images/centers/center6.jpg")
+    ],
     phone: "+7 (383) 456-78-90",
     email: "reception@zdorovie-center.ru",
     website: "https://zdorovie-center.ru",
@@ -293,7 +313,12 @@ export const CENTERS = [
     rating: 4.3,
     reviewsCount: 45,
     verified: false,
-    image: "https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=400&h=300&fit=crop&crop=center",
+    image: require("../../assets/images/centers/center5.jpg"),
+    photos: [
+      require("../../assets/images/centers/center5.jpg"),
+      require("../../assets/images/centers/center6.jpg"),
+      require("../../assets/images/centers/center1.jpg")
+    ],
     phone: "+7 (843) 567-89-01",
     email: "help@vershina-center.ru",
     website: "https://vershina-center.ru",
