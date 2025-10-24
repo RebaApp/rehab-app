@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -41,14 +42,21 @@ const ArticleCard: React.FC<ArticleCardProps> = memo(({
         style={styles.gradient}
       >
         <View style={styles.imageContainer}>
-          <OptimizedImage
-            uri={item.image}
-            style={styles.image}
-            priority={false}
-            cachePolicy="memory"
-            contentFit="cover"
-            transition={150}
-          />
+          {typeof item.image === 'string' ? (
+            <OptimizedImage
+              uri={item.image}
+              style={styles.image}
+              priority={false}
+              cachePolicy="memory"
+              contentFit="cover"
+              transition={150}
+            />
+          ) : (
+            <Image
+              source={item.image}
+              style={styles.image}
+            />
+          )}
           <View style={styles.categoryBadge}>
             <Text style={styles.categoryText}>{item.category}</Text>
           </View>

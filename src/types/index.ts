@@ -45,6 +45,40 @@ export interface Center {
   updatedAt?: string;
 }
 
+// === REHAB CENTER TYPES (для карточек поиска) ===
+export interface RehabCenter {
+  id: string;
+  slug?: string;
+  name: string;
+  location: string; // "Москва, МО"
+  image?: string; // hero image URL
+  logo?: string;
+  shortDescription?: string;
+  priceFrom?: number; // в рублях
+  duration?: string; // "30 дней"
+  license?: boolean;
+  rating?: number; // 0-5
+  reviewsCount?: number;
+  tags?: string[]; // бейджи/тэги
+  verification_status?: 'draft'|'pending'|'verified'|'rejected';
+  phone?: string; // для кнопки "Позвонить"
+  address?: string;
+  services?: string[];
+  methods?: string[];
+  capacity?: number;
+  yearFounded?: number;
+  workingHours?: string;
+  website?: string;
+  email?: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+  distance?: number; // в км
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Review {
   id: string;
   userName: string;
@@ -231,6 +265,15 @@ export interface CenterCardProps {
   onPress: (center: Center) => void;
   onToggleFavorite: (centerId: string) => void;
   isFavorite: boolean;
+  showDistance?: boolean;
+}
+
+export interface CardRehabCenterProps {
+  center: RehabCenter;
+  onOpen: (centerId: string) => void;
+  onCall?: (phone: string) => void;
+  onToggleFavorite?: (centerId: string) => void;
+  isFavorite?: boolean;
   showDistance?: boolean;
 }
 

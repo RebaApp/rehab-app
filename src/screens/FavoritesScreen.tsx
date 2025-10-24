@@ -5,15 +5,13 @@ import {
   View,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { Center } from '../types';
-import CenterCard from '../components/common/CenterCard';
-import { THEME } from '../utils/constants';
+import { Center, RehabCenter } from '../types';
+import ExpandedCardRehabCenter from '../components/common/ExpandedCardRehabCenter';
 import { responsiveWidth, responsiveHeight, responsivePadding } from '../utils/responsive';
 import useAppStore from '../store/useAppStore';
 
@@ -81,14 +79,59 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = memo(({
     setTimeout(startRotation, 1200);
   }, []);
 
-  const renderCenter = useCallback(({ item }: { item: Center }) => (
-    <CenterCard
-      item={item}
-      onPress={onCenterPress}
-      onToggleFavorite={onToggleFavorite}
-      isFavorite={isFavorite(item.id)}
-    />
-  ), [onCenterPress, onToggleFavorite, isFavorite]);
+  const renderCenter = useCallback(({ item }: { item: Center }) => {
+    // Определяем изображение: приоритет image, затем photos[0], затем fallback
+    let imageUrl = item.image;
+    if (!imageUrl && item.photos && item.photos.length > 0) {
+      // Если photos содержит строку (URL), используем её
+      if (typeof item.photos[0] === 'string') {
+        imageUrl = item.photos[0];
+      } else {
+        // Для чисел и объектов (require() результат) используем как есть
+        imageUrl = item.photos[0];
+      }
+    }
+    if (!imageUrl) {
+      imageUrl = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop';
+    }
+
+    // Преобразуем Center в RehabCenter для ExpandedCardRehabCenter
+    const rehabCenter: RehabCenter = {
+      id: item.id,
+      name: item.name,
+      location: `${item.city}, ${item.address}`,
+      image: imageUrl,
+      logo: imageUrl, // используем то же изображение как логотип
+      shortDescription: item.description,
+      priceFrom: parseInt(item.price?.replace(/\D/g, '')) || parseInt(item.priceRange?.replace(/\D/g, '')) || 0,
+      duration: item.duration || '30 дней', // Используем duration из данных
+      license: !!item.license,
+      rating: item.rating,
+      reviewsCount: item.reviewsCount,
+      tags: item.services || item.specializations || [],
+      verification_status: item.verified ? 'verified' : 'pending',
+      phone: item.phone,
+      address: item.address,
+      services: item.services || item.specializations || [],
+      methods: item.methods || item.amenities || [],
+      capacity: item.capacity || 50,
+      yearFounded: item.yearFounded || 2020,
+      workingHours: item.workingHours,
+      website: item.website || '',
+      email: item.email,
+      coordinates: item.coordinates || { latitude: 55.7558, longitude: 37.6176 },
+      distance: item.distance || 0,
+    };
+
+    return (
+      <ExpandedCardRehabCenter
+        center={rehabCenter}
+        onOpen={() => onCenterPress(item)}
+        onToggleFavorite={onToggleFavorite}
+        isFavorite={isFavorite(item.id)}
+      />
+    );
+  }, [onCenterPress, onToggleFavorite, isFavorite]);
 
 
   const renderEmpty = useCallback(() => (
@@ -122,6 +165,9 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = memo(({
             
             <View style={styles.emptyTextContainer}>
               <Text style={styles.emptyTitle}>Пока нет избранных центров</Text>
+              <Text style={styles.emptySubtitle}>
+                Добавьте центры в избранное, чтобы быстро к ним вернуться
+              </Text>
             </View>
             
             <View style={styles.buttonContainer}>
@@ -146,17 +192,19 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = memo(({
   const keyExtractor = useCallback((item: Center) => item.id, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        {/* Content */}
-        {favoriteCenters.length === 0 ? (
-          renderEmpty()
-        ) : (
+    <View style={styles.container}>
+      {favoriteCenters.length === 0 ? (
+        // Пустое состояние - центрированное
+        <View style={styles.emptyContentContainer}>
+          {renderEmpty()}
+        </View>
+      ) : (
+        // Заполненное состояние - скроллируемое
+        <View style={styles.filledContentContainer}>
           <Animated.View style={[styles.listSection, { 
             opacity: fadeAnim, 
             transform: [{ translateY: slideAnim }] 
           }]}>
-            <Text style={styles.sectionTitle}>Ваши избранные центры</Text>
             <FlatList
               data={favoriteCenters}
               renderItem={renderCenter}
@@ -168,12 +216,12 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = memo(({
               updateCellsBatchingPeriod={100}
               initialNumToRender={5}
               windowSize={10}
-              scrollEnabled={false}
+              scrollEnabled={true}
             />
           </Animated.View>
-        )}
-      </View>
-    </SafeAreaView>
+        </View>
+      )}
+    </View>
   );
 });
 
@@ -184,25 +232,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F0F8FF',
   },
-  content: {
+  // Пустое состояние - центрированное
+  emptyContentContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
+  },
+  // Заполненное состояние - скроллируемое
+  filledContentContainer: {
+    flex: 1,
+    paddingHorizontal: 0,
   },
   listSection: {
     width: '100%',
     alignItems: 'center',
   },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1a1a1a',
-    marginBottom: 16,
-    letterSpacing: -0.3,
-  },
   listContainer: {
-    paddingBottom: 20,
+    paddingBottom: 0, // Убираем отступ снизу
+    paddingHorizontal: 0, // Убираем горизонтальные отступы
   },
   emptyContainer: {
     alignItems: 'center',
@@ -218,13 +266,14 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   emptyGradient: {
-    padding: responsivePadding(32),
+    padding: responsivePadding(32), // Как в JourneyScreen
   },
   emptyContent: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyIconContainer: {
-    marginBottom: 24,
+    marginBottom: 24, // Как в JourneyScreen
   },
   emptyTextContainer: {
     alignItems: 'center',
@@ -242,20 +291,29 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   emptyTitle: {
-    fontSize: 24,
+    fontSize: 24, // Как в JourneyScreen
     fontWeight: '800',
     color: '#1a1a1a',
-    marginBottom: 12,
+    marginBottom: 12, // Как в JourneyScreen
     textAlign: 'center',
     letterSpacing: -0.3,
   },
+  emptySubtitle: {
+    fontSize: 16, // Как в JourneyScreen
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+    fontWeight: '500',
+    marginBottom: 24, // Отступ перед кнопкой
+  },
   buttonContainer: {
-    width: '100%',
+    alignItems: 'center', // Центрируем кнопку
   },
   loginButton: {
     borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 16,
+    marginBottom: 0,
+    alignSelf: 'center', // Делаем кнопку меньше по ширине
   },
   buttonGradient: {
     flexDirection: 'row',
@@ -263,6 +321,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     paddingHorizontal: 24,
+    minWidth: 200, // Фиксированная ширина кнопки
   },
   buttonText: {
     fontSize: 16,

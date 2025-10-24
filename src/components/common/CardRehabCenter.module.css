@@ -1,0 +1,526 @@
+/* CardRehabCenter.module.css - Стили для карточки реабилитационного центра */
+
+/* Используем CSS-переменные из дизайн-системы */
+.cardContainer {
+  margin: var(--spacing-4) var(--spacing-4) var(--spacing-5) var(--spacing-4);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  background: var(--color-bg-primary);
+  transition: all var(--duration-normal) var(--easing-standard);
+}
+
+.cardContainer:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.cardBlur {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.cardGradient {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.8) 100%
+  );
+}
+
+.imageContainer {
+  position: relative;
+  height: 200px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-normal) var(--easing-standard);
+}
+
+.image:hover {
+  transform: scale(1.05);
+}
+
+.favoriteButton {
+  position: absolute;
+  top: var(--spacing-4);
+  right: var(--spacing-4);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.favoriteButton:hover {
+  transform: scale(1.1);
+}
+
+.favoriteButton:active {
+  transform: scale(0.95);
+}
+
+.favoriteBlur {
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.favoriteGradient {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.4) 0%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+}
+
+.favoriteGradient.active {
+  background: linear-gradient(
+    135deg,
+    #ff6b6b 0%,
+    #ff5252 100%
+  );
+}
+
+.licenseBadge {
+  position: absolute;
+  top: var(--spacing-4);
+  left: var(--spacing-4);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.licenseBlur {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.licenseGradient {
+  padding: var(--spacing-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(76, 175, 80, 0.9) 0%,
+    rgba(76, 175, 80, 0.8) 100%
+  );
+}
+
+.statusBadge {
+  position: absolute;
+  top: var(--spacing-4);
+  left: 60px; /* Смещение от бейджа лицензии */
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.statusBadge.noLicense {
+  left: var(--spacing-4);
+}
+
+.statusBlur {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.statusGradient {
+  padding: var(--spacing-1-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statusGradient.verified {
+  background: linear-gradient(
+    135deg,
+    rgba(52, 168, 83, 0.8) 0%,
+    rgba(52, 168, 83, 0.6) 100%
+  );
+}
+
+.statusGradient.pending {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 152, 0, 0.8) 0%,
+    rgba(255, 152, 0, 0.6) 100%
+  );
+}
+
+.statusGradient.rejected {
+  background: linear-gradient(
+    135deg,
+    rgba(244, 67, 54, 0.8) 0%,
+    rgba(244, 67, 54, 0.6) 100%
+  );
+}
+
+.statusGradient.draft {
+  background: linear-gradient(
+    135deg,
+    rgba(154, 160, 166, 0.8) 0%,
+    rgba(154, 160, 166, 0.6) 100%
+  );
+}
+
+.content {
+  padding: var(--spacing-5);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-3);
+}
+
+.name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  flex: 1;
+  margin-right: var(--spacing-3);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.ratingContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1-5);
+}
+
+.ratingText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.locationContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-4);
+  gap: var(--spacing-2);
+}
+
+.location {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  flex: 1;
+  font-weight: var(--font-weight-medium);
+}
+
+.distance {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary-500);
+  font-weight: var(--font-weight-semibold);
+}
+
+.description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--spacing-4);
+  font-weight: var(--font-weight-regular);
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.tag {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.tagBlur {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.tagGradient {
+  padding: var(--spacing-1-5) var(--spacing-3);
+  display: flex;
+  align-items: center;
+  background: linear-gradient(
+    135deg,
+    rgba(129, 212, 250, 0.3) 0%,
+    rgba(66, 165, 245, 0.2) 100%
+  );
+}
+
+.tagText {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary-500);
+  font-weight: var(--font-weight-semibold);
+}
+
+.moreTags {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  align-self: center;
+  font-weight: var(--font-weight-medium);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-4);
+}
+
+.priceContainer {
+  flex: 1;
+}
+
+.price {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary-500);
+  margin-bottom: var(--spacing-1);
+}
+
+.duration {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.reviewsContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1-5);
+}
+
+.reviewsText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.actionsContainer {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.primaryButton {
+  flex: 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.primaryButton:hover {
+  transform: translateY(-1px);
+}
+
+.primaryButton:active {
+  transform: translateY(0);
+}
+
+.secondaryButton {
+  flex: 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.secondaryButton:hover {
+  transform: translateY(-1px);
+}
+
+.secondaryButton:active {
+  transform: translateY(0);
+}
+
+.buttonBlur {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.buttonGradient {
+  padding: var(--spacing-3) var(--spacing-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+
+.primaryButtonGradient {
+  background: linear-gradient(
+    135deg,
+    rgba(10, 132, 255, 0.9) 0%,
+    rgba(10, 132, 255, 0.8) 100%
+  );
+}
+
+.secondaryButtonGradient {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.8) 100%
+  );
+}
+
+.primaryButtonText {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-inverse);
+}
+
+.secondaryButtonText {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-500);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .cardContainer {
+    margin: var(--spacing-3) var(--spacing-3) var(--spacing-4) var(--spacing-3);
+  }
+  
+  .content {
+    padding: var(--spacing-4);
+  }
+  
+  .imageContainer {
+    height: 180px;
+  }
+  
+  .actionsContainer {
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+}
+
+@media (min-width: 1024px) {
+  .cardContainer {
+    max-width: 400px;
+    margin: var(--spacing-4) auto;
+  }
+  
+  .imageContainer {
+    height: 220px;
+  }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.cardContainer {
+  animation: fadeIn var(--duration-normal) var(--easing-standard),
+             scaleIn var(--duration-normal) var(--easing-standard);
+}
+
+/* Состояния фокуса для доступности */
+.cardContainer:focus-within {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.favoriteButton:focus,
+.primaryButton:focus,
+.secondaryButton:focus {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Темная тема (если поддерживается) */
+@media (prefers-color-scheme: dark) {
+  .cardGradient {
+    background: linear-gradient(
+      135deg,
+      rgba(26, 26, 26, 0.9) 0%,
+      rgba(26, 26, 26, 0.8) 100%
+    );
+  }
+  
+  .name {
+    color: var(--color-text-primary);
+  }
+  
+  .location,
+  .description,
+  .ratingText,
+  .reviewsText,
+  .duration,
+  .moreTags {
+    color: var(--color-text-secondary);
+  }
+  
+  .secondaryButtonGradient {
+    background: linear-gradient(
+      135deg,
+      rgba(42, 42, 42, 0.9) 0%,
+      rgba(42, 42, 42, 0.8) 100%
+    );
+  }
+}
+
+/* Уменьшенная анимация для пользователей с ограниченными возможностями */
+@media (prefers-reduced-motion: reduce) {
+  .cardContainer,
+  .image,
+  .favoriteButton,
+  .primaryButton,
+  .secondaryButton {
+    animation: none;
+    transition: none;
+  }
+  
+  .cardContainer:hover,
+  .image:hover,
+  .favoriteButton:hover,
+  .primaryButton:hover,
+  .secondaryButton:hover {
+    transform: none;
+  }
+}

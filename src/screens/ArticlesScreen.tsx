@@ -267,7 +267,11 @@ const ArticlesScreen: React.FC<ArticlesScreenProps> = memo(({
                     >
                       {/* Горизонтальная обложка на всю ширину */}
                       <View style={styles.articleImageContainer}>
-                        <Image source={{ uri: article.image }} style={styles.articleImage} />
+                        {typeof article.image === 'string' ? (
+                          <Image source={{ uri: article.image }} style={styles.articleImage} />
+                        ) : (
+                          <Image source={article.image} style={styles.articleImage} />
+                        )}
                         <View style={styles.imageOverlay}>
                           <LinearGradient
                             colors={['transparent', 'rgba(0, 0, 0, 0.3)']}
@@ -276,7 +280,7 @@ const ArticlesScreen: React.FC<ArticlesScreenProps> = memo(({
                         </View>
                         {/* Теги внизу картинки */}
                         <View style={styles.tagsOverlay}>
-                          {renderTags(article.tags)}
+                          {renderTags(article.tags || [])}
                         </View>
                       </View>
                       
