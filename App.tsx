@@ -32,6 +32,10 @@ export default function App() {
     loadCenters,
     toggleFavorite,
     isFavorite,
+    login,
+    register,
+    loginWithYandex,
+    logout,
   } = useAppStore();
 
   // Анимация для содержимого вкладок
@@ -294,9 +298,10 @@ export default function App() {
           <ProfileScreen
             user={user}
             isAuthenticated={isAuthenticated}
-            onLogoutPress={() => {
-              console.log('Logout pressed');
-            }}
+            onLogoutPress={logout}
+            onLogin={login}
+            onRegister={register}
+            onYandexSignIn={loginWithYandex}
           />
         );
       default:

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { AppStore, Center, User, Article } from '../types';
 import { ARTICLES, CENTERS } from '../utils/constants';
+import authService from '../services/authService';
 
 // Веб-совместимый store с оригинальными данными
 const useAppStore = create<AppStore>((set, get) => ({
@@ -593,6 +594,102 @@ const useAppStore = create<AppStore>((set, get) => ({
   getFavoriteCenters: () => {
     const { centers, favorites } = get();
     return centers.filter(center => favorites[center.id]);
+  },
+
+  // === AUTH METHODS ===
+  login: async (email: string, password: string) => {
+    console.log('🏪 Store: login вызван');
+    set({ authLoading: true });
+    
+    try {
+      const result = await authService.signInWithEmail(email, password);
+      
+      if (result.success && result.user) {
+        set({ 
+          user: result.user, 
+          isAuthenticated: true, 
+          authLoading: false 
+        });
+        console.log('✅ Store: Успешная авторизация');
+        return { success: true, data: result.user };
+      } else {
+        set({ authLoading: false });
+        console.log('❌ Store: Ошибка авторизации:', result.error);
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      set({ authLoading: false });
+      console.log('💥 Store: Исключение в login:', error);
+      return { success: false, error: { code: 'UNKNOWN', message: 'Неизвестная ошибка' } };
+    }
+  },
+
+  register: async (email: string, password: string, userData: Partial<User>) => {
+    console.log('🏪 Store: register вызван');
+    set({ authLoading: true });
+    
+    try {
+      const result = await authService.registerWithEmail(email, password, userData);
+      
+      if (result.success && result.user) {
+        set({ 
+          user: result.user, 
+          isAuthenticated: true, 
+          authLoading: false 
+        });
+        console.log('✅ Store: Успешная регистрация');
+        return { success: true, data: result.user };
+      } else {
+        set({ authLoading: false });
+        console.log('❌ Store: Ошибка регистрации:', result.error);
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      set({ authLoading: false });
+      console.log('💥 Store: Исключение в register:', error);
+      return { success: false, error: { code: 'UNKNOWN', message: 'Неизвестная ошибка' } };
+    }
+  },
+
+  loginWithYandex: async () => {
+    console.log('🏪 Store: loginWithYandex вызван');
+    set({ authLoading: true });
+    
+    try {
+      console.log('🔧 Store: Вызываем authService.signInWithYandex()');
+      const result = await authService.signInWithYandex();
+      
+      console.log('📊 Store: Результат от authService:', result);
+      
+      if (result.success && result.user) {
+        set({ 
+          user: result.user, 
+          isAuthenticated: true, 
+          authLoading: false 
+        });
+        console.log('✅ Store: Успешная авторизация, обновляем состояние');
+        return { success: true, data: result.user };
+      } else {
+        set({ authLoading: false });
+        console.log('❌ Store: Ошибка Яндекс авторизации:', result.error);
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      set({ authLoading: false });
+      console.log('💥 Store: Исключение в loginWithYandex:', error);
+      return { success: false, error: { code: 'UNKNOWN', message: 'Неизвестная ошибка' } };
+    }
+  },
+
+  logout: () => {
+    console.log('🏪 Store: logout вызван');
+    authService.signOut();
+    set({ 
+      user: null, 
+      isAuthenticated: false, 
+      authLoading: false 
+    });
+    console.log('✅ Store: Выход выполнен');
   },
 }));
 

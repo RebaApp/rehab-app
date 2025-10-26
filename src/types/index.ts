@@ -207,7 +207,8 @@ export interface AppStore extends AuthState, CentersState, FavoritesState, Artic
   setUser: (user: User | null) => void;
   setAuthLoading: (loading: boolean) => void;
   login: (email: string, password: string) => Promise<ApiResponse<User>>;
-  register: (userData: Partial<User>) => Promise<ApiResponse<User>>;
+  register: (email: string, password: string, userData: Partial<User>) => Promise<ApiResponse<User>>;
+  loginWithYandex: () => Promise<ApiResponse<User>>;
   logout: () => void;
   
   // Centers actions
