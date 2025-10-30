@@ -182,21 +182,16 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
       onPress={onToggle}
       activeOpacity={0.7}
     >
-      <BlurView intensity={isSelected ? 20 : 10} tint="light" style={styles.tagBlur}>
+      <BlurView intensity={10} tint="light" style={styles.tagBlur}>
         <LinearGradient
-          colors={isSelected 
-            ? ['#81D4FA', '#42A5F5']
-            : ['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.3)']
-          }
+          colors={['#FFFFFF', '#FFFFFF']}
           style={styles.tagGradient}
         >
           <View style={styles.tagContent}>
             <Text style={[styles.tagText, isSelected && styles.tagTextSelected]}>
               {text}
             </Text>
-            {isSelected && (
-              <Ionicons name="checkmark-circle" size={responsiveWidth(16)} color="#FFFFFF" />
-            )}
+            {/* outline only, no filled icon when selected */}
           </View>
         </LinearGradient>
       </BlurView>
@@ -208,75 +203,60 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
       <Text style={styles.sectionTitle}>Цена</Text>
       <View style={styles.priceOptions}>
         <TouchableOpacity 
-          style={[styles.priceOption, filters.priceRange.min === 0 && filters.priceRange.max === 1000000 && styles.priceOptionSelected]}
+          style={[styles.priceOption, (filters.priceRange.min === 0 && filters.priceRange.max === 1000000) ? styles.priceOptionSelected : styles.priceOptionUnselected]}
           onPress={() => handlePriceRangeChange(0, 1000000)}
         >
           <BlurView intensity={10} tint="light" style={styles.priceBlur}>
-            <LinearGradient
-              colors={filters.priceRange.min === 0 && filters.priceRange.max === 1000000 ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
-              style={styles.priceGradient}
-            >
-              <Text style={[styles.priceOptionText, filters.priceRange.min === 0 && filters.priceRange.max === 1000000 && styles.priceOptionTextSelected]}>
+            <LinearGradient colors={['#FFFFFF', '#FFFFFF']} style={styles.priceGradient}>
+              <Text style={[styles.priceOptionText, (filters.priceRange.min === 0 && filters.priceRange.max === 1000000) ? styles.priceOptionTextSelected : styles.priceOptionTextUnselected]}>
                 Любая
               </Text>
             </LinearGradient>
           </BlurView>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.priceOption, filters.priceRange.min === 0 && filters.priceRange.max === 50000 && styles.priceOptionSelected]}
+          style={[styles.priceOption, (filters.priceRange.min === 0 && filters.priceRange.max === 50000) ? styles.priceOptionSelected : styles.priceOptionUnselected]}
           onPress={() => handlePriceRangeChange(0, 50000)}
         >
           <BlurView intensity={10} tint="light" style={styles.priceBlur}>
-            <LinearGradient
-              colors={filters.priceRange.min === 0 && filters.priceRange.max === 50000 ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
-              style={styles.priceGradient}
-            >
-              <Text style={[styles.priceOptionText, filters.priceRange.min === 0 && filters.priceRange.max === 50000 && styles.priceOptionTextSelected]}>
+            <LinearGradient colors={['#FFFFFF', '#FFFFFF']} style={styles.priceGradient}>
+              <Text style={[styles.priceOptionText, (filters.priceRange.min === 0 && filters.priceRange.max === 50000) ? styles.priceOptionTextSelected : styles.priceOptionTextUnselected]}>
                 До 50,000 ₽
               </Text>
             </LinearGradient>
           </BlurView>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.priceOption, filters.priceRange.min === 50000 && filters.priceRange.max === 100000 && styles.priceOptionSelected]}
+          style={[styles.priceOption, (filters.priceRange.min === 50000 && filters.priceRange.max === 100000) ? styles.priceOptionSelected : styles.priceOptionUnselected]}
           onPress={() => handlePriceRangeChange(50000, 100000)}
         >
           <BlurView intensity={10} tint="light" style={styles.priceBlur}>
-            <LinearGradient
-              colors={filters.priceRange.min === 50000 && filters.priceRange.max === 100000 ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
-              style={styles.priceGradient}
-            >
-              <Text style={[styles.priceOptionText, filters.priceRange.min === 50000 && filters.priceRange.max === 100000 && styles.priceOptionTextSelected]}>
+            <LinearGradient colors={['#FFFFFF', '#FFFFFF']} style={styles.priceGradient}>
+              <Text style={[styles.priceOptionText, (filters.priceRange.min === 50000 && filters.priceRange.max === 100000) ? styles.priceOptionTextSelected : styles.priceOptionTextUnselected]}>
                 50,000 - 100,000 ₽
               </Text>
             </LinearGradient>
           </BlurView>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.priceOption, filters.priceRange.min === 100000 && filters.priceRange.max === 200000 && styles.priceOptionSelected]}
+          style={[styles.priceOption, (filters.priceRange.min === 100000 && filters.priceRange.max === 200000) ? styles.priceOptionSelected : styles.priceOptionUnselected]}
           onPress={() => handlePriceRangeChange(100000, 200000)}
         >
           <BlurView intensity={10} tint="light" style={styles.priceBlur}>
-            <LinearGradient
-              colors={filters.priceRange.min === 100000 && filters.priceRange.max === 200000 ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
-              style={styles.priceGradient}
-            >
-              <Text style={[styles.priceOptionText, filters.priceRange.min === 100000 && filters.priceRange.max === 200000 && styles.priceOptionTextSelected]}>
+            <LinearGradient colors={['#FFFFFF', '#FFFFFF']} style={styles.priceGradient}>
+              <Text style={[styles.priceOptionText, (filters.priceRange.min === 100000 && filters.priceRange.max === 200000) ? styles.priceOptionTextSelected : styles.priceOptionTextUnselected]}>
                 100,000 - 200,000 ₽
               </Text>
             </LinearGradient>
           </BlurView>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.priceOption, filters.priceRange.min === 200000 && filters.priceRange.max === 1000000 && styles.priceOptionSelected]}
+          style={[styles.priceOption, (filters.priceRange.min === 200000 && filters.priceRange.max === 1000000) ? styles.priceOptionSelected : styles.priceOptionUnselected]}
           onPress={() => handlePriceRangeChange(200000, 1000000)}
         >
           <BlurView intensity={10} tint="light" style={styles.priceBlur}>
-            <LinearGradient
-              colors={filters.priceRange.min === 200000 && filters.priceRange.max === 1000000 ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
-              style={styles.priceGradient}
-            >
-              <Text style={[styles.priceOptionText, filters.priceRange.min === 200000 && filters.priceRange.max === 1000000 && styles.priceOptionTextSelected]}>
+            <LinearGradient colors={['#FFFFFF', '#FFFFFF']} style={styles.priceGradient}>
+              <Text style={[styles.priceOptionText, (filters.priceRange.min === 200000 && filters.priceRange.max === 1000000) ? styles.priceOptionTextSelected : styles.priceOptionTextUnselected]}>
                 200,000 ₽ и выше
               </Text>
             </LinearGradient>
@@ -291,22 +271,19 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
       <Text style={styles.sectionTitle}>Геолокация</Text>
       <View style={styles.locationOptions}>
         <TouchableOpacity 
-          style={[styles.locationOption, !filters.location && styles.locationOptionSelected]}
+          style={[styles.locationOption, !filters.location ? styles.locationOptionSelected : styles.locationOptionUnselected]}
           onPress={() => setFilters(prev => ({ ...prev, location: null }))}
         >
           <BlurView intensity={10} tint="light" style={styles.locationBlur}>
-            <LinearGradient
-              colors={!filters.location ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
-              style={styles.locationGradient}
-            >
-              <Text style={[styles.locationOptionText, !filters.location && styles.locationOptionTextSelected]}>
+            <LinearGradient colors={['#FFFFFF', '#FFFFFF']} style={styles.locationGradient}>
+              <Text style={[styles.locationOptionText, !filters.location ? styles.locationOptionTextSelected : styles.locationOptionTextUnselected]}>
                 Любые
               </Text>
             </LinearGradient>
           </BlurView>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.locationOption, filters.location && styles.locationOptionSelected]}
+          style={[styles.locationOption, filters.location ? styles.locationOptionSelected : styles.locationOptionUnselected]}
           onPress={() => {
             if (userLocation) {
               setFilters(prev => ({ ...prev, location: userLocation }));
@@ -314,11 +291,8 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
           }}
         >
           <BlurView intensity={10} tint="light" style={styles.locationBlur}>
-            <LinearGradient
-              colors={filters.location ? ['#81D4FA', '#42A5F5'] : ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.2)']}
-              style={styles.locationGradient}
-            >
-              <Text style={[styles.locationOptionText, filters.location && styles.locationOptionTextSelected]}>
+            <LinearGradient colors={['#FFFFFF', '#FFFFFF']} style={styles.locationGradient}>
+              <Text style={[styles.locationOptionText, filters.location ? styles.locationOptionTextSelected : styles.locationOptionTextUnselected]}>
                 Ближайшие
               </Text>
             </LinearGradient>
@@ -350,7 +324,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
     >
       <View style={styles.container}>
         <LinearGradient
-          colors={['#F8FAFF', '#F0F8FF', '#E6F3FF']}
+          colors={['#FFFFFF', '#FFFFFF']}
           style={styles.gradient}
         >
           {/* Header */}
@@ -365,7 +339,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
                 </LinearGradient>
               </BlurView>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>🔍 Фильтры</Text>
+            <Text style={styles.headerTitle}>Фильтры</Text>
             <TouchableOpacity style={styles.headerButton} onPress={handleReset}>
               <BlurView intensity={15} tint="light" style={styles.buttonBlur}>
                 <LinearGradient
@@ -390,27 +364,17 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = memo(({
 
           {/* Footer */}
           <View style={styles.footer}>
-            <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-              <BlurView intensity={20} tint="light" style={styles.resetBlur}>
-                <LinearGradient
-                  colors={['#81D4FA', '#42A5F5']}
-                  style={styles.resetGradient}
-                >
-                  <Ionicons name="refresh" size={18} color="#FFFFFF" />
-                  <Text style={styles.resetButtonText}>Сбросить</Text>
-                </LinearGradient>
-              </BlurView>
+            <TouchableOpacity style={[styles.resetButton, styles.outlineButton]} onPress={handleReset}>
+              <LinearGradient colors={['#FFFFFF', '#FFFFFF']} style={styles.resetGradient}>
+                <Ionicons name="refresh" size={18} color="#42A5F5" />
+                <Text style={styles.outlineButtonText}>Сбросить</Text>
+              </LinearGradient>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.applyButton} onPress={handleApply}>
-              <BlurView intensity={20} tint="light" style={styles.applyBlur}>
-                <LinearGradient
-                  colors={['#81D4FA', '#42A5F5']}
-                  style={styles.applyGradient}
-                >
-                  <Ionicons name="checkmark" size={20} color="#FFFFFF" />
-                  <Text style={styles.applyButtonText}>Применить</Text>
-                </LinearGradient>
-              </BlurView>
+            <TouchableOpacity style={[styles.applyButton, styles.outlineButton]} onPress={handleApply}>
+              <LinearGradient colors={['#FFFFFF', '#FFFFFF']} style={styles.applyGradient}>
+                <Ionicons name="checkmark" size={20} color="#42A5F5" />
+                <Text style={styles.outlineButtonText}>Применить</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -486,6 +450,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 5,
   },
+  tagSelected: {
+    borderWidth: 1,
+    borderColor: '#42A5F5',
+    backgroundColor: '#FFFFFF',
+  },
+  tagUnselected: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
+  },
   tagBlur: {
     borderRadius: responsiveWidth(16),
     overflow: 'hidden',
@@ -505,8 +479,11 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
   },
   tagTextSelected: {
-    color: '#FFFFFF',
+    color: '#42A5F5',
     fontWeight: '700',
+  },
+  tagTextUnselected: {
+    color: '#1a1a1a',
   },
   locationBlur: {
     borderRadius: responsiveWidth(16),
@@ -686,6 +663,16 @@ const styles = StyleSheet.create({
     borderRadius: responsiveWidth(12),
     overflow: 'hidden',
   },
+  priceOptionSelected: {
+    borderWidth: 1,
+    borderColor: '#42A5F5',
+    backgroundColor: '#FFFFFF',
+  },
+  priceOptionUnselected: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
+  },
   priceBlur: {
     borderRadius: responsiveWidth(12),
     overflow: 'hidden',
@@ -696,16 +683,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  priceOptionSelected: {
-    backgroundColor: '#42A5F5',
-  },
   priceOptionText: {
     fontSize: responsiveWidth(12),
     fontWeight: '600',
     color: '#1a1a1a',
   },
   priceOptionTextSelected: {
-    color: '#FFFFFF',
+    color: '#42A5F5',
+    fontWeight: '700',
+  },
+  priceOptionTextUnselected: {
+    color: '#1a1a1a',
   },
   priceSlider: {
     marginTop: responsivePadding(8),
@@ -780,7 +768,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   locationOptionSelected: {
-    backgroundColor: '#42A5F5',
+    borderWidth: 1,
+    borderColor: '#42A5F5',
+    backgroundColor: '#FFFFFF',
+  },
+  locationOptionUnselected: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
   },
   locationOptionText: {
     fontSize: responsiveWidth(14),
@@ -788,7 +783,11 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
   },
   locationOptionTextSelected: {
-    color: '#FFFFFF',
+    color: '#42A5F5',
+    fontWeight: '700',
+  },
+  locationOptionTextUnselected: {
+    color: '#1a1a1a',
   },
   footer: {
     flexDirection: 'row',
@@ -805,6 +804,11 @@ const styles = StyleSheet.create({
     borderRadius: responsiveWidth(16),
     overflow: 'hidden',
   },
+  outlineButton: {
+    borderWidth: 1,
+    borderColor: '#42A5F5',
+    backgroundColor: '#FFFFFF',
+  },
   resetBlur: {
     borderRadius: responsiveWidth(16),
     overflow: 'hidden',
@@ -817,10 +821,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: responsivePadding(20),
     gap: responsivePadding(8),
   },
-  resetButtonText: {
+  outlineButtonText: {
     fontSize: responsiveWidth(16),
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#42A5F5',
   },
   applyButton: {
     flex: 1,

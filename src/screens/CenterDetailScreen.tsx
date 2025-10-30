@@ -250,154 +250,100 @@ const CenterDetailScreen: React.FC<CenterDetailScreenProps> = memo(({
 
 
             <View style={styles.textContainer}>
-              {/* Основная информация */}
+              {/** Работает с расширенным набором полей без ошибки типов */}
+              {(() => { const anyCenter: any = center; return (
+              <>
               <Text style={styles.title}>{center.name}</Text>
-              
-              {/* Отзывы без рейтинга */}
-              <View style={styles.reviewsContainer}>
-                <Text style={styles.reviewsText}>({center.reviewsCount} отзывов)</Text>
+
+              <View style={styles.metaGrid}>
+                {anyCenter.city ? (<Text style={styles.metaItem}><Text style={styles.metaLabel}>Город: </Text>{anyCenter.city}</Text>) : null}
+                {anyCenter.yearFounded ? (<Text style={styles.metaItem}><Text style={styles.metaLabel}>Основан: </Text>{anyCenter.yearFounded}</Text>) : null}
+                {anyCenter.organizationType ? (<Text style={styles.metaItem}><Text style={styles.metaLabel}>Тип: </Text>{anyCenter.organizationType}</Text>) : null}
+                {anyCenter.capacity ? (<Text style={styles.metaItem}><Text style={styles.metaLabel}>Вместимость: </Text>{anyCenter.capacity}</Text>) : null}
+                {anyCenter.staffCount ? (<Text style={styles.metaItem}><Text style={styles.metaLabel}>Сотрудников: </Text>{anyCenter.staffCount}</Text>) : null}
+                {anyCenter.license ? (<Text style={styles.metaItem}><Text style={styles.metaLabel}>Лицензия: </Text>{anyCenter.license}</Text>) : null}
               </View>
 
-              <View style={styles.locationContainer}>
-                <Ionicons name="location-outline" size={16} color="#0A84FF" />
-                <Text style={styles.locationText}>{center.location}</Text>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>О центре</Text>
+                <Text style={styles.paragraph}>{anyCenter.descriptionFull || center.shortDescription || 'Информация уточняется.'}</Text>
               </View>
 
-              <Text style={styles.description}>{center.shortDescription}</Text>
-
-              {/* Цена и продолжительность */}
-              <View style={styles.priceDurationContainer}>
-              <View style={styles.priceContainer}>
-                <Text style={styles.priceLabel}>Стоимость:</Text>
-                <Text style={styles.price}>от {center.priceFrom?.toLocaleString('ru-RU')} ₽</Text>
+              {Array.isArray(center.services) && center.services.length > 0 ? (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Специализация</Text>
+                  <Text style={styles.paragraph}>{center.services.join(', ')}</Text>
                 </View>
-                {center.duration && (
-                  <View style={styles.durationContainer}>
-                    <Ionicons name="time-outline" size={16} color="#0A84FF" />
-                    <Text style={styles.durationText}>{center.duration}</Text>
-                  </View>
-                )}
+              ) : null}
+
+              {Array.isArray(center.methods) && center.methods.length > 0 ? (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Методы и подход</Text>
+                  <Text style={styles.paragraph}>{center.methods.join(', ')}</Text>
+                </View>
+              ) : null}
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Условия проживания</Text>
+                <Text style={styles.paragraph}>{anyCenter.accommodation || 'Условия проживания уточняются. Обычно это 2–3-местные комнаты, питание и дневной распорядок с терапией.'}</Text>
               </View>
 
-              {/* Дополнительная информация */}
-              <View style={styles.additionalInfoContainer}>
-                {center.capacity && (
-                  <View style={styles.infoItem}>
-                    <Ionicons name="people-outline" size={16} color="#0A84FF" />
-                    <Text style={styles.infoLabel}>Вместимость:</Text>
-                    <Text style={styles.infoValue}>{center.capacity} мест</Text>
-                  </View>
-                )}
-                {center.yearFounded && (
-                  <View style={styles.infoItem}>
-                    <Ionicons name="calendar-outline" size={16} color="#0A84FF" />
-                    <Text style={styles.infoLabel}>Основан:</Text>
-                    <Text style={styles.infoValue}>{center.yearFounded}</Text>
-                  </View>
-                )}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Стоимость и программы</Text>
+                <Text style={styles.paragraph}>
+                  {center.priceFrom ? `Проживание от ${center.priceFrom.toLocaleString('ru-RU')} ₽ в день.` : 'Стоимость по запросу.'}
+                  {center.duration ? ` Программа: ${center.duration}.` : ''}
+                </Text>
               </View>
 
-              {/* Теги/Специализации */}
-              {center.tags && center.tags.length > 0 && (
-                <View style={styles.tagsContainer}>
-                  <Text style={styles.tagsTitle}>Специализации:</Text>
-                  <View style={styles.tagsList}>
-                    {center.tags.map((tag, index) => (
-                      <View key={index} style={styles.tag}>
-                        <BlurView intensity={10} tint="light" style={styles.tagBlur}>
-                          <LinearGradient
-                            colors={['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
-                            style={styles.tagGradient}
-                          >
-                            <Text style={styles.tagText}>{tag}</Text>
-                          </LinearGradient>
-                        </BlurView>
-                      </View>
-                    ))}
-                  </View>
+              {Array.isArray(anyCenter.extras) && anyCenter.extras.length > 0 ? (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Дополнительные услуги</Text>
+                  <Text style={styles.paragraph}>{anyCenter.extras.join(', ')}</Text>
                 </View>
-              )}
+              ) : null}
 
-              {/* Методы лечения */}
-              {center.methods && center.methods.length > 0 && (
-                <View style={styles.methodsContainer}>
-                  <Text style={styles.methodsTitle}>Методы лечения:</Text>
-                  <View style={styles.methodsList}>
-                    {center.methods.map((method, index) => (
-                      <View key={index} style={styles.methodTag}>
-                        <BlurView intensity={10} tint="light" style={styles.methodBlur}>
-                          <LinearGradient
-                            colors={['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
-                            style={styles.methodGradient}
-                          >
-                            <Text style={styles.methodText}>{method}</Text>
-                          </LinearGradient>
-                        </BlurView>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
-
-              {/* Услуги */}
-              <View style={styles.servicesContainer}>
-                <Text style={styles.servicesTitle}>Услуги:</Text>
-                <View style={styles.servicesList}>
-                  {(center.services || []).map((service, index) => (
-                    <View key={index} style={styles.serviceTag}>
-                      <BlurView intensity={10} tint="light" style={styles.serviceBlur}>
-                        <LinearGradient
-                          colors={['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
-                          style={styles.serviceGradient}
-                        >
-                          <Text style={styles.serviceText}>{service}</Text>
-                        </LinearGradient>
-                      </BlurView>
-                    </View>
+              {Array.isArray(anyCenter.reviews) && anyCenter.reviews.length > 0 ? (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Отзывы</Text>
+                  {anyCenter.reviews.slice(0,2).map((r: any, i: number) => (
+                    <Text key={i} style={styles.quote}>“{r.text || r.comment}” — {r.userName || r.name}</Text>
                   ))}
                 </View>
+              ) : null}
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Контакты</Text>
+                {center.phone ? (
+                  <TouchableOpacity style={styles.contactLine} onPress={handleCall}>
+                    <Ionicons name="call" size={18} color="#0A84FF" />
+                    <Text style={styles.contactLineText}>{center.phone}</Text>
+                  </TouchableOpacity>
+                ) : null}
+                {center.email ? (
+                  <TouchableOpacity style={styles.contactLine} onPress={handleEmail}>
+                    <Ionicons name="mail" size={18} color="#0A84FF" />
+                    <Text style={styles.contactLineText}>{center.email}</Text>
+                  </TouchableOpacity>
+                ) : null}
+                {center.location || center.address ? (
+                  <TouchableOpacity style={styles.contactLine} onPress={handleMap}>
+                    <Ionicons name="map" size={18} color="#0A84FF" />
+                    <Text style={styles.contactLineText}>{center.location || center.address}</Text>
+                  </TouchableOpacity>
+                ) : null}
               </View>
 
-              {/* Контактная информация */}
-              <View style={styles.contactContainer}>
-                <Text style={styles.contactTitle}>Контакты:</Text>
-                
-                <TouchableOpacity style={styles.contactItem} onPress={handleCall}>
-                  <BlurView intensity={10} tint="light" style={styles.contactBlur}>
-                    <LinearGradient
-                      colors={['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
-                      style={styles.contactGradient}
-                    >
-                      <Ionicons name="call" size={20} color="#0A84FF" />
-                      <Text style={styles.contactText}>{center.phone}</Text>
-                    </LinearGradient>
-                  </BlurView>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.contactItem} onPress={handleEmail}>
-                  <BlurView intensity={10} tint="light" style={styles.contactBlur}>
-                    <LinearGradient
-                      colors={['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
-                      style={styles.contactGradient}
-                    >
-                      <Ionicons name="mail" size={20} color="#0A84FF" />
-                      <Text style={styles.contactText}>{center.email}</Text>
-                    </LinearGradient>
-                  </BlurView>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.contactItem} onPress={handleMap}>
-                  <BlurView intensity={10} tint="light" style={styles.contactBlur}>
-                    <LinearGradient
-                      colors={['rgba(129, 212, 250, 0.3)', 'rgba(66, 165, 245, 0.2)']}
-                      style={styles.contactGradient}
-                    >
-                      <Ionicons name="map" size={20} color="#0A84FF" />
-                      <Text style={styles.contactText}>Открыть на карте</Text>
-                    </LinearGradient>
-                  </BlurView>
-                </TouchableOpacity>
-              </View>
+              {(anyCenter.license || anyCenter.inn || anyCenter.ogrn) ? (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Юридическая информация</Text>
+                  {anyCenter.license ? (<Text style={styles.paragraph}><Text style={styles.metaLabel}>Лицензия: </Text>{anyCenter.license}</Text>) : null}
+                  {anyCenter.inn ? (<Text style={styles.paragraph}><Text style={styles.metaLabel}>ИНН: </Text>{anyCenter.inn}</Text>) : null}
+                  {anyCenter.ogrn ? (<Text style={styles.paragraph}><Text style={styles.metaLabel}>ОГРН: </Text>{anyCenter.ogrn}</Text>) : null}
+                </View>
+              ) : null}
+              </>
+              ); })()}
             </View>
           </ScrollView>
         </LinearGradient>
@@ -476,7 +422,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'transparent',
-    marginHorizontal: 5, // Горизонтальные отступы по 5px слева и справа
+    marginHorizontal: 16, // Единые горизонтальные отступы
   },
   blurContainer: {
     flex: 1,
@@ -593,6 +539,52 @@ const styles = StyleSheet.create({
   textContainer: {
     paddingHorizontal: 16,
     paddingVertical: 20,
+  },
+  section: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  paragraph: {
+    fontSize: 14,
+    color: '#1a1a1a',
+    lineHeight: 22,
+  },
+  metaGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  metaItem: {
+    fontSize: 13,
+    color: '#333',
+  },
+  metaLabel: {
+    color: '#666',
+    fontWeight: '600',
+  },
+  quote: {
+    fontSize: 13,
+    color: '#333',
+    fontStyle: 'italic',
+    marginTop: 6,
+  },
+  contactLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 6,
+  },
+  contactLineText: {
+    fontSize: 14,
+    color: '#0A84FF',
+    fontWeight: '600',
   },
   title: {
     fontSize: 24,

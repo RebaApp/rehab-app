@@ -337,10 +337,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     paddingTop: responsivePadding(50), // Отступ для статус-бара
+    alignSelf: 'stretch', // гарантия полной ширины при центрировании родителя
   },
   scrollContainer: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    alignSelf: 'stretch',
   },
   scrollContent: {
     paddingBottom: responsivePadding(100),
@@ -348,7 +350,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 5,
+    paddingHorizontal: 10,
   },
   
   // Общие стили кнопок
@@ -384,11 +386,12 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   userGradient: {
-    paddingHorizontal: 5,
+    paddingHorizontal: 16,
+    paddingVertical: responsivePadding(16),
   },
   userInfo: {
     alignItems: 'flex-start',
-    marginBottom: responsivePadding(16),
+    marginBottom: responsivePadding(32),
   },
   userDetails: {
     alignItems: 'flex-start',
@@ -433,7 +436,8 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   authGradient: {
-    paddingHorizontal: 5,
+    paddingHorizontal: 16,
+    paddingVertical: responsivePadding(16),
   },
   authContent: {
     alignItems: 'flex-start',
@@ -473,7 +477,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   additionalGradient: {
-    paddingHorizontal: 5,
+    paddingHorizontal: 16,
   },
   additionalButtonsContainer: {
     width: '100%',
