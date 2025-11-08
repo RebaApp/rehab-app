@@ -1,9 +1,8 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { PrismaClient } = require('@prisma/client');
 const { authMiddleware } = require('../middleware/auth');
+const prisma = require('../utils/prisma');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 // Get user profile

@@ -24,11 +24,23 @@ export interface AuthResult {
 }
 
 class AuthService {
-  // ВАЖНО: Замените эти значения на ваши реальные Client ID и Secret из Яндекс.OAuth
-  private yandexClientId = 'b08282bbc8e8435d88e7c02b2098496f';
-  private yandexClientSecret = 'ba5c7710a1fa4cd58ecccbacc514c890';
+  // Yandex OAuth credentials из переменных окружения
+  private yandexClientId: string;
+  private yandexClientSecret: string;
 
   constructor() {
+    // Получаем значения из переменных окружения
+    this.yandexClientId = process.env.EXPO_PUBLIC_YANDEX_CLIENT_ID || '';
+    this.yandexClientSecret = process.env.EXPO_PUBLIC_YANDEX_CLIENT_SECRET || '';
+
+    // Проверяем, что секреты установлены
+    if (!this.yandexClientId || !this.yandexClientSecret) {
+      console.warn(
+        '⚠️ Yandex OAuth credentials не найдены в переменных окружения. ' +
+        'Убедитесь, что EXPO_PUBLIC_YANDEX_CLIENT_ID и EXPO_PUBLIC_YANDEX_CLIENT_SECRET установлены в .env файле.'
+      );
+    }
+
     // Настраиваем WebBrowser для правильной работы
     WebBrowser.maybeCompleteAuthSession();
   }
