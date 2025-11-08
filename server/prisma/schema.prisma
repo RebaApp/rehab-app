@@ -46,6 +46,11 @@ model Center {
   license         String?
   verified        Boolean  @default(false)
   verifiedUntil   String?
+  moderationStatus ModerationStatus @default(PENDING) // Статус модерации
+  moderationComment String? // Комментарий модератора (если отклонен)
+  subscriptionStatus SubscriptionStatus @default(INACTIVE) // Статус подписки
+  subscriptionEndDate DateTime? // Дата окончания подписки
+  subscriptionPlan String? // План подписки: 1month, 6months, 12months
   rating          Float    @default(0)
   price           String?
   coordinates     Json?    // { latitude: number, longitude: number }
@@ -67,6 +72,8 @@ model Center {
   @@index([rating])         // Сортировка по рейтингу
   @@index([verified])       // Фильтрация верифицированных центров
   @@index([ownerId])        // Поиск центров владельца
+  @@index([moderationStatus]) // Фильтрация по статусу модерации
+  @@index([subscriptionStatus]) // Фильтрация по статусу подписки
   @@map("centers")
 }
 
@@ -163,4 +170,16 @@ enum BookingStatus {
   CONFIRMED
   CANCELLED
   COMPLETED
+}
+
+enum ModerationStatus {
+  PENDING      // На модерации
+  APPROVED     // Одобрен
+  REJECTED     // Отклонен
+}
+
+enum SubscriptionStatus {
+  INACTIVE     // Подписка не активна
+  ACTIVE       // Подписка активна
+  EXPIRED      // Подписка истекла
 }

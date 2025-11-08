@@ -8,9 +8,8 @@ import {
   onAuthStateChanged as firebaseOnAuthStateChanged,
   User as FirebaseUser
 } from 'firebase/auth';
-import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
-import { Linking } from 'react-native';
+import apiService from './apiService';
 
 export interface AuthError {
   code: string;
@@ -21,6 +20,7 @@ export interface AuthResult {
   success: boolean;
   user?: User;
   error?: AuthError;
+  warning?: AuthError; // Предупреждение (не критичная ошибка, например, backend недоступен)
 }
 
 class AuthService {
@@ -127,15 +127,81 @@ class AuthService {
         
         console.log('👤 Информация о пользователе от Яндекса:', userInfo);
         
-        // Создаем объект пользователя для нашего приложения
+        // Синхронизируем пользователя с backend
+        console.log('🔄 Синхронизируем пользователя с backend...');
+        
+        const email = userInfo.default_email || userInfo.emails?.[0] || '';
+        const name = userInfo.display_name || userInfo.real_name || userInfo.login || 'Пользователь';
+        const avatar = userInfo.default_avatar_id 
+          ? `https://avatars.yandex.net/get-yapic/${userInfo.default_avatar_id}/islands-200` 
+          : undefined;
+        
+        const syncResult = await apiService.syncYandexUser({
+          email,
+          name,
+          yandexId: userInfo.id,
+          ...(avatar && { avatar }),
+          ...(userInfo.default_phone?.number && { phone: userInfo.default_phone.number })
+        });
+
+        if (!syncResult.success || !syncResult.data) {
+          // Проверяем, является ли это ошибкой сети (backend недоступен)
+          const isNetworkError = syncResult.error?.includes('Network request failed') || 
+                                 syncResult.error?.includes('Failed to fetch') ||
+                                 syncResult.error?.includes('fetch failed');
+          
+          if (isNetworkError) {
+            console.warn('⚠️ Backend недоступен, используем локальный режим. Запустите сервер для полной синхронизации.');
+          } else {
+            console.error('❌ Ошибка синхронизации с backend:', syncResult.error);
+          }
+          
+          // Возвращаем локального пользователя даже если синхронизация не удалась
+          // Это позволяет пользователю работать в офлайн режиме
+          const appUser: User = {
+            id: userInfo.id,
+            email,
+            name,
+            userType: 'USER',
+            ...(avatar && { avatar, photo: avatar }), // Для обратной совместимости
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          
+          return {
+            success: true,
+            user: appUser,
+            ...(isNetworkError ? {
+              warning: {
+                code: 'BACKEND_UNAVAILABLE',
+                message: 'Сервер недоступен. Работаем в локальном режиме.'
+              }
+            } : {
+              error: {
+                code: 'SYNC_ERROR',
+                message: 'Не удалось синхронизировать с сервером, но вход выполнен'
+              }
+            })
+          };
+        }
+
+        console.log('✅ Пользователь успешно синхронизирован с backend');
+        
+        // Используем данные пользователя из backend
+        const backendAvatar = (syncResult.data.user as any).avatar;
         const appUser: User = {
-          id: userInfo.id,
-          email: userInfo.default_email || userInfo.emails?.[0] || '',
-          name: userInfo.display_name || userInfo.real_name || userInfo.login || 'Пользователь',
-          userType: 'USER',
-          photo: userInfo.default_avatar_id ? `https://avatars.yandex.net/get-yapic/${userInfo.default_avatar_id}/islands-200` : '',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          id: syncResult.data.user.id,
+          email: syncResult.data.user.email,
+          name: syncResult.data.user.name || name,
+          userType: syncResult.data.user.userType || 'USER',
+          ...(syncResult.data.user.phone && { phone: syncResult.data.user.phone }),
+          ...(syncResult.data.user.age && { age: syncResult.data.user.age }),
+          ...((backendAvatar || avatar) && { 
+            avatar: backendAvatar || avatar,
+            photo: backendAvatar || avatar // Для обратной совместимости
+          }),
+          createdAt: syncResult.data.user.createdAt || new Date().toISOString(),
+          updatedAt: syncResult.data.user.updatedAt || new Date().toISOString(),
         };
 
         return {
@@ -245,6 +311,8 @@ class AuthService {
   async signOut(): Promise<void> {
     try {
       await firebaseSignOut(auth);
+      // Также выходим из backend
+      await apiService.logout();
     } catch (error) {
       console.error('Sign out error:', error);
     }

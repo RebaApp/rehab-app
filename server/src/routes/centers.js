@@ -25,6 +25,33 @@ router.get('/', [
     // Build where clause
     const where = {};
     
+    // Показываем только одобренные центры с активной подпиской
+    // Проверяем, есть ли новые поля в схеме БД
+    try {
+      const schema = await prisma.$queryRaw`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'centers' 
+        AND column_name IN ('moderationStatus', 'subscriptionStatus', 'subscriptionEndDate')
+      `;
+      
+      const hasModerationFields = schema && schema.length > 0;
+      
+      if (hasModerationFields) {
+        where.moderationStatus = 'APPROVED';
+        where.subscriptionStatus = 'ACTIVE';
+        where.subscriptionEndDate = {
+          gte: new Date() // Дата окончания >= сегодня
+        };
+      } else {
+        // Если поля еще не применены, показываем все центры (для обратной совместимости)
+        console.log('Поля модерации еще не применены. Показываем все центры.');
+      }
+    } catch (error) {
+      // Если ошибка проверки схемы, показываем все центры
+      console.log('Ошибка проверки схемы БД:', error.message);
+    }
+    
     if (city) {
       where.city = { contains: city, mode: 'insensitive' };
     }
@@ -191,33 +218,55 @@ router.post('/', authMiddleware, [
       coordinates, types = [], services = [], methods = []
     } = req.body;
 
-    // Create center
-    const center = await prisma.center.create({
-      data: {
-        name,
-        city,
-        address,
-        description,
-        phone,
-        email,
-        website,
-        workingHours,
-        capacity: capacity ? parseInt(capacity) : null,
-        yearFounded: yearFounded ? parseInt(yearFounded) : null,
-        license,
-        price,
-        coordinates: coordinates ? JSON.stringify(coordinates) : null,
-        ownerId: req.user.id,
-        types: {
-          connect: types.map(typeId => ({ id: typeId }))
-        },
-        services: {
-          connect: services.map(serviceId => ({ id: serviceId }))
-        },
-        methods: {
-          connect: methods.map(methodId => ({ id: methodId }))
-        }
+    // Create center - по умолчанию статус PENDING (на модерации)
+    // Проверяем, есть ли новые поля в схеме БД
+    const centerData = {
+      name,
+      city,
+      address,
+      description,
+      phone,
+      email,
+      website,
+      workingHours,
+      capacity: capacity ? parseInt(capacity) : null,
+      yearFounded: yearFounded ? parseInt(yearFounded) : null,
+      license,
+      price,
+      coordinates: coordinates ? JSON.stringify(coordinates) : null,
+      ownerId: req.user.id,
+      types: {
+        connect: types.map(typeId => ({ id: typeId }))
       },
+      services: {
+        connect: services.map(serviceId => ({ id: serviceId }))
+      },
+      methods: {
+        connect: methods.map(methodId => ({ id: methodId }))
+      }
+    };
+
+    // Пытаемся добавить новые поля, если они есть в схеме
+    try {
+      // Проверяем, существует ли поле moderationStatus в схеме
+      const schema = await prisma.$queryRaw`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'centers' 
+        AND column_name = 'moderationStatus'
+      `;
+      
+      if (schema && schema.length > 0) {
+        centerData.moderationStatus = 'PENDING';
+        centerData.subscriptionStatus = 'INACTIVE';
+      }
+    } catch (error) {
+      // Если поля нет, просто не добавляем их
+      console.log('Новые поля модерации еще не применены к БД. Примените миграцию: npx prisma db push');
+    }
+
+    const center = await prisma.center.create({
+      data: centerData,
       include: {
         types: true,
         services: true,
@@ -353,6 +402,61 @@ router.get('/methods/list', async (req, res) => {
     res.json({ methods });
   } catch (error) {
     console.error('Get methods error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Subscribe to center (pay for subscription)
+router.post('/:id/subscribe', authMiddleware, centerOwnerMiddleware, [
+  body('plan').isIn(['1month', '6months', '12months']),
+  body('paymentMethod').optional().trim()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { id } = req.params;
+    const { plan } = req.body;
+
+    // Проверяем, что центр одобрен модерацией
+    const center = await prisma.center.findUnique({
+      where: { id }
+    });
+
+    if (!center) {
+      return res.status(404).json({ error: 'Center not found' });
+    }
+
+    if (center.moderationStatus !== 'APPROVED') {
+      return res.status(400).json({ 
+        error: 'Center must be approved by moderation before subscription' 
+      });
+    }
+
+    // Вычисляем дату окончания подписки
+    const subscriptionEndDate = new Date();
+    const months = plan === '1month' ? 1 : plan === '6months' ? 6 : 12;
+    subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + months);
+
+    // Обновляем статус подписки
+    const updatedCenter = await prisma.center.update({
+      where: { id },
+      data: {
+        subscriptionStatus: 'ACTIVE',
+        subscriptionEndDate,
+        subscriptionPlan: plan
+      }
+    });
+
+    res.json({
+      message: 'Subscription activated successfully',
+      center: updatedCenter
+    });
+
+  } catch (error) {
+    console.error('Subscribe error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

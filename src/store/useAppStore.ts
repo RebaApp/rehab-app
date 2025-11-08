@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { AppStore, Center, User, Article } from '../types';
+import { AppStore, Center, User, Article, Review } from '../types';
 import { ARTICLES, CENTERS } from '../utils/constants';
 import authService from '../services/authService';
+import apiService from '../services/apiService';
 
 // Веб-совместимый store с оригинальными данными
 const useAppStore = create<AppStore>((set, get) => ({
@@ -133,15 +134,109 @@ const useAppStore = create<AppStore>((set, get) => ({
       setCentersLoading: (loading) => set({ centersLoading: loading }),
       setCentersError: (error) => set({ centersError: error }),
 
-      loadCenters: async () => {
+      loadCenters: async (filters: Record<string, string | number | boolean> = {}) => {
         console.log('🔄 loadCenters вызван - начинаем загрузку...');
         set({ centersLoading: true, centersError: null });
         try {
-      // Mock API call with realistic delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Оригинальные данные центров с вашими изображениями
-          const mockCenters: Center[] = [
+          // Пытаемся загрузить центры с реального API
+          const result = await apiService.getCenters(filters);
+          
+          if (result.success && result.data) {
+            // Backend возвращает { centers: [...], pagination: {...} }
+            // Но apiService может вернуть { data: [...], pagination: {...} }
+            // Обрабатываем оба формата
+            const centersData = (result.data as any).centers || result.data.data || result.data;
+            
+            if (!Array.isArray(centersData)) {
+              throw new Error('Invalid response format');
+            }
+            
+            // Преобразуем данные из backend формата в frontend формат
+            const transformedCenters: Center[] = centersData.map((center: any) => {
+              // Преобразуем photos из массива объектов в массив URL
+              const photos = center.photos?.map((photo: any) => photo.url || photo) || [];
+              
+              // Преобразуем services из массива объектов в массив названий
+              const services = center.services?.map((service: any) => service.name || service) || [];
+              
+              // Преобразуем methods из массива объектов в массив названий
+              const methods = center.methods?.map((method: any) => method.name || method) || [];
+              
+              // Преобразуем reviews
+              const reviews: Review[] = center.reviews?.map((review: any) => ({
+                id: review.id || '',
+                userName: review.user?.name || review.userName || 'Анонимный',
+                rating: review.rating || 0,
+                text: review.text || review.comment || '',
+                date: review.createdAt || review.date || new Date().toISOString(),
+              })) || [];
+              
+              // Формируем price из priceFrom и priceTo, если они есть
+              let price = center.price || '';
+              if (!price && (center.priceFrom || center.priceTo)) {
+                if (center.priceFrom && center.priceTo) {
+                  price = `от ${center.priceFrom.toLocaleString('ru-RU')} до ${center.priceTo.toLocaleString('ru-RU')} ₽/месяц`;
+                } else if (center.priceFrom) {
+                  price = `от ${center.priceFrom.toLocaleString('ru-RU')} ₽/месяц`;
+                }
+              }
+              
+              return {
+                id: center.id,
+                name: center.name,
+                city: center.city,
+                address: center.address,
+                phone: center.phone || '',
+                email: center.email || '',
+                website: center.website,
+                rating: center.rating || 0,
+                reviewsCount: center.reviewsCount || center._count?.reviews || 0,
+                verified: center.verified || false,
+                photos: photos.length > 0 ? photos : (center.image ? [center.image] : []),
+                services,
+                description: center.description || center.shortDescription || '',
+                descriptionFull: center.descriptionFull || center.description || '',
+                price,
+                coordinates: center.coordinates || (center.latitude && center.longitude ? {
+                  latitude: center.latitude,
+                  longitude: center.longitude
+                } : { latitude: 0, longitude: 0 }),
+                workingHours: center.workingHours || '',
+                capacity: center.capacity || 0,
+                yearFounded: center.yearFounded || 0,
+                license: center.license || '',
+                methods,
+                reviews,
+                createdAt: center.createdAt,
+                updatedAt: center.updatedAt,
+              } as Center;
+            });
+            
+            console.log('✅ Центры загружены с API:', transformedCenters.length, 'центров');
+            
+            set({ 
+              centers: transformedCenters, 
+              centersLoading: false,
+              centersError: null,
+              lastCentersUpdate: Date.now(),
+            });
+            
+            return;
+          }
+          
+          // Если API недоступен, используем моки как fallback
+          console.warn('⚠️ API недоступен, используем моки');
+          throw new Error('API unavailable');
+          
+        } catch (error) {
+          console.warn('⚠️ Ошибка загрузки центров с API, используем моки:', error);
+          
+          // Fallback на моки
+          try {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Оригинальные данные центров с вашими изображениями
+            const mockCenters: Center[] = [
             {
               id: '1',
           name: 'Центр "Новая Жизнь"',
@@ -412,27 +507,25 @@ const useAppStore = create<AppStore>((set, get) => ({
           methods: ['Групповая терапия', 'КПТ'],
           reviews: [],
         },
-          ];
-          
-          console.log('✅ Центры загружены:', mockCenters.length, 'центров');
-          console.log('📸 Первый центр photos:', mockCenters[0]?.photos);
-          
-          set({ 
-            centers: mockCenters, 
-            centersLoading: false,
-        centersError: null,
-        lastCentersUpdate: Date.now(),
-          });
-
-      return;
-        } catch (error) {
-          set({ 
-            centersLoading: false,
-        centersError: 'Failed to load centers',
-      });
-      return;
-    }
-  },
+            ];
+            
+            console.log('✅ Центры загружены из моков:', mockCenters.length, 'центров');
+            
+            set({ 
+              centers: mockCenters, 
+              centersLoading: false,
+              centersError: null, // Не показываем ошибку, если используем моки
+              lastCentersUpdate: Date.now(),
+            });
+          } catch (fallbackError) {
+            console.error('❌ Ошибка загрузки моков:', fallbackError);
+            set({ 
+              centersLoading: false,
+              centersError: 'Не удалось загрузить центры',
+            });
+          }
+        }
+      },
 
   refreshCenters: async () => {
     return get().loadCenters();
@@ -690,6 +783,67 @@ const useAppStore = create<AppStore>((set, get) => ({
       authLoading: false 
     });
     console.log('✅ Store: Выход выполнен');
+  },
+
+  // === PROFILE ACTIONS ===
+  getUserProfile: async () => {
+    set({ authLoading: true });
+    try {
+      const result = await apiService.getUserProfile();
+      
+      if (result.success && result.data) {
+        set({ 
+          user: result.data,
+          isAuthenticated: true,
+          authLoading: false 
+        });
+        return { success: true, data: result.data };
+      } else {
+        set({ authLoading: false });
+        return { 
+          success: false, 
+          error: result.error || 'Failed to get profile' 
+        };
+      }
+    } catch (error) {
+      set({ authLoading: false });
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
+  },
+
+  updateProfile: async (profileData: {
+    name?: string;
+    phone?: string;
+    age?: number;
+    avatar?: string;
+  }) => {
+    set({ authLoading: true });
+    try {
+      const result = await apiService.updateProfile(profileData);
+      
+      if (result.success && result.data) {
+        set({ 
+          user: result.data,
+          authLoading: false 
+        });
+        return { success: true, data: result.data };
+      } else {
+        set({ authLoading: false });
+        return { 
+          success: false, 
+          error: result.error || 'Failed to update profile' 
+        };
+      }
+    } catch (error) {
+      set({ authLoading: false });
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
   },
 }));
 

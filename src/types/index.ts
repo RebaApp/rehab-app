@@ -4,7 +4,8 @@ export interface User {
   email: string;
   name: string;
   userType: 'USER' | 'ADMIN' | 'CENTER_OWNER';
-  photo?: string;
+  photo?: string; // Для обратной совместимости
+  avatar?: string; // Основное поле (соответствует backend)
   age?: number;
   phone?: string;
   createdAt: string;
@@ -12,6 +13,10 @@ export interface User {
 }
 
 // === CENTER TYPES ===
+export type ModerationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type SubscriptionStatus = 'INACTIVE' | 'ACTIVE' | 'EXPIRED';
+export type SubscriptionPlan = '1month' | '6months' | '12months';
+
 export interface Center {
   id: string;
   name: string;
@@ -23,6 +28,11 @@ export interface Center {
   rating: number;
   reviewsCount: number;
   verified: boolean;
+  moderationStatus?: ModerationStatus; // Статус модерации
+  moderationComment?: string; // Комментарий модератора
+  subscriptionStatus?: SubscriptionStatus; // Статус подписки
+  subscriptionEndDate?: string; // Дата окончания подписки
+  subscriptionPlan?: SubscriptionPlan; // План подписки
   photos: string[];
   services: string[];
   description: string;
@@ -210,6 +220,13 @@ export interface AppStore extends AuthState, CentersState, FavoritesState, Artic
   register: (email: string, password: string, userData: Partial<User>) => Promise<ApiResponse<User>>;
   loginWithYandex: () => Promise<ApiResponse<User>>;
   logout: () => void;
+  getUserProfile: () => Promise<ApiResponse<User>>;
+  updateProfile: (profileData: {
+    name?: string;
+    phone?: string;
+    age?: number;
+    avatar?: string;
+  }) => Promise<ApiResponse<User>>;
   
   // Centers actions
   setCenters: (centers: Center[]) => void;

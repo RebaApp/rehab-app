@@ -149,11 +149,13 @@ router.get('/me', require('../middleware/auth').authMiddleware, async (req, res)
   }
 });
 
-// Update profile
-router.put('/profile', require('../middleware/auth').authMiddleware, [
-  body('name').optional().trim().isLength({ min: 2 }),
-  body('phone').optional().isMobilePhone('ru-RU'),
-  body('age').optional().isInt({ min: 18, max: 100 })
+// Yandex OAuth sync - синхронизация пользователя из Яндекс OAuth
+router.post('/yandex', [
+  body('email').isEmail().normalizeEmail(),
+  body('name').trim().isLength({ min: 2 }),
+  body('yandexId').trim().isLength({ min: 1 }),
+  body('avatar').optional().isURL(),
+  body('phone').optional().isMobilePhone('ru-RU')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -161,12 +163,109 @@ router.put('/profile', require('../middleware/auth').authMiddleware, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, phone, age } = req.body;
+    const { email, name, yandexId, avatar, phone } = req.body;
+
+    // Check if user already exists
+    let user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (user) {
+      // User exists - update if needed and return token
+      const updateData = {};
+      if (name && name !== user.name) updateData.name = name;
+      if (avatar && avatar !== user.avatar) updateData.avatar = avatar;
+      if (phone && phone !== user.phone) updateData.phone = phone;
+
+      if (Object.keys(updateData).length > 0) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: updateData,
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            userType: true,
+            phone: true,
+            age: true,
+            avatar: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        });
+      } else {
+        // Return user without password
+        const { password: _, ...userData } = user;
+        user = userData;
+      }
+    } else {
+      // Create new user - для OAuth пользователей генерируем случайный пароль
+      // (они не будут использовать его, но поле обязательное в схеме)
+      const randomPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
+      const hashedPassword = await bcrypt.hash(randomPassword, 12);
+
+      user = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword, // Случайный пароль, пользователь не будет его использовать
+          name,
+          phone: phone || null,
+          avatar: avatar || null,
+          userType: 'USER'
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          userType: true,
+          phone: true,
+          age: true,
+          avatar: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
+    res.json({
+      message: 'Yandex authentication successful',
+      user,
+      token
+    });
+
+  } catch (error) {
+    console.error('Yandex auth error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update profile
+router.put('/profile', require('../middleware/auth').authMiddleware, [
+  body('name').optional().trim().isLength({ min: 2 }),
+  body('phone').optional().isMobilePhone('ru-RU'),
+  body('age').optional().isInt({ min: 18, max: 100 }),
+  body('avatar').optional().isURL()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { name, phone, age, avatar } = req.body;
     const updateData = {};
 
     if (name) updateData.name = name;
     if (phone) updateData.phone = phone;
     if (age) updateData.age = parseInt(age);
+    if (avatar) updateData.avatar = avatar;
 
     const user = await prisma.user.update({
       where: { id: req.user.id },
